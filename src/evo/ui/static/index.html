@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>EVO Terrarium</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Sora:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/static/app.css" />
+  </head>
+  <body>
+    <div class="atmosphere" aria-hidden="true"></div>
+    <header class="hero">
+      <p class="brand">EVO</p>
+      <h1>Terrarium</h1>
+      <p class="lede">
+        Bounded evolutionary coding experiments. Propose one mutation, evaluate
+        it, never hand the kernel the keys.
+      </p>
+      <div class="hero-actions">
+        <a class="button primary" href="#workspace">Open workspace</a>
+        <button class="button ghost" type="button" id="run-doctor">
+          Check configuration
+        </button>
+      </div>
+    </header>
+
+    <main id="workspace" class="workspace">
+      <section class="panel status-panel" aria-labelledby="status-title">
+        <div class="panel-head">
+          <h2 id="status-title">Host status</h2>
+          <p id="status-summary">Loading configuration…</p>
+        </div>
+        <dl class="status-grid" id="status-grid"></dl>
+      </section>
+
+      <section class="panel" aria-labelledby="settings-title">
+        <div class="panel-head">
+          <h2 id="settings-title">Settings</h2>
+          <p>Provider credentials stay on the host. The UI never displays raw keys.</p>
+        </div>
+        <form id="settings-form" class="form-grid">
+          <label>
+            Provider
+            <select name="provider" id="provider">
+              <option value="groq">Groq</option>
+              <option value="nvidia">NVIDIA NIM</option>
+            </select>
+          </label>
+          <label>
+            Model
+            <input name="model" id="model" autocomplete="off" required />
+          </label>
+          <label class="wide">
+            Base URL
+            <input name="base_url" id="base_url" autocomplete="off" required />
+          </label>
+          <label class="wide">
+            API key
+            <input
+              name="api_key"
+              id="api_key"
+              type="password"
+              autocomplete="off"
+              placeholder="Leave blank to keep the saved key"
+            />
+          </label>
+          <label>
+            Max input tokens
+            <input name="max_input_tokens" id="max_input_tokens" type="number" min="1" required />
+          </label>
+          <label>
+            Max output tokens
+            <input name="max_output_tokens" id="max_output_tokens" type="number" min="1" required />
+          </label>
+          <label>
+            Max calls per run
+            <input name="max_calls_per_run" id="max_calls_per_run" type="number" min="1" required />
+          </label>
+          <label>
+            Request timeout (s)
+            <input
+              name="request_timeout_seconds"
+              id="request_timeout_seconds"
+              type="number"
+              min="1"
+              required
+            />
+          </label>
+          <div class="form-actions wide">
+            <button class="button primary" type="submit">Save settings</button>
+            <button class="button ghost" type="button" id="run-probe">Probe provider</button>
+          </div>
+        </form>
+      </section>
+
+      <section class="panel evolve-panel" aria-labelledby="evolve-title">
+        <div class="panel-head">
+          <h2 id="evolve-title">Run one generation</h2>
+          <p>Produces an eligible or rejected candidate. Nothing is applied to the repo.</p>
+        </div>
+        <form id="evolve-form" class="form-grid">
+          <label class="wide">
+            Objective
+            <textarea
+              name="task"
+              id="task"
+              rows="4"
+              required
+              placeholder="Improve input validation without changing public behavior."
+            ></textarea>
+          </label>
+          <label class="wide">
+            Mutable paths
+            <input
+              name="mutable_paths"
+              id="mutable_paths"
+              value="organisms/"
+              required
+            />
+          </label>
+          <div class="form-actions wide">
+            <button class="button primary" type="submit">Evolve</button>
+          </div>
+        </form>
+        <pre class="result" id="evolve-result" hidden></pre>
+      </section>
+
+      <section class="panel" aria-labelledby="audit-title">
+        <div class="panel-head audit-head">
+          <div>
+            <h2 id="audit-title">Audit trail</h2>
+            <p>Redacted local events from `.evo/audit.jsonl`.</p>
+          </div>
+          <label class="search">
+            <span class="sr-only">Search</span>
+            <input
+              id="global-search"
+              type="search"
+              placeholder="Search audit, status, settings…"
+              autocomplete="off"
+            />
+          </label>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">Action</th>
+                <th scope="col">When</th>
+                <th scope="col">Event</th>
+                <th scope="col">Status</th>
+                <th scope="col">Score</th>
+                <th scope="col">Model</th>
+              </tr>
+            </thead>
+            <tbody id="audit-body">
+              <tr>
+                <td colspan="6">No audit events yet.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <p class="toast" id="toast" hidden role="status"></p>
+    <script src="/static/app.js"></script>
+  </body>
+</html>

@@ -1,0 +1,351 @@
+:root {
+  --soil: #1a241c;
+  --canopy: #234336;
+  --leaf: #3f8f6b;
+  --glass: #e7f2ea;
+  --mist: rgba(231, 242, 234, 0.72);
+  --ink: #122017;
+  --muted: #4d6357;
+  --amber: #b8892d;
+  --danger: #9b3b2f;
+  --line: rgba(18, 32, 23, 0.12);
+  --shadow: 0 24px 60px rgba(18, 32, 23, 0.18);
+  --display: "Fraunces", "Iowan Old Style", Georgia, serif;
+  --body: "Sora", "Avenir Next", sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  color: var(--ink);
+  font-family: var(--body);
+  background:
+    radial-gradient(circle at 12% 18%, rgba(63, 143, 107, 0.28), transparent 36%),
+    radial-gradient(circle at 88% 8%, rgba(184, 137, 45, 0.18), transparent 28%),
+    linear-gradient(160deg, #d7e8dc 0%, #f4f7f2 42%, #c9dccf 100%);
+}
+
+.atmosphere {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(18, 32, 23, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(18, 32, 23, 0.03) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: radial-gradient(circle at center, black 35%, transparent 90%);
+  animation: drift 18s ease-in-out infinite alternate;
+}
+
+.hero,
+.workspace {
+  position: relative;
+  width: min(1100px, calc(100% - 2rem));
+  margin: 0 auto;
+}
+
+.hero {
+  min-height: 100vh;
+  display: grid;
+  align-content: center;
+  gap: 1rem;
+  padding: 4rem 0 3rem;
+}
+
+.brand {
+  margin: 0;
+  font-family: var(--display);
+  font-size: clamp(4.5rem, 14vw, 8rem);
+  line-height: 0.85;
+  letter-spacing: -0.04em;
+  color: var(--canopy);
+  animation: rise 900ms ease both;
+}
+
+.hero h1 {
+  margin: 0;
+  font-family: var(--display);
+  font-weight: 500;
+  font-size: clamp(2rem, 5vw, 3.4rem);
+  color: var(--soil);
+  animation: rise 900ms ease 80ms both;
+}
+
+.lede {
+  max-width: 34rem;
+  margin: 0;
+  color: var(--muted);
+  font-size: 1.05rem;
+  line-height: 1.6;
+  animation: rise 900ms ease 140ms both;
+}
+
+.hero-actions,
+.form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  animation: rise 900ms ease 200ms both;
+}
+
+.button {
+  appearance: none;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  padding: 0.85rem 1.25rem;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  transition: transform 160ms ease, background 160ms ease, border-color 160ms ease;
+}
+
+.button:hover {
+  transform: translateY(-1px);
+}
+
+.button.primary {
+  background: var(--canopy);
+  color: var(--glass);
+}
+
+.button.ghost {
+  background: transparent;
+  border-color: rgba(35, 67, 54, 0.28);
+  color: var(--canopy);
+}
+
+.workspace {
+  display: grid;
+  gap: 1.25rem;
+  padding-bottom: 4rem;
+}
+
+.panel {
+  background: var(--mist);
+  border: 1px solid var(--line);
+  border-radius: 28px;
+  padding: 1.4rem 1.5rem 1.5rem;
+  backdrop-filter: blur(10px);
+  box-shadow: var(--shadow);
+  animation: rise 700ms ease both;
+}
+
+.panel-head {
+  margin-bottom: 1rem;
+}
+
+.panel-head h2,
+.audit-head h2 {
+  margin: 0 0 0.35rem;
+  font-family: var(--display);
+  font-size: 1.7rem;
+  font-weight: 500;
+}
+
+.panel-head p,
+.audit-head p {
+  margin: 0;
+  color: var(--muted);
+}
+
+.audit-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: end;
+  flex-wrap: wrap;
+}
+
+.status-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 0.85rem;
+  margin: 0;
+}
+
+.status-grid div {
+  padding: 0.9rem 1rem;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.45);
+  border: 1px solid var(--line);
+}
+
+.status-grid dt {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+
+.status-grid dd {
+  margin: 0.35rem 0 0;
+  font-weight: 600;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.95rem 1rem;
+}
+
+label {
+  display: grid;
+  gap: 0.4rem;
+  font-size: 0.92rem;
+  color: var(--muted);
+}
+
+label.wide,
+.form-actions.wide {
+  grid-column: 1 / -1;
+}
+
+input,
+select,
+textarea {
+  width: 100%;
+  border: 1px solid rgba(35, 67, 54, 0.22);
+  border-radius: 14px;
+  padding: 0.8rem 0.9rem;
+  background: rgba(255, 255, 255, 0.7);
+  color: var(--ink);
+  font: inherit;
+}
+
+textarea {
+  resize: vertical;
+  min-height: 7rem;
+}
+
+.search input {
+  min-width: min(100%, 280px);
+}
+
+.result {
+  margin: 1rem 0 0;
+  padding: 1rem;
+  overflow: auto;
+  border-radius: 18px;
+  background: rgba(18, 32, 23, 0.92);
+  color: #dff5e8;
+  font-size: 0.86rem;
+  line-height: 1.5;
+}
+
+.table-wrap {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th,
+td {
+  text-align: left;
+  padding: 0.75rem 0.55rem;
+  border-bottom: 1px solid var(--line);
+  vertical-align: top;
+  font-size: 0.92rem;
+}
+
+th:first-child,
+td:first-child {
+  width: 3.5rem;
+}
+
+.icon-button {
+  width: 2.2rem;
+  height: 2.2rem;
+  border-radius: 999px;
+  border: 1px solid rgba(35, 67, 54, 0.22);
+  background: rgba(255, 255, 255, 0.7);
+  color: var(--canopy);
+  cursor: pointer;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  background: rgba(63, 143, 107, 0.16);
+  color: var(--canopy);
+}
+
+.badge.rejected {
+  background: rgba(155, 59, 47, 0.14);
+  color: var(--danger);
+}
+
+.toast {
+  position: fixed;
+  right: 1rem;
+  bottom: 1rem;
+  margin: 0;
+  max-width: min(28rem, calc(100% - 2rem));
+  padding: 0.9rem 1rem;
+  border-radius: 16px;
+  background: var(--soil);
+  color: var(--glass);
+  box-shadow: var(--shadow);
+  animation: rise 220ms ease both;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
+
+.hidden-by-search {
+  display: none !important;
+}
+
+@media (max-width: 720px) {
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .hero {
+    min-height: auto;
+    padding-top: 3rem;
+  }
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes drift {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-18px);
+  }
+}

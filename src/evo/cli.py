@@ -7,6 +7,7 @@ import argparse
 import json
 import sys
 
+from evo import __version__
 from evo.config import ConfigurationError
 from evo.kernel.budget import BudgetExceeded
 from evo.providers.groq import ProviderError
@@ -22,6 +23,11 @@ from evo.ui import serve_ui
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="evo")
+    parser.add_argument(
+        "--version",
+        action="version",
+        version=f"%(prog)s {__version__}",
+    )
     subparsers = parser.add_subparsers(dest="command", required=True)
     for name in ("doctor", "probe"):
         command = subparsers.add_parser(name)

@@ -19,6 +19,22 @@ class KernelPolicyTests(unittest.TestCase):
         )
         self.assertFalse(decision.allowed)
 
+    def test_execution_boundary_and_test_paths_are_denied(self):
+        for path in (
+            "src/evo/sandbox.py",
+            "src/evo/worktree.py",
+            "src/evo/mutation.py",
+            "src/evo/evolution/engine.py",
+            "tests/test_policy.py",
+            "pyproject.toml",
+            ".gitmodules",
+        ):
+            with self.subTest(path=path):
+                decision = self.policy.authorize_mutation(
+                    path, ("src/", "tests/", ".")
+                )
+                self.assertFalse(decision.allowed)
+
     def test_parent_path_is_denied(self):
         decision = self.policy.authorize_mutation(
             "organisms/../../.env.local", ("organisms/",)

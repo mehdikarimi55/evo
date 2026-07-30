@@ -11,7 +11,7 @@ measurement → evidence archive → cleanup`
 - [x] Credential-free environment, disabled network, resource ceilings
 - [x] Explicit evaluator command allowlist
 - [x] Ephemeral Git worktree manager
-- [ ] Structured patch proposal and mutation applicator
+- [x] Structured patch validation and mutation applicator
 - [ ] Baseline and candidate test/benchmark evaluator
 - [ ] Reproducible candidate evidence package
 - [ ] Candidate archive and lineage database

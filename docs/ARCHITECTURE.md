@@ -39,6 +39,7 @@ implementation slice.
 | `ui` | Localhost settings, evolve, and audit console | No |
 | `sandbox` | Rootless container command boundary | No |
 | `worktree` | Ephemeral candidate branches and path validation | No |
+| `mutation` | Bounded unified-diff validation and application | No |
 | Organism prompts/tools | Behavior and strategy | Yes, after validation |
 
 ## Local UI boundary
@@ -79,6 +80,20 @@ changes without rename collapsing, applies the immutable kernel path policy,
 and rejects symlinks and binary mutations. The context-managed lifecycle removes
 the worktree and candidate branch after success or failure. It never merges a
 candidate into the trusted branch.
+
+## Mutation application boundary
+
+The mutation applicator accepts only raw Git unified diffs with explicit
+per-file headers and text hunks. It enforces byte, file, and changed-line
+ceilings before invoking Git; rejects traversal, binary content, renames,
+copies, executable or symlink modes, and immutable paths; and requires a clean
+candidate worktree. A patch must pass `git apply --check` before application.
+EVO then enumerates and validates the actual resulting changes. Rejected
+post-application state is reset and cleaned inside the ephemeral worktree.
+Audit records contain the patch SHA-256 and bounded metadata, never the patch
+body. The protected path set covers the complete execution and evaluation
+boundary—including tests and build configuration—rather than only the policy
+and provider packages.
 
 ## Credential model
 

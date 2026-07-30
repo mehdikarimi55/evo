@@ -94,6 +94,16 @@ kernel, creates a symlink, or introduces a binary file. Worktrees and candidate
 branches are removed after evaluation, including when evaluation raises an
 error. Candidates are never merged automatically.
 
+## Structured mutation patches
+
+EVO v0.1.1 can validate and apply a model-produced unified diff inside an
+ephemeral candidate worktree. The applicator limits patch bytes, file count, and
+changed lines; rejects protected paths, traversal, binary patches, symlinks,
+renames, copies, and executable modes; and verifies the patch with
+`git apply --check`. After application, the resulting worktree paths are checked
+again. Audit evidence stores only the patch SHA-256 and bounded metadata, not
+the source patch.
+
 ## Local UI
 
 Start the localhost UI (binds only to `127.0.0.1` by default):

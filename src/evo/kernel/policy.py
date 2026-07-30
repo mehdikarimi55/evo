@@ -9,9 +9,27 @@ from pathlib import PurePosixPath
 PROTECTED_PREFIXES = (
     ".git/",
     ".github/",
+    ".gitattributes",
+    ".gitignore",
+    ".gitmodules",
+    ".codex/",
     ".env",
+    "AGENTS.md",
+    "pyproject.toml",
+    "requirements.txt",
+    "requirements.lock",
+    "tests/",
+    "benchmarks/",
     "src/evo/kernel/",
     "src/evo/providers/",
+    "src/evo/evolution/",
+    "src/evo/ui/",
+    "src/evo/cli.py",
+    "src/evo/config.py",
+    "src/evo/runtime.py",
+    "src/evo/sandbox.py",
+    "src/evo/worktree.py",
+    "src/evo/mutation.py",
 )
 
 DENIED_EXTERNAL_ACTIONS = frozenset(

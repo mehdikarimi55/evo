@@ -89,8 +89,15 @@ class CandidateWorktree:
             if candidate_path.is_symlink():
                 violations.append(f"{relative}: symbolic links are not allowed")
                 continue
-            if candidate_path.is_file() and _looks_binary(candidate_path):
-                violations.append(f"{relative}: binary mutations are not allowed")
+            if candidate_path.is_file():
+                if candidate_path.stat().st_mode & 0o111:
+                    violations.append(
+                        f"{relative}: executable mutations are not allowed"
+                    )
+                elif _looks_binary(candidate_path):
+                    violations.append(
+                        f"{relative}: binary mutations are not allowed"
+                    )
 
         return ChangeValidation(
             allowed=not violations,

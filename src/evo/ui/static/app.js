@@ -14,6 +14,9 @@ const statusGrid = document.getElementById("status-grid");
 const settingsForm = document.getElementById("settings-form");
 const evolveForm = document.getElementById("evolve-form");
 const evolveResult = document.getElementById("evolve-result");
+const evolveButton = document.getElementById("evolve-button");
+const evolveButtonLabel = document.getElementById("evolve-button-label");
+const evolveThinking = document.getElementById("evolve-thinking");
 const auditBody = document.getElementById("audit-body");
 const toast = document.getElementById("toast");
 const globalSearch = document.getElementById("global-search");
@@ -143,6 +146,15 @@ function formObject(form) {
   return Object.fromEntries(new FormData(form).entries());
 }
 
+function setEvolveThinking(active) {
+  evolveButton.disabled = active;
+  evolveButton.classList.toggle("is-thinking", active);
+  evolveButton.setAttribute("aria-busy", String(active));
+  evolveButtonLabel.textContent = active ? "Thinking…" : "Evolve";
+  evolveThinking.hidden = !active;
+  evolveResult.setAttribute("aria-busy", String(active));
+}
+
 function applySearch(query) {
   const needle = query.trim().toLowerCase();
   document.querySelectorAll(".panel").forEach((panel) => {
@@ -223,6 +235,10 @@ document.getElementById("run-probe").addEventListener("click", async () => {
 
 evolveForm.addEventListener("submit", async (event) => {
   event.preventDefault();
+  if (evolveButton.disabled) return;
+  setEvolveThinking(true);
+  evolveResult.hidden = false;
+  evolveResult.textContent = "Waiting for the model to propose a candidate…";
   try {
     const payload = formObject(evolveForm);
     const candidate = await api("/api/evolve", {
@@ -240,6 +256,9 @@ evolveForm.addEventListener("submit", async (event) => {
     applySearch(globalSearch.value);
   } catch (error) {
     showToast(error.message);
+    evolveResult.textContent = `EVO error: ${error.message}`;
+  } finally {
+    setEvolveThinking(false);
   }
 });
 

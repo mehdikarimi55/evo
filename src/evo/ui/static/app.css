@@ -112,9 +112,41 @@ body {
   transform: translateY(-1px);
 }
 
+.button:disabled {
+  cursor: wait;
+  opacity: 0.82;
+  transform: none;
+}
+
 .button.primary {
   background: var(--canopy);
   color: var(--glass);
+}
+
+.evolve-button.is-thinking {
+  animation: button-heartbeat 1.2s ease-in-out infinite;
+}
+
+.thinking-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  color: var(--canopy);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.thinking-indicator[hidden] {
+  display: none;
+}
+
+.heartbeat-pulse {
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 50%;
+  background: var(--amber);
+  box-shadow: 0 0 0 0 rgba(184, 137, 45, 0.42);
+  animation: heartbeat 1.2s ease-in-out infinite;
 }
 
 .button.ghost {
@@ -130,6 +162,7 @@ body {
 }
 
 .panel {
+  min-width: 0;
   background: var(--mist);
   border: 1px solid var(--line);
   border-radius: 28px;
@@ -231,9 +264,15 @@ textarea {
 }
 
 .result {
+  width: 100%;
+  max-width: 100%;
   margin: 1rem 0 0;
   padding: 1rem;
-  overflow: auto;
+  overflow-x: hidden;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: break-word;
   border-radius: 18px;
   background: rgba(18, 32, 23, 0.92);
   color: #dff5e8;
@@ -347,5 +386,49 @@ td:first-child {
   }
   to {
     transform: translateY(-18px);
+  }
+}
+
+@keyframes heartbeat {
+  0%,
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(184, 137, 45, 0.42);
+  }
+  14% {
+    transform: scale(1.4);
+  }
+  28% {
+    transform: scale(1);
+  }
+  42% {
+    transform: scale(1.25);
+    box-shadow: 0 0 0 0.45rem rgba(184, 137, 45, 0);
+  }
+  58% {
+    transform: scale(1);
+  }
+}
+
+@keyframes button-heartbeat {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(35, 67, 54, 0.2);
+  }
+  18% {
+    box-shadow: 0 0 0 0.35rem rgba(35, 67, 54, 0);
+  }
+  36% {
+    box-shadow: 0 0 0 0 rgba(35, 67, 54, 0.14);
+  }
+  52% {
+    box-shadow: 0 0 0 0.25rem rgba(35, 67, 54, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .evolve-button.is-thinking,
+  .heartbeat-pulse {
+    animation-duration: 2.4s;
   }
 }

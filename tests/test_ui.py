@@ -62,6 +62,20 @@ class UIServerTests(unittest.TestCase):
             html = response.read().decode()
         self.assertIn("EVO", html)
         self.assertIn("Terrarium", html)
+        self.assertIn('id="evolve-thinking"', html)
+        self.assertIn('aria-busy="false"', html)
+
+    def test_ui_assets_include_thinking_state_and_wrapped_results(self):
+        with urlopen(f"{self.base}/static/app.js", timeout=5) as response:
+            javascript = response.read().decode()
+        with urlopen(f"{self.base}/static/app.css", timeout=5) as response:
+            stylesheet = response.read().decode()
+
+        self.assertIn("setEvolveThinking(true)", javascript)
+        self.assertIn("setEvolveThinking(false)", javascript)
+        self.assertIn("@keyframes heartbeat", stylesheet)
+        self.assertIn("white-space: pre-wrap", stylesheet)
+        self.assertIn("overflow-wrap: anywhere", stylesheet)
 
     def test_probe_endpoint_uses_runtime(self):
         with patch.object(self.runtime, "probe", return_value="ok"):

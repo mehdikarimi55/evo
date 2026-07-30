@@ -124,10 +124,33 @@
             />
           </label>
           <div class="form-actions wide">
-            <button class="button primary" type="submit">Evolve</button>
+            <button
+              class="button primary evolve-button"
+              type="submit"
+              id="evolve-button"
+              aria-busy="false"
+            >
+              <span id="evolve-button-label">Evolve</span>
+            </button>
+            <span
+              class="thinking-indicator"
+              id="evolve-thinking"
+              role="status"
+              aria-live="polite"
+              hidden
+            >
+              <span class="heartbeat-pulse" aria-hidden="true"></span>
+              Thinking…
+            </span>
           </div>
         </form>
-        <pre class="result" id="evolve-result" hidden></pre>
+        <pre
+          class="result"
+          id="evolve-result"
+          aria-live="polite"
+          aria-busy="false"
+          hidden
+        ></pre>
       </section>
 
       <section class="panel" aria-labelledby="audit-title">

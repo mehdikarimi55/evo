@@ -242,7 +242,16 @@ class AutonomyController:
                     if self._petri_dish is not None
                     else None
                 )
-                eligible = candidate.get("status") == "eligible"
+                evidence = candidate.get("evaluation_evidence")
+                evidence_status = (
+                    evidence.get("status")
+                    if isinstance(evidence, dict)
+                    else "proposal_only"
+                )
+                eligible = (
+                    candidate.get("status") == "eligible"
+                    and evidence_status not in {"invalid", "sandbox_failed"}
+                )
                 proposal = candidate.get("proposal")
                 unlocked_now: list[dict[str, object]] = []
                 with self._lock:

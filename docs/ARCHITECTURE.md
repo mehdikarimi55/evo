@@ -129,6 +129,25 @@ novelty, unique adaptation rate, and lineage branching. All values are bounded
 between zero and one and retain a 500-epoch history. They are observability
 signals, not a scientific demonstration of unlimited open-ended evolution.
 
+## v0.6 ephemeral candidate lifecycle
+
+After policy accepts proposal metadata, a second budgeted provider request may
+generate one raw unified diff. The provider receives at most 32 KiB from the
+authorized target file. Protected paths, binary content, symlinks, oversized
+files, traversal, and multi-target policy violations fail before evaluation.
+
+The host requires a clean repository, evaluates the baseline in a read-only
+rootless sandbox, applies the diff through `MutationApplicator` inside an
+ephemeral `GitWorktreeManager` candidate, and evaluates the candidate with the
+same command and limits. Cleanup removes both temporary worktree and branch,
+including after rejection or evaluator failure.
+
+The candidate evidence ledger contains patch/output hashes, changed paths,
+exit codes, duration, team identifiers, and comparison classification. It does
+not contain raw source, patches, test output, credentials, or environment
+secrets. `promotion_eligible` means only that comparative evaluation passed; no
+component in this lifecycle can modify the source worktree or promote a change.
+
 ## Rootless sandbox boundary
 
 `evo sandbox` runs evaluator commands through Podman or Docker without a direct

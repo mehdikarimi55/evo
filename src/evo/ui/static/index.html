@@ -19,7 +19,7 @@
         <a class="brand-lockup" href="#workspace" aria-label="EVO">
           <span class="brand-mark" aria-hidden="true"></span>
           <span class="brand">EVO</span>
-          <span class="brand-version">v0.5.0</span>
+          <span class="brand-version">v0.6.0</span>
         </a>
         <div class="language-switch" aria-label="Language">
           <button class="language-option active" type="button" data-language="en">EN</button>
@@ -124,6 +124,25 @@
               min="1"
               required
             />
+          </label>
+          <label>
+            <span data-i18n="sandboxImage">Rootless sandbox image</span>
+            <input name="sandbox_image" id="sandbox_image" autocomplete="off" placeholder="python:3.13-alpine" />
+          </label>
+          <label>
+            <span data-i18n="sandboxEngine">Sandbox engine</span>
+            <select name="sandbox_engine" id="sandbox_engine">
+              <option value="podman">Podman</option>
+              <option value="docker">Docker</option>
+            </select>
+          </label>
+          <label class="wide">
+            <span data-i18n="evaluationCommand">Evaluation command</span>
+            <input name="evaluation_command" id="evaluation_command" autocomplete="off" />
+          </label>
+          <label>
+            <span data-i18n="sandboxTimeout">Sandbox timeout (seconds)</span>
+            <input name="sandbox_timeout_seconds" id="sandbox_timeout_seconds" type="number" min="1" max="600" required />
           </label>
           <div class="form-actions wide">
             <button class="button primary" type="submit" data-i18n="saveSettings">Save settings</button>

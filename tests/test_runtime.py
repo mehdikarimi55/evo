@@ -25,12 +25,46 @@ class RuntimeTests(unittest.TestCase):
                     "max_output_tokens": 200,
                     "max_calls_per_run": 2,
                     "request_timeout_seconds": 30,
+                    "sandbox_image": "python:3.13-alpine",
+                    "sandbox_engine": "podman",
+                    "evaluation_command": "python -m unittest",
+                    "sandbox_timeout_seconds": 90,
                 }
             )
             self.assertTrue(public["configured"])
             self.assertEqual(public["provider"], "nvidia")
             self.assertEqual(public["api_key"], "تنظیم‌شده")
             self.assertIn("NVIDIA_API_KEY=test-nvidia-key", env_file.read_text())
+            self.assertEqual(public["sandbox_image"], "python:3.13-alpine")
+            self.assertIn("EVO_SANDBOX_ENGINE=podman", env_file.read_text())
+            self.assertIn(
+                "EVO_EVALUATION_COMMAND=python -m unittest",
+                env_file.read_text(),
+            )
+
+    def test_rejects_invalid_sandbox_settings(self):
+        with TemporaryDirectory() as directory:
+            root = Path(directory)
+            runtime = TerrariumRuntime(
+                env_file=root / ".env.local", workspace=root
+            )
+            base = {
+                "provider": "groq",
+                "api_key": "test-key",
+                "model": "openai/gpt-oss-20b",
+                "base_url": "https://api.groq.com/openai/v1",
+                "sandbox_image": "python:3.13-alpine",
+            }
+            with self.assertRaisesRegex(ConfigurationError, "podman or docker"):
+                runtime.save_settings({**base, "sandbox_engine": "rootful"})
+            with self.assertRaisesRegex(ConfigurationError, "cannot be empty"):
+                runtime.save_settings(
+                    {
+                        **base,
+                        "sandbox_engine": "podman",
+                        "evaluation_command": "",
+                    }
+                )
 
     def test_read_audit_supports_search(self):
         with TemporaryDirectory() as directory:

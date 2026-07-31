@@ -15,6 +15,12 @@ an explicitly qualified open-endedness proxy, the latest cooperative team, and
 the latest proposal-only/sandbox-verified state. All labels have fluent Persian
 translations and remain usable in right-to-left mode.
 
+The v0.6 Settings panel configures an optional rootless image, container engine,
+evaluation command, and timeout. When autonomous evolution produces a valid
+patch and the sandbox is enabled, the evidence observatory displays the
+baseline comparison classification, changed paths, and promotion eligibility.
+No UI action can merge or deploy the candidate.
+
 The local UI is a stdlib HTTP console for host-side operations.
 
 ## Start

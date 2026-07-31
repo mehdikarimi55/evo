@@ -1,6 +1,6 @@
 # EVO — Evolutionary Virtual Organism
 
-EVO Terrarium v0.5.0 is a bounded environment for experiments in evolutionary
+EVO Terrarium v0.6.0 is a bounded environment for experiments in evolutionary
 coding agents. It lets an organism propose a mutation, evaluates that mutation,
 and records whether it is eligible for selection. The immutable kernel owns
 credentials, budgets, policy decisions, audit events, and promotion gates.
@@ -27,6 +27,8 @@ This repository starts with a deliberately narrow vertical slice:
 - bounded three-organism teams with role-derived task decomposition;
 - tamper-evident rootless sandbox evaluation records;
 - ecological stability, population diversity, and open-endedness proxy metrics;
+- bounded model-generated unified diffs using limited source context;
+- ephemeral candidate worktrees and automatic baseline comparisons;
 - an offline test suite based entirely on the Python standard library.
 
 It does **not** autonomously register accounts, accept legal terms, bypass
@@ -76,8 +78,8 @@ To run a single, bounded generation:
   --task "Improve input validation without changing public behavior."
 ```
 
-The result is written to `.evo/audit.jsonl`. A proposal is not applied to the
-repository in v0.1; it is evaluated as data.
+The result is written to `.evo/audit.jsonl`. Without a configured rootless
+sandbox, the result remains a proposal and is never applied to the repository.
 
 ## Rootless sandbox
 
@@ -232,6 +234,29 @@ test output. The Petri Dish also reports ecological stability, population
 diversity, and an open-endedness proxy based on novelty, adaptation diversity,
 and lineage branching. This is an operational signal, not proof of truly
 unbounded evolution.
+
+## Ephemeral candidate lifecycle
+
+v0.6 can turn an eligible proposal into a bounded unified diff. The model sees
+at most 32 KiB from one policy-authorized target file. EVO validates the diff,
+creates a temporary Git branch and worktree outside the trusted repository,
+runs the configured evaluator against both the clean baseline and candidate,
+records hash-only comparison evidence, and destroys the temporary branch.
+
+Enable the lifecycle in `.env.local` or the bilingual Settings panel:
+
+```dotenv
+EVO_SANDBOX_IMAGE=python:3.13-alpine
+EVO_SANDBOX_ENGINE=podman
+EVO_EVALUATION_COMMAND=python -m unittest discover -s tests
+EVO_SANDBOX_TIMEOUT_SECONDS=60
+```
+
+The engine must be rootless. Containers receive no network, credentials, host
+write access, elevated capabilities, or promotion authority. A dirty repository
+fails closed because baseline and candidate evidence would not be comparable.
+Passing evidence sets `promotion_eligible` only; it does not merge, commit,
+push, deploy, or modify the original worktree.
 
 ## Security invariants
 

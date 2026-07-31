@@ -68,9 +68,23 @@ complete offline suite passed before v0.4 began.
 - [x] Hash-only persistent evaluator evidence from the rootless sandbox
 - [x] Ecological stability and population-diversity metrics
 - [x] Honest open-endedness proxy with bounded history
-- [ ] Candidate patch generation wired to the mutation/worktree pipeline
-- [ ] Automatic baseline-versus-candidate sandbox comparison
+- [x] Candidate patch generation wired to the mutation/worktree pipeline
+- [x] Automatic baseline-versus-candidate sandbox comparison
 - [ ] Deterministic replay package for complete ecological epochs
+
+## v0.6 — Ephemeral candidate lifecycle
+
+- [x] Second bounded model call for a raw unified diff
+- [x] Maximum 32 KiB source context from one authorized target
+- [x] Existing immutable patch policy reused without bypasses
+- [x] Clean-repository baseline requirement
+- [x] Ephemeral candidate branch/worktree with guaranteed cleanup
+- [x] Identical rootless baseline and candidate evaluation commands
+- [x] Regression, preserved-baseline, and repaired-baseline classification
+- [x] Promotion eligibility requires verified comparative evidence
+- [x] Bilingual sandbox configuration and lifecycle evidence UI
+- [ ] Deterministic replay package for complete ecological epochs
+- [ ] Signed evidence bundles and external human promotion approval
 
 ## Production gate
 

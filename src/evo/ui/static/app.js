@@ -39,6 +39,10 @@ const I18N = {
     maxOutputTokens: "Maximum output tokens",
     maxCalls: "Maximum calls per run",
     requestTimeout: "Request timeout (seconds)",
+    sandboxImage: "Rootless sandbox image",
+    sandboxEngine: "Sandbox engine",
+    evaluationCommand: "Evaluation command",
+    sandboxTimeout: "Sandbox timeout (seconds)",
     saveSettings: "Save settings",
     probeProvider: "Probe provider",
     runGeneration: "Run one generation",
@@ -170,6 +174,14 @@ const I18N = {
     sandbox_verified: "Sandbox verified",
     sandbox_failed: "Sandbox failed",
     invalid: "Invalid evidence",
+    preserved_baseline: "Baseline preserved",
+    repaired_baseline: "Baseline repaired",
+    regression: "Regression detected",
+    still_failing: "Still failing",
+    patch_rejected: "Patch rejected",
+    incomplete: "Incomplete evaluation",
+    promotionEligible: "Promotion eligible",
+    changedPaths: "Changed paths",
     journalStarted: "Autonomous exploration started",
     journalStopped: "Autonomous exploration stopped",
     journalCompleted: "Generation limit reached",
@@ -224,6 +236,10 @@ const I18N = {
     maxOutputTokens: "حداکثر توکن خروجی",
     maxCalls: "حداکثر درخواست در هر اجرا",
     requestTimeout: "مهلت پاسخ‌گویی (ثانیه)",
+    sandboxImage: "تصویر محیط ایزوله بدون ریشه",
+    sandboxEngine: "موتور محیط ایزوله",
+    evaluationCommand: "دستور ارزیابی",
+    sandboxTimeout: "مهلت محیط ایزوله (ثانیه)",
     saveSettings: "ذخیره تنظیمات",
     probeProvider: "آزمون اتصال ارائه‌دهنده",
     runGeneration: "اجرای یک نسل",
@@ -355,6 +371,14 @@ const I18N = {
     sandbox_verified: "تأییدشده در محیط ایزوله",
     sandbox_failed: "ناموفق در محیط ایزوله",
     invalid: "شواهد نامعتبر",
+    preserved_baseline: "خط مبنا حفظ شد",
+    repaired_baseline: "خط مبنا اصلاح شد",
+    regression: "پس‌رفت شناسایی شد",
+    still_failing: "همچنان ناموفق",
+    patch_rejected: "وصله رد شد",
+    incomplete: "ارزیابی ناقص",
+    promotionEligible: "واجد شرایط ارتقا",
+    changedPaths: "مسیرهای تغییرکرده",
     journalStarted: "کاوش خودکار آغاز شد",
     journalStopped: "کاوش خودکار متوقف شد",
     journalCompleted: "سقف نسل‌ها تکمیل شد",
@@ -514,6 +538,12 @@ function fillSettings(settings) {
   document.getElementById("max_calls_per_run").value = settings.max_calls_per_run || 4;
   document.getElementById("request_timeout_seconds").value =
     settings.request_timeout_seconds || 45;
+  document.getElementById("sandbox_image").value = settings.sandbox_image || "";
+  document.getElementById("sandbox_engine").value = settings.sandbox_engine || "podman";
+  document.getElementById("evaluation_command").value =
+    settings.evaluation_command || "python -m unittest discover -s tests";
+  document.getElementById("sandbox_timeout_seconds").value =
+    settings.sandbox_timeout_seconds || 60;
   document.getElementById("api_key").value = "";
   document.getElementById("api_key").placeholder = settings.configured
     ? t("keepSavedKey")
@@ -760,8 +790,14 @@ function renderPetriDish(state) {
   evaluationEvidence.className = `evidence-state ${escapeAttr(evidence.status || "proposal_only")}`;
   evaluationEvidence.textContent = t(evidence.status || "proposal_only");
   const team = latestEvent.team || [];
+  const comparisonDetails = evidence.source === "rootless_sandbox_comparison"
+    ? `<div class="comparison-evidence">
+        <span><strong>${escapeHtml(t(evidence.classification || "incomplete"))}</strong>${escapeHtml(t("promotionEligible"))}: ${escapeHtml(evidence.promotion_eligible ? t("yes") : t("no"))}</span>
+        <span><strong>${escapeHtml(t("changedPaths"))}</strong>${escapeHtml((evidence.changed_paths || []).join(", ") || "—")}</span>
+      </div>`
+    : "";
   teamObservatory.innerHTML = team.length
-    ? `<h4>${escapeHtml(t("cooperativeTeam"))}</h4><div class="team-members">${team
+    ? `${comparisonDetails}<h4>${escapeHtml(t("cooperativeTeam"))}</h4><div class="team-members">${team
         .map(
           (member, index) => `<span class="team-member">
             <strong>${escapeHtml(member.organism_id)}</strong>
@@ -769,7 +805,7 @@ function renderPetriDish(state) {
           </span>`
         )
         .join("")}</div>`
-    : `<p class="empty-state">${escapeHtml(t("noTeamEvidence"))}</p>`;
+    : `${comparisonDetails}<p class="empty-state">${escapeHtml(t("noTeamEvidence"))}</p>`;
   petriStats.innerHTML = [
     [t("epoch"), summary.epoch ?? 0],
     [t("living"), `${summary.living ?? 0} / ${summary.capacity ?? 0}`],
@@ -1020,6 +1056,7 @@ settingsForm.addEventListener("submit", async (event) => {
         max_output_tokens: Number(payload.max_output_tokens),
         max_calls_per_run: Number(payload.max_calls_per_run),
         request_timeout_seconds: Number(payload.request_timeout_seconds),
+        sandbox_timeout_seconds: Number(payload.sandbox_timeout_seconds),
       }),
     });
     fillSettings(settings);

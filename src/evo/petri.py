@@ -178,7 +178,12 @@ class PetriDish:
                 ),
                 2,
             )
-            eligible = candidate.get("status") == "eligible"
+            evaluation_evidence = _evaluation_evidence(candidate)
+            eligible = (
+                candidate.get("status") == "eligible"
+                and evaluation_evidence.get("status")
+                not in {"invalid", "sandbox_failed"}
+            )
             team = _select_team(organisms, organism)
             collaborators = team[1:]
             lead_collaborator = collaborators[0] if collaborators else None
@@ -278,7 +283,8 @@ class PetriDish:
                     }
                     for member in team
                 ],
-                "evaluation_evidence": _evaluation_evidence(candidate),
+                "evaluation_evidence": evaluation_evidence,
+                "lifecycle_eligible": eligible,
                 "novelty": fitness_vector["novelty"],
                 "offspring_id": (
                     offspring["organism_id"] if offspring is not None else None
@@ -984,15 +990,27 @@ def _evaluation_evidence(candidate: dict[str, object]) -> dict[str, object]:
         status = str(supplied.get("status", "proposal_only"))
         verified = (
             status == "sandbox_verified"
-            and supplied.get("source") == "rootless_sandbox"
-            and supplied.get("exit_code") == 0
-            and _is_sha256(supplied.get("stdout_sha256"))
-            and _is_sha256(supplied.get("stderr_sha256"))
+            and (
+                (
+                    supplied.get("source") == "rootless_sandbox"
+                    and supplied.get("exit_code") == 0
+                    and _is_sha256(supplied.get("stdout_sha256"))
+                    and _is_sha256(supplied.get("stderr_sha256"))
+                )
+                or (
+                    supplied.get("source") == "rootless_sandbox_comparison"
+                    and supplied.get("candidate_exit_code") == 0
+                    and _is_sha256(supplied.get("candidate_stdout_sha256"))
+                    and _is_sha256(supplied.get("candidate_stderr_sha256"))
+                    and _is_sha256(supplied.get("patch_sha256"))
+                )
+            )
         )
         return {
             **deepcopy(supplied),
             "status": status if verified or status != "sandbox_verified" else "invalid",
             "verified": verified,
+            "promotion_eligible": verified,
         }
     return {
         "candidate_id": candidate.get("candidate_id"),

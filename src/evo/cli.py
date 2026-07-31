@@ -265,7 +265,16 @@ def main(argv: list[str] | None = None) -> int:
                 ensure_ascii=False,
             )
         )
-        return 0 if candidate.get("rejection_reason") is None else 2
+        evidence = candidate.get("evaluation_evidence")
+        evidence_status = (
+            evidence.get("status") if isinstance(evidence, dict) else "proposal_only"
+        )
+        return (
+            0
+            if candidate.get("rejection_reason") is None
+            and evidence_status not in {"invalid", "sandbox_failed"}
+            else 2
+        )
     except (
         ConfigurationError,
         ProviderError,
@@ -313,6 +322,8 @@ def _localize_candidate(candidate: dict[str, object]) -> dict[str, object]:
         "امتیاز": localized_score,
         "وضعیت": status_labels.get(status, status),
         "دلیل رد": candidate.get("rejection_reason"),
+        "شواهد ارزیابی": candidate.get("evaluation_evidence"),
+        "واجد شرایط ارتقا": candidate.get("promotion_eligible", False),
     }
 
 

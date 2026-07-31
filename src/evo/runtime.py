@@ -7,16 +7,20 @@ from pathlib import Path
 from typing import Any
 import json
 import os
+import shlex
 
+from evo.candidate_lifecycle import CandidateLifecycle
 from evo.config import ConfigurationError, Settings, load_env_file
 from evo.domain import EvolutionTask, Genome
 from evo.evolution import EvolutionEngine
 from evo.kernel.audit import AuditLog
 from evo.kernel.budget import BudgetExceeded, RunBudget
 from evo.kernel.policy import KernelPolicy
+from evo.mutation import MutationApplicator
 from evo.providers.base import ModelProvider
 from evo.providers.groq import GroqProvider, ProviderError
 from evo.providers.nvidia import NvidiaProvider
+from evo.sandbox import RootlessSandbox, SandboxLimits
 
 SUPPORTED_PROVIDERS = ("groq", "nvidia")
 DEFAULT_AUDIT_PATH = Path(".evo/audit.jsonl")
@@ -54,6 +58,7 @@ BUDGET_KEYS = (
     "EVO_MAX_CALLS_PER_RUN",
     "EVO_REQUEST_TIMEOUT_SECONDS",
 )
+MAX_CANDIDATE_SOURCE_BYTES = 32_768
 
 
 class TerrariumRuntime:
@@ -95,6 +100,12 @@ class TerrariumRuntime:
     def public_settings(self) -> dict[str, object]:
         try:
             settings = self.load_settings()
+            sandbox_timeout = _bounded_integer_environment(
+                "EVO_SANDBOX_TIMEOUT_SECONDS",
+                default=60,
+                minimum=1,
+                maximum=600,
+            )
         except ConfigurationError as exc:
             return {
                 "configured": False,
@@ -118,6 +129,13 @@ class TerrariumRuntime:
             "request_timeout_seconds": settings.request_timeout_seconds,
             "supported_providers": list(SUPPORTED_PROVIDERS),
             "audit_path": str(self.audit_path),
+            "sandbox_image": os.getenv("EVO_SANDBOX_IMAGE", ""),
+            "sandbox_engine": os.getenv("EVO_SANDBOX_ENGINE", "podman"),
+            "evaluation_command": os.getenv(
+                "EVO_EVALUATION_COMMAND",
+                "python -m unittest discover -s tests",
+            ),
+            "sandbox_timeout_seconds": sandbox_timeout,
         }
 
     def doctor(self) -> dict[str, object]:
@@ -161,11 +179,13 @@ class TerrariumRuntime:
             max_input_tokens=settings.max_input_tokens,
             max_output_tokens=settings.max_output_tokens,
         )
+        image = os.getenv("EVO_SANDBOX_IMAGE", "").strip()
         engine = EvolutionEngine(
             provider=self.build_provider(settings),
             policy=KernelPolicy(),
             budget=budget,
             audit=AuditLog(self.audit_path),
+            source_reader=self._read_candidate_source if image else None,
         )
         candidate = engine.run_generation(
             Genome(
@@ -177,7 +197,85 @@ class TerrariumRuntime:
             EvolutionTask(task_id=task_id, objective=objective),
             language=language_name,
         )
-        return asdict(candidate)
+        result = asdict(candidate)
+        proposal = result.get("proposal")
+        patch = proposal.get("patch") if isinstance(proposal, dict) else None
+        evidence: dict[str, object] = {
+            "candidate_id": candidate.candidate_id,
+            "status": "proposal_only",
+            "verified": False,
+            "promotion_eligible": False,
+            "reason": "No executable candidate patch was available.",
+        }
+        if isinstance(patch, str) and patch.strip() and image:
+            command = tuple(
+                shlex.split(
+                    os.getenv(
+                        "EVO_EVALUATION_COMMAND",
+                        "python -m unittest discover -s tests",
+                    )
+                )
+            )
+            if not command:
+                raise ConfigurationError(
+                    "EVO_EVALUATION_COMMAND cannot be empty."
+                )
+            engine_name = os.getenv("EVO_SANDBOX_ENGINE", "").strip() or None
+            timeout = _bounded_integer_environment(
+                "EVO_SANDBOX_TIMEOUT_SECONDS",
+                default=60,
+                minimum=1,
+                maximum=600,
+            )
+            team_ids = _team_ids(traits)
+            comparison = CandidateLifecycle(
+                repository=self.workspace,
+                evidence_path=(
+                    self.workspace / ".evo/candidate-evidence.jsonl"
+                ),
+                sandbox_factory=lambda workspace: RootlessSandbox(
+                    workspace=workspace,
+                    image=image,
+                    engine=engine_name,
+                    limits=SandboxLimits(timeout_seconds=timeout),
+                    allowed_commands=(command[0],),
+                ),
+                mutation=MutationApplicator(audit=AuditLog(self.audit_path)),
+            ).evaluate(
+                candidate_id=candidate.candidate_id,
+                team_ids=team_ids,
+                patch=patch,
+                mutable_paths=tuple(dict.fromkeys(cleaned)),
+                command=command,
+            )
+            evidence = asdict(comparison)
+        elif isinstance(patch, str) and patch.strip():
+            evidence["reason"] = (
+                "A patch was generated, but EVO_SANDBOX_IMAGE is not configured."
+            )
+        result["evaluation_evidence"] = evidence
+        result["promotion_eligible"] = bool(
+            evidence.get("promotion_eligible", False)
+        )
+        return result
+
+    def _read_candidate_source(self, relative: str) -> str:
+        target = (self.workspace / relative).resolve()
+        if not target.is_relative_to(self.workspace):
+            raise ValueError("Candidate source path escapes the workspace.")
+        unresolved = self.workspace / relative
+        if unresolved.is_symlink():
+            raise ValueError("Candidate source cannot be a symbolic link.")
+        if not target.exists():
+            return ""
+        if not target.is_file():
+            raise ValueError("Candidate source must be a regular file.")
+        raw = target.read_bytes()
+        if len(raw) > MAX_CANDIDATE_SOURCE_BYTES:
+            raise ValueError("Candidate source exceeds the bounded context size.")
+        if b"\0" in raw:
+            raise ValueError("Candidate source cannot be binary.")
+        return raw.decode("utf-8")
 
     def read_audit(self, *, limit: int = 50, query: str = "") -> list[dict[str, object]]:
         if limit <= 0:
@@ -246,7 +344,43 @@ class TerrariumRuntime:
                 "EVO_REQUEST_TIMEOUT_SECONDS",
                 45,
             ),
+            "EVO_SANDBOX_IMAGE": str(
+                values.get(
+                    "sandbox_image",
+                    existing.get("EVO_SANDBOX_IMAGE", ""),
+                )
+            ).strip(),
+            "EVO_SANDBOX_ENGINE": _sandbox_engine_setting(
+                values.get(
+                    "sandbox_engine",
+                    existing.get("EVO_SANDBOX_ENGINE", "podman"),
+                )
+            ),
+            "EVO_EVALUATION_COMMAND": str(
+                values.get(
+                    "evaluation_command",
+                    existing.get(
+                        "EVO_EVALUATION_COMMAND",
+                        "python -m unittest discover -s tests",
+                    ),
+                )
+            ).strip(),
+            "EVO_SANDBOX_TIMEOUT_SECONDS": str(
+                _bounded_integer_value(
+                    values.get(
+                        "sandbox_timeout_seconds",
+                        existing.get("EVO_SANDBOX_TIMEOUT_SECONDS", 60),
+                    ),
+                    name="EVO_SANDBOX_TIMEOUT_SECONDS",
+                    minimum=1,
+                    maximum=600,
+                )
+            ),
         }
+        if payload["EVO_SANDBOX_IMAGE"] and not payload["EVO_EVALUATION_COMMAND"]:
+            raise ConfigurationError(
+                "EVO_EVALUATION_COMMAND cannot be empty when sandboxing is enabled."
+            )
         for other in SUPPORTED_PROVIDERS:
             if other == provider:
                 continue
@@ -281,6 +415,62 @@ def _positive_setting(
     if number <= 0:
         raise ConfigurationError(f"{env_name} باید بزرگ‌تر از صفر باشد")
     return str(number)
+
+
+def _bounded_integer_environment(
+    name: str,
+    *,
+    default: int,
+    minimum: int,
+    maximum: int,
+) -> int:
+    try:
+        value = int(os.getenv(name, str(default)))
+    except ValueError as exc:
+        raise ConfigurationError(f"{name} باید یک عدد صحیح باشد") from exc
+    if not minimum <= value <= maximum:
+        raise ConfigurationError(
+            f"{name} must be between {minimum} and {maximum}."
+        )
+    return value
+
+
+def _bounded_integer_value(
+    raw: object,
+    *,
+    name: str,
+    minimum: int,
+    maximum: int,
+) -> int:
+    try:
+        value = int(raw)
+    except (TypeError, ValueError) as exc:
+        raise ConfigurationError(f"{name} باید یک عدد صحیح باشد") from exc
+    if not minimum <= value <= maximum:
+        raise ConfigurationError(
+            f"{name} must be between {minimum} and {maximum}."
+        )
+    return value
+
+
+def _sandbox_engine_setting(raw: object) -> str:
+    value = str(raw).strip().lower()
+    if value not in {"podman", "docker"}:
+        raise ConfigurationError("Sandbox engine must be podman or docker.")
+    return value
+
+
+def _team_ids(traits: dict[str, Any] | None) -> tuple[str, ...]:
+    plan = (traits or {}).get("team_plan")
+    members = plan.get("members", []) if isinstance(plan, dict) else []
+    identifiers = [
+        str(member.get("organism_id", "")).strip()
+        for member in members
+        if isinstance(member, dict)
+    ]
+    return tuple(identifier for identifier in identifiers if identifier)[:3] or (
+        "cell-0001",
+    )
 
 
 def _read_env_map(path: Path) -> dict[str, str]:
@@ -325,6 +515,15 @@ def _write_env_file(path: Path, values: dict[str, str]) -> None:
         f"EVO_MAX_OUTPUT_TOKENS={values['EVO_MAX_OUTPUT_TOKENS']}",
         f"EVO_MAX_CALLS_PER_RUN={values['EVO_MAX_CALLS_PER_RUN']}",
         f"EVO_REQUEST_TIMEOUT_SECONDS={values['EVO_REQUEST_TIMEOUT_SECONDS']}",
+        "",
+        "# Rootless candidate evaluation (leave image empty to disable)",
+        f"EVO_SANDBOX_IMAGE={values.get('EVO_SANDBOX_IMAGE', '')}",
+        f"EVO_SANDBOX_ENGINE={values.get('EVO_SANDBOX_ENGINE', 'podman')}",
+        f"EVO_EVALUATION_COMMAND={values.get('EVO_EVALUATION_COMMAND', '')}",
+        (
+            "EVO_SANDBOX_TIMEOUT_SECONDS="
+            f"{values.get('EVO_SANDBOX_TIMEOUT_SECONDS', '60')}"
+        ),
         "",
     ]
     path.write_text("\n".join(lines), encoding="utf-8")

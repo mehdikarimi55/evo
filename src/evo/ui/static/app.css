@@ -759,6 +759,9 @@ td:first-child {
 .team-members { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.45rem; }
 .team-member { padding: 0.35rem 0.5rem; border-radius: 10px; background: rgba(255, 255, 255, 0.035); color: var(--muted); font-size: 0.59rem; }
 .team-member strong { display: block; color: var(--leaf); font-family: var(--mono); font-size: 0.6rem; }
+.comparison-evidence { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.45rem; margin-bottom: 0.65rem; }
+.comparison-evidence span { min-width: 0; padding: 0.45rem; border-radius: 10px; background: rgba(255,255,255,0.035); color: var(--muted); font-size: 0.59rem; overflow-wrap: anywhere; }
+.comparison-evidence strong { display: block; margin-bottom: 0.18rem; color: var(--leaf); font-size: 0.62rem; }
 
 .ecology-grid {
   display: grid;
@@ -1174,6 +1177,8 @@ td:first-child {
     align-items: flex-start;
     flex-direction: column;
   }
+
+  .comparison-evidence { grid-template-columns: 1fr; }
 
   .hero {
     min-height: auto;

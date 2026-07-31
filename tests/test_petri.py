@@ -237,13 +237,21 @@ class PetriDishTests(unittest.TestCase):
             )
             selected = dish.select_for_evaluation()
             proposed = candidate()
-            proposed["evaluation_evidence"] = {"status": "sandbox_verified"}
+            proposed["evaluation_evidence"] = {
+                "status": "sandbox_verified",
+                "promotion_eligible": True,
+            }
             event = dish.record_outcome(
                 organism_id=selected["organism_id"],
                 candidate=proposed,
             )
             self.assertEqual(event["evaluation_evidence"]["status"], "invalid")
             self.assertFalse(event["evaluation_evidence"]["verified"])
+            self.assertFalse(
+                event["evaluation_evidence"]["promotion_eligible"]
+            )
+            self.assertFalse(event["lifecycle_eligible"])
+            self.assertIsNone(event["offspring_id"])
 
     def test_observed_behavior_produces_niche_role_and_distribution(self):
         with TemporaryDirectory() as directory:

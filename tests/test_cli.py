@@ -33,7 +33,7 @@ class CLITests(unittest.TestCase):
             with self.assertRaises(SystemExit) as exit_context:
                 build_parser().parse_args(["--version"])
         self.assertEqual(exit_context.exception.code, 0)
-        self.assertEqual(output.getvalue().strip(), "evo 0.9.0")
+        self.assertEqual(output.getvalue().strip(), "evo 1.0.0")
 
     def test_evidence_command_exposes_explicit_human_decisions(self):
         args = build_parser().parse_args(
@@ -74,6 +74,22 @@ class CLITests(unittest.TestCase):
         self.assertEqual(args.action, "apply")
         self.assertEqual(args.artifact_id, "artifact-123")
         self.assertEqual(args.confirm, "APPLY-artifact-123")
+
+    def test_deployment_command_exposes_signed_handoff_inputs(self):
+        args = build_parser().parse_args(
+            [
+                "deployment",
+                "request-stage",
+                "--release-id",
+                "release-123",
+                "--confirm",
+                "STAGE-release-123",
+            ]
+        )
+        self.assertEqual(args.command, "deployment")
+        self.assertEqual(args.action, "request-stage")
+        self.assertEqual(args.release_id, "release-123")
+        self.assertEqual(args.confirm, "STAGE-release-123")
 
 
 if __name__ == "__main__":

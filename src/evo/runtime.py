@@ -15,6 +15,7 @@ from evo.domain import EvolutionTask, Genome
 from evo.evidence_control import EvidenceControl, EvidenceSigner, ReplayService
 from evo.trust_authority import Ed25519Identity, TrustAuthority
 from evo.release_control import CandidateArtifactStore, PromotionController
+from evo.deployment_control import DeploymentHandoff
 from evo.evolution import EvolutionEngine
 from evo.kernel.audit import AuditLog
 from evo.kernel.budget import BudgetExceeded, RunBudget
@@ -211,6 +212,25 @@ class TerrariumRuntime:
             trust=trust,
             identity=self._authority_identity(),
             ledger_path=self.workspace / ".evo/promotion-ledger.jsonl",
+        )
+
+    def deployment_handoff(
+        self,
+        *,
+        evidence_control: EvidenceControl | None = None,
+        petri_dish: PetriDish | None = None,
+    ) -> DeploymentHandoff:
+        """Build the credential-free external deployment boundary for v1.0."""
+
+        return DeploymentHandoff(
+            repository=self.workspace,
+            promotion=self.promotion_controller(
+                evidence_control=evidence_control,
+                petri_dish=petri_dish,
+            ),
+            artifacts=self.candidate_artifacts(),
+            identity=self._authority_identity(),
+            root=self.workspace / ".evo/deployment",
         )
 
     def _authority_identity(self) -> Ed25519Identity:

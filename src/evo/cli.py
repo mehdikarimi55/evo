@@ -23,6 +23,11 @@ from evo.sandbox import (
 from evo.ui import serve_ui
 from evo.trust_authority import create_reviewer_identity
 from evo.release_control import ReleaseControlError
+from evo.deployment_control import (
+    DeploymentControlError,
+    create_operator_identity,
+    create_operator_receipt,
+)
 
 
 class PersianArgumentParser(argparse.ArgumentParser):
@@ -215,6 +220,43 @@ def build_parser() -> argparse.ArgumentParser:
     promotion.add_argument(
         "--confirm", default="", help="عبارت تأیید دقیق نمایش‌داده‌شده در وضعیت"
     )
+    deployment = subparsers.add_parser(
+        "deployment", help="تحویل امضاشده استقرار به اپراتور مستقل نسخه ۱٫۰"
+    )
+    deployment.add_argument(
+        "action",
+        choices=(
+            "status",
+            "init",
+            "operator-create",
+            "operator-register",
+            "operator-revoke",
+            "prepare",
+            "request-stage",
+            "request-health",
+            "request-promote",
+            "request-rollback",
+            "receipt-create",
+            "receipt-import",
+        ),
+        help="عملیات تحویل استقرار",
+    )
+    deployment.add_argument("--operator-id", help="شناسه پایدار اپراتور")
+    deployment.add_argument("--display-name", default="", help="نام اپراتور")
+    deployment.add_argument("--private-key", help="مسیر کلید خصوصی اپراتور")
+    deployment.add_argument("--public-key", help="مسیر کلید عمومی اپراتور")
+    deployment.add_argument(
+        "--authority-public-key", help="مسیر کلید عمومی مرجع EVO"
+    )
+    deployment.add_argument("--reason", default="", help="دلیل لغو اپراتور")
+    deployment.add_argument("--release-id", help="شناسه کپسول انتشار")
+    deployment.add_argument("--confirm", default="", help="عبارت تأیید دقیق")
+    deployment.add_argument("--intent-path", help="مسیر قصد استقرار امضاشده")
+    deployment.add_argument("--receipt-path", help="مسیر رسید امضاشده اپراتور")
+    deployment.add_argument("--receipt-status", help="وضعیت مشاهده‌شده")
+    deployment.add_argument("--deployment-ref", default="", help="مرجع استقرار")
+    deployment.add_argument("--note", default="", help="یادداشت رسید")
+    deployment.add_argument("--output", help="مسیر خروجی فایل")
     return parser
 
 
@@ -330,6 +372,68 @@ def main(argv: list[str] | None = None) -> int:
                 )
             print(json.dumps(payload, indent=2, ensure_ascii=False))
             return 0
+        if args.command == "deployment":
+            handoff = runtime.deployment_handoff()
+            if args.action == "status":
+                payload = handoff.status()
+            elif args.action == "init":
+                payload = handoff.initialize()
+            elif args.action == "operator-create":
+                _require(args, "operator_id", "private_key", "public_key")
+                payload = create_operator_identity(
+                    operator_id=args.operator_id,
+                    private_key_path=Path(args.private_key),
+                    public_key_path=Path(args.public_key),
+                )
+            elif args.action == "operator-register":
+                _require(args, "operator_id", "public_key")
+                payload = handoff.register_operator(
+                    operator_id=args.operator_id,
+                    public_key_path=Path(args.public_key),
+                    display_name=args.display_name,
+                )
+            elif args.action == "operator-revoke":
+                _require(args, "operator_id")
+                payload = handoff.revoke_operator(
+                    operator_id=args.operator_id,
+                    reason=args.reason,
+                )
+            elif args.action == "prepare":
+                payload = handoff.prepare_release()
+            elif args.action.startswith("request-"):
+                _require(args, "release_id")
+                payload = handoff.create_intent(
+                    action=args.action.removeprefix("request-"),
+                    release_id=args.release_id,
+                    confirmation=args.confirm,
+                )
+            elif args.action == "receipt-create":
+                _require(
+                    args,
+                    "intent_path",
+                    "authority_public_key",
+                    "operator_id",
+                    "private_key",
+                    "receipt_status",
+                    "output",
+                )
+                payload = create_operator_receipt(
+                    intent_path=Path(args.intent_path),
+                    authority_public_key_path=Path(args.authority_public_key),
+                    operator_id=args.operator_id,
+                    private_key_path=Path(args.private_key),
+                    status=args.receipt_status,
+                    output_path=Path(args.output),
+                    deployment_ref=args.deployment_ref,
+                    note=args.note,
+                )
+            else:
+                _require(args, "receipt_path")
+                payload = handoff.import_receipt(
+                    receipt_path=Path(args.receipt_path)
+                )
+            print(json.dumps(payload, indent=2, ensure_ascii=False))
+            return 0
         if args.command == "probe":
             print(runtime.probe())
             return 0
@@ -415,10 +519,21 @@ def main(argv: list[str] | None = None) -> int:
         BudgetExceeded,
         SandboxError,
         ReleaseControlError,
+        DeploymentControlError,
         ValueError,
     ) as exc:
         print(f"خطای EVO: {exc}")
         return 1
+
+
+def _require(args: argparse.Namespace, *names: str) -> None:
+    missing = [
+        f"--{name.replace('_', '-')}"
+        for name in names
+        if not getattr(args, name)
+    ]
+    if missing:
+        raise ValueError(f"{args.action} requires {', '.join(missing)}.")
 
 
 def _localize_candidate(candidate: dict[str, object]) -> dict[str, object]:

@@ -64,7 +64,9 @@ class MutationProposal:
         )
         missing = [name for name in required if not str(data.get(name, "")).strip()]
         if missing:
-            raise ValueError(f"Missing proposal fields: {', '.join(missing)}")
+            raise ValueError(
+                f"فیلدهای ضروری پیشنهاد وارد نشده‌اند: {', '.join(missing)}"
+            )
         return cls(**{name: str(data[name]).strip() for name in required})
 
 
@@ -92,4 +94,3 @@ class Candidate:
     score: FitnessScore
     status: CandidateStatus
     rejection_reason: str | None = None
-

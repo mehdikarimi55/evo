@@ -14,7 +14,7 @@ class ConfigurationError(ValueError):
 def load_env_file(path: Path) -> None:
     """Load a minimal dotenv file without overwriting existing environment."""
     if not path.exists():
-        raise ConfigurationError(f"Environment file does not exist: {path}")
+        raise ConfigurationError(f"فایل محیطی وجود ندارد: {path}")
 
     for line_number, raw_line in enumerate(path.read_text().splitlines(), 1):
         line = raw_line.strip()
@@ -22,14 +22,14 @@ def load_env_file(path: Path) -> None:
             continue
         if "=" not in line:
             raise ConfigurationError(
-                f"Invalid environment entry at {path}:{line_number}"
+                f"مقدار نامعتبر در فایل محیطی، خط {line_number}: {path}"
             )
         name, value = line.split("=", 1)
         name = name.strip()
         value = value.strip().strip("\"'")
         if not name:
             raise ConfigurationError(
-                f"Empty environment name at {path}:{line_number}"
+                f"نام متغیر محیطی در خط {line_number} خالی است: {path}"
             )
         os.environ.setdefault(name, value)
 
@@ -39,9 +39,9 @@ def _positive_int(name: str, default: int) -> int:
     try:
         value = int(raw)
     except ValueError as exc:
-        raise ConfigurationError(f"{name} must be an integer") from exc
+        raise ConfigurationError(f"{name} باید یک عدد صحیح باشد") from exc
     if value <= 0:
-        raise ConfigurationError(f"{name} must be positive")
+        raise ConfigurationError(f"{name} باید بزرگ‌تر از صفر باشد")
     return value
 
 
@@ -77,26 +77,29 @@ class Settings:
         }
         if provider not in providers:
             raise ConfigurationError(
-                "EVO_PROVIDER must be one of: " + ", ".join(sorted(providers))
+                "EVO_PROVIDER باید یکی از این موارد باشد: "
+                + "، ".join(sorted(providers))
             )
         selected = providers[provider]
         key_name = selected["key_name"]
         key = os.getenv(key_name, "").strip()
         if not key:
-            raise ConfigurationError(f"{key_name} is required for {provider}")
+            raise ConfigurationError(
+                f"وارد کردن {key_name} برای {provider} الزامی است"
+            )
         base_url = os.getenv(
             selected["base_url_name"], selected["base_url"]
         ).rstrip("/")
         if not base_url.startswith("https://"):
             raise ConfigurationError(
-                f"{selected['base_url_name']} must use HTTPS"
+                f"{selected['base_url_name']} باید از HTTPS استفاده کند"
             )
         model = os.getenv(
             f"EVO_{provider.upper()}_MODEL",
             os.getenv("EVO_MODEL", selected["model"]),
         ).strip()
         if not model:
-            raise ConfigurationError("Configured model cannot be empty")
+            raise ConfigurationError("مدل پیکربندی‌شده نمی‌تواند خالی باشد")
         return cls(
             provider=provider,
             api_key=key,

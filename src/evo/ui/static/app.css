@@ -10,8 +10,8 @@
   --danger: #9b3b2f;
   --line: rgba(18, 32, 23, 0.12);
   --shadow: 0 24px 60px rgba(18, 32, 23, 0.18);
-  --display: "Fraunces", "Iowan Old Style", Georgia, serif;
-  --body: "Sora", "Avenir Next", sans-serif;
+  --display: "Vazirmatn", Tahoma, sans-serif;
+  --body: "Vazirmatn", Tahoma, sans-serif;
 }
 
 * {
@@ -27,6 +27,7 @@ body {
   min-height: 100vh;
   color: var(--ink);
   font-family: var(--body);
+  direction: rtl;
   background:
     radial-gradient(circle at 12% 18%, rgba(63, 143, 107, 0.28), transparent 36%),
     radial-gradient(circle at 88% 8%, rgba(184, 137, 45, 0.18), transparent 28%),
@@ -67,13 +68,15 @@ body {
   line-height: 0.85;
   letter-spacing: -0.04em;
   color: var(--canopy);
+  direction: ltr;
+  text-align: right;
   animation: rise 900ms ease both;
 }
 
 .hero h1 {
   margin: 0;
   font-family: var(--display);
-  font-weight: 500;
+  font-weight: 700;
   font-size: clamp(2rem, 5vw, 3.4rem);
   color: var(--soil);
   animation: rise 900ms ease 80ms both;
@@ -254,6 +257,15 @@ textarea {
   font: inherit;
 }
 
+input[name="model"],
+input[name="base_url"],
+input[name="api_key"],
+input[name="mutable_paths"],
+.result {
+  direction: ltr;
+  text-align: left;
+}
+
 textarea {
   resize: vertical;
   min-height: 7rem;
@@ -273,6 +285,7 @@ textarea {
   white-space: pre-wrap;
   overflow-wrap: anywhere;
   word-break: break-word;
+  unicode-bidi: plaintext;
   border-radius: 18px;
   background: rgba(18, 32, 23, 0.92);
   color: #dff5e8;
@@ -291,7 +304,7 @@ table {
 
 th,
 td {
-  text-align: left;
+  text-align: right;
   padding: 0.75rem 0.55rem;
   border-bottom: 1px solid var(--line);
   vertical-align: top;

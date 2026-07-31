@@ -26,6 +26,8 @@ You cannot execute tools, modify files, request credentials, create accounts,
 spend money, or deploy. Return one JSON object with exactly these string fields:
 target_path, summary, rationale, expected_benefit, risk.
 The target_path must be within one of the supplied mutable path prefixes.
+Write summary, rationale, expected_benefit, and risk in fluent Persian.
+Keep target_path as a repository-relative technical path.
 """
 
 
@@ -75,7 +77,7 @@ class EvolutionEngine:
             if not decision.allowed:
                 rejection_reason = decision.reason
         except (json.JSONDecodeError, TypeError, ValueError) as exc:
-            rejection_reason = f"Invalid proposal: {exc}"
+            rejection_reason = f"پیشنهاد نامعتبر است: {exc}"
 
         score = FitnessScore(schema_score, policy_score, rationale_score)
         status = (
@@ -111,4 +113,3 @@ class EvolutionEngine:
             },
         )
         return candidate
-

@@ -56,15 +56,19 @@ class KernelPolicy:
         self, target_path: str, mutable_paths: tuple[str, ...]
     ) -> PolicyDecision:
         if "\x00" in target_path or target_path.startswith("/"):
-            return PolicyDecision(False, "Path must be a relative workspace path")
+            return PolicyDecision(False, "مسیر باید نسبت به محیط کار تعریف شود")
         normalized = PurePosixPath(target_path).as_posix().lstrip("/")
         if not normalized or normalized == "." or ".." in PurePosixPath(normalized).parts:
-            return PolicyDecision(False, "Path is empty or escapes the workspace")
+            return PolicyDecision(
+                False, "مسیر خالی است یا از محیط کار خارج می‌شود"
+            )
         if any(
             normalized == prefix.rstrip("/") or normalized.startswith(prefix)
             for prefix in PROTECTED_PREFIXES
         ):
-            return PolicyDecision(False, "Target belongs to the immutable kernel")
+            return PolicyDecision(
+                False, "مسیر مقصد متعلق به هسته تغییرناپذیر است"
+            )
         safe_prefixes = tuple(
             normalized_prefix
             for prefix in mutable_paths
@@ -78,10 +82,16 @@ class KernelPolicy:
             normalized == prefix or normalized.startswith(prefix + "/")
             for prefix in safe_prefixes
         ):
-            return PolicyDecision(False, "Target is outside genome mutable paths")
-        return PolicyDecision(True, "Mutation target is inside the terrarium")
+            return PolicyDecision(
+                False, "مسیر مقصد خارج از مسیرهای قابل‌تغییر ژنوم است"
+            )
+        return PolicyDecision(True, "مسیر تغییر در محدوده زیست‌بوم قرار دارد")
 
     def authorize_external_action(self, action: str) -> PolicyDecision:
         if action in DENIED_EXTERNAL_ACTIONS:
-            return PolicyDecision(False, "Action requires an external approval gate")
-        return PolicyDecision(False, "External actions are deny-by-default in v0.1")
+            return PolicyDecision(
+                False, "این عملیات به تأیید یک سامانه خارجی نیاز دارد"
+            )
+        return PolicyDecision(
+            False, "عملیات خارجی در نسخه ۰٫۱ به‌صورت پیش‌فرض ممنوع است"
+        )

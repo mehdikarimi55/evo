@@ -23,9 +23,9 @@ def redact(value: Any) -> Any:
         for pattern in SECRET_PATTERNS:
             result = pattern.sub(
                 lambda match: (
-                    f"{match.group(1)}[REDACTED]"
+                    f"{match.group(1)}[حذف‌شده]"
                     if match.lastindex
-                    else "[REDACTED]"
+                    else "[حذف‌شده]"
                 ),
                 result,
             )

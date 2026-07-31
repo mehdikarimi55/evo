@@ -72,7 +72,7 @@ class CandidateWorktree:
     ) -> ChangeValidation:
         prefixes = tuple(path for path in mutable_paths if path)
         if not prefixes:
-            raise WorktreeError("At least one mutable path is required")
+            raise WorktreeError("حداقل یک مسیر قابل‌تغییر لازم است")
         resolved_policy = policy or KernelPolicy()
         changed = self.changed_paths()
         violations: list[str] = []
@@ -87,16 +87,16 @@ class CandidateWorktree:
             if not candidate_path.exists() and not candidate_path.is_symlink():
                 continue
             if candidate_path.is_symlink():
-                violations.append(f"{relative}: symbolic links are not allowed")
+                violations.append(f"{relative}: پیوند نمادین مجاز نیست")
                 continue
             if candidate_path.is_file():
                 if candidate_path.stat().st_mode & 0o111:
                     violations.append(
-                        f"{relative}: executable mutations are not allowed"
+                        f"{relative}: تغییر فایل اجرایی مجاز نیست"
                     )
                 elif _looks_binary(candidate_path):
                     violations.append(
-                        f"{relative}: binary mutations are not allowed"
+                        f"{relative}: تغییر فایل باینری مجاز نیست"
                     )
 
         return ChangeValidation(
@@ -118,7 +118,7 @@ class CandidateWorktree:
             str(self.path),
         )
         if removal.returncode != 0 and self.path.exists():
-            failures.append("unable to remove candidate worktree")
+            failures.append("حذف محیط کار نامزد ممکن نشد")
 
         self.manager._git_result(
             "-C", str(self.repository), "worktree", "prune"
@@ -131,7 +131,7 @@ class CandidateWorktree:
             self.branch,
         )
         if branch_removal.returncode != 0 and self.manager.branch_exists(self.branch):
-            failures.append("unable to remove candidate branch")
+            failures.append("حذف شاخه نامزد ممکن نشد")
 
         self._cleaned = not failures
         self.manager._remove_owned_root_if_empty()
@@ -151,7 +151,7 @@ class GitWorktreeManager:
         requested = repository.resolve()
         result = self._git_result("-C", str(requested), "rev-parse", "--show-toplevel")
         if result.returncode != 0:
-            raise WorktreeError("Candidate workspace must be a Git repository")
+            raise WorktreeError("محیط کار نامزد باید یک مخزن گیت باشد")
         self.repository = Path(result.stdout.strip()).resolve()
         self._owns_temp_root = temp_root is None
         self.temp_root = (
@@ -162,7 +162,7 @@ class GitWorktreeManager:
         if self.temp_root == self.repository or self.temp_root.is_relative_to(
             self.repository
         ):
-            raise WorktreeError("Temporary worktrees must be outside the repository")
+            raise WorktreeError("محیط کار موقت باید خارج از مخزن اصلی باشد")
         self.temp_root.mkdir(parents=True, exist_ok=True)
 
     def create(
@@ -172,13 +172,13 @@ class GitWorktreeManager:
         base_ref: str = "HEAD",
     ) -> CandidateWorktree:
         if not _CANDIDATE_ID.fullmatch(candidate_id):
-            raise WorktreeError("Candidate id contains unsafe characters")
+            raise WorktreeError("شناسه نامزد دارای نویسه‌های ناامن است")
         if (
             not base_ref
             or base_ref.startswith("-")
             or any(character.isspace() for character in base_ref)
         ):
-            raise WorktreeError("Base Git reference is invalid")
+            raise WorktreeError("مرجع پایه گیت نامعتبر است")
         self._git(
             "-C",
             str(self.repository),
@@ -222,7 +222,7 @@ class GitWorktreeManager:
             try:
                 worktree.cleanup()
             except WorktreeError as cleanup_error:
-                original.add_note(f"Worktree cleanup also failed: {cleanup_error}")
+                original.add_note(f"پاک‌سازی محیط کار نیز ناموفق بود: {cleanup_error}")
             raise
         else:
             worktree.cleanup()
@@ -262,7 +262,7 @@ class GitWorktreeManager:
                 check=False,
             )
         except (OSError, TimeoutExpired) as exc:
-            raise WorktreeError("Unable to execute Git worktree operation") from exc
+            raise WorktreeError("اجرای عملیات محیط کار گیت ممکن نیست") from exc
 
     def _remove_owned_root_if_empty(self) -> None:
         if not self._owns_temp_root:
@@ -278,16 +278,16 @@ def _looks_binary(path: Path) -> bool:
         with path.open("rb") as stream:
             return b"\0" in stream.read(8192)
     except OSError as exc:
-        raise WorktreeError(f"Unable to inspect candidate file: {path.name}") from exc
+        raise WorktreeError(f"بررسی فایل نامزد ممکن نیست: {path.name}") from exc
 
 
 def _git_failure(result: CompletedProcess[str]) -> str:
     message = result.stderr.strip()
     if "not a git repository" in message.lower():
-        return "Candidate workspace must be a Git repository"
+        return "محیط کار نامزد باید یک مخزن گیت باشد"
     if (
         "not a valid object name" in message.lower()
         or "needed a single revision" in message.lower()
     ):
-        return "Base Git reference does not resolve to a commit"
-    return "Git worktree operation failed"
+        return "مرجع پایه گیت به هیچ commit معتبری اشاره نمی‌کند"
+    return "عملیات محیط کار گیت ناموفق بود"

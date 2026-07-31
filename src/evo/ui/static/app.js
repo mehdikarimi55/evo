@@ -29,7 +29,7 @@ async function api(path, options = {}) {
   });
   const payload = await response.json();
   if (!response.ok) {
-    throw new Error(payload.error || "Request failed");
+    throw new Error(payload.error || "درخواست ناموفق بود");
   }
   return payload;
 }
@@ -56,18 +56,18 @@ function fillSettings(settings) {
     settings.request_timeout_seconds || 45;
   document.getElementById("api_key").value = "";
   document.getElementById("api_key").placeholder = settings.configured
-    ? "Key saved on host — enter a new key to replace it"
-    : "Paste a newly generated provider key";
+    ? "کلید روی میزبان ذخیره شده است؛ برای جایگزینی، کلید جدید را وارد کنید"
+    : "کلید تازه ایجادشده ارائه‌دهنده را وارد کنید";
 }
 
 function renderStatus(settings) {
   const rows = [
-    ["Configured", settings.configured ? "yes" : "no"],
-    ["Provider", settings.provider || "—"],
-    ["Model", settings.model || "—"],
-    ["API key", settings.api_key || "missing"],
-    ["Env file", settings.env_file_exists ? "present" : "missing"],
-    ["Calls / run", settings.max_calls_per_run || "—"],
+    ["پیکربندی", settings.configured ? "انجام شده" : "انجام نشده"],
+    ["ارائه‌دهنده", settings.provider || "—"],
+    ["مدل", settings.model || "—"],
+    ["کلید API", settings.api_key ? "تنظیم‌شده" : "وارد نشده"],
+    ["فایل محیطی", settings.env_file_exists ? "موجود" : "ناموجود"],
+    ["درخواست در هر اجرا", settings.max_calls_per_run || "—"],
   ];
   statusGrid.innerHTML = rows
     .map(
@@ -80,12 +80,68 @@ function renderStatus(settings) {
     .join("");
   statusSummary.textContent = settings.configured
     ? `${settings.provider} · ${settings.model}`
-    : settings.error || "Configuration incomplete";
+    : settings.error || "پیکربندی کامل نیست";
+}
+
+const STATUS_LABELS = {
+  proposed: "پیشنهادشده",
+  eligible: "واجد شرایط",
+  rejected: "ردشده",
+};
+
+const EVENT_LABELS = {
+  "generation.completed": "تکمیل نسل",
+  "mutation.applied": "اعمال تغییر",
+  "mutation.rejected": "رد تغییر",
+};
+
+function translateStatus(value) {
+  return STATUS_LABELS[value] || value || "—";
+}
+
+function translateEvent(value) {
+  return EVENT_LABELS[value] || value || "—";
+}
+
+function localizeCandidate(candidate) {
+  const proposal = candidate.proposal
+    ? {
+        مسیر_هدف: candidate.proposal.target_path,
+        خلاصه: candidate.proposal.summary,
+        منطق_پیشنهاد: candidate.proposal.rationale,
+        فایده_موردانتظار: candidate.proposal.expected_benefit,
+        ریسک: candidate.proposal.risk,
+      }
+    : null;
+  const score = candidate.score
+    ? {
+        اعتبار_ساختار: candidate.score.schema_validity,
+        انطباق_با_سیاست: candidate.score.policy_compliance,
+        کیفیت_استدلال: candidate.score.rationale_quality,
+      }
+    : null;
+  return {
+    شناسه_نامزد: candidate.candidate_id,
+    اثرانگشت_ژنوم: candidate.genome_fingerprint,
+    پیشنهاد: proposal,
+    امتیاز: score,
+    وضعیت: translateStatus(candidate.status),
+    دلیل_رد: candidate.rejection_reason,
+  };
+}
+
+function localizeEvent(event) {
+  return {
+    زمان: event.timestamp,
+    نوع_رویداد: translateEvent(event.event_type),
+    جزئیات: event.payload,
+  };
 }
 
 function renderAudit(events) {
   if (!events.length) {
-    auditBody.innerHTML = `<tr><td colspan="6">No audit events yet.</td></tr>`;
+    auditBody.innerHTML =
+      `<tr><td colspan="6">هنوز رویدادی ثبت نشده است.</td></tr>`;
     return;
   }
   auditBody.innerHTML = events
@@ -99,14 +155,14 @@ function renderAudit(events) {
             <button
               class="icon-button"
               type="button"
-              title="Inspect event"
-              aria-label="Inspect event ${index + 1}"
+              title="مشاهده جزئیات رویداد"
+              aria-label="مشاهده رویداد ${index + 1}"
               data-event-index="${index}"
             >◉</button>
           </td>
           <td>${escapeHtml(formatTime(event.timestamp))}</td>
-          <td>${escapeHtml(event.event_type || "—")}</td>
-          <td><span class="${badgeClass}">${escapeHtml(String(status))}</span></td>
+          <td>${escapeHtml(translateEvent(event.event_type))}</td>
+          <td><span class="${badgeClass}">${escapeHtml(translateStatus(status))}</span></td>
           <td>${escapeHtml(String(payload.score ?? "—"))}</td>
           <td>${escapeHtml(String(payload.model || "—"))}</td>
         </tr>`;
@@ -117,7 +173,7 @@ function renderAudit(events) {
     button.addEventListener("click", () => {
       const event = events[Number(button.dataset.eventIndex)];
       evolveResult.hidden = false;
-      evolveResult.textContent = JSON.stringify(event, null, 2);
+      evolveResult.textContent = JSON.stringify(localizeEvent(event), null, 2);
       evolveResult.scrollIntoView({ behavior: "smooth", block: "center" });
     });
   });
@@ -127,7 +183,7 @@ function formatTime(value) {
   if (!value) return "—";
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return value;
-  return date.toLocaleString();
+  return date.toLocaleString("fa-IR");
 }
 
 function escapeHtml(value) {
@@ -150,7 +206,7 @@ function setEvolveThinking(active) {
   evolveButton.disabled = active;
   evolveButton.classList.toggle("is-thinking", active);
   evolveButton.setAttribute("aria-busy", String(active));
-  evolveButtonLabel.textContent = active ? "Thinking…" : "Evolve";
+  evolveButtonLabel.textContent = active ? "در حال فکر کردن…" : "تکامل";
   evolveThinking.hidden = !active;
   evolveResult.setAttribute("aria-busy", String(active));
 }
@@ -208,7 +264,7 @@ settingsForm.addEventListener("submit", async (event) => {
     });
     fillSettings(settings);
     renderStatus(settings);
-    showToast("Settings saved to .env.local");
+    showToast("تنظیمات در فایل .env.local ذخیره شد");
   } catch (error) {
     showToast(error.message);
   }
@@ -217,7 +273,7 @@ settingsForm.addEventListener("submit", async (event) => {
 document.getElementById("run-doctor").addEventListener("click", async () => {
   try {
     const result = await api("/api/doctor");
-    showToast(`Doctor: ${result.provider} · ${result.model}`);
+    showToast(`پیکربندی معتبر است: ${result.provider} · ${result.model}`);
     await refresh();
   } catch (error) {
     showToast(error.message);
@@ -238,7 +294,7 @@ evolveForm.addEventListener("submit", async (event) => {
   if (evolveButton.disabled) return;
   setEvolveThinking(true);
   evolveResult.hidden = false;
-  evolveResult.textContent = "Waiting for the model to propose a candidate…";
+  evolveResult.textContent = "در انتظار پیشنهاد نامزد از سوی مدل…";
   try {
     const payload = formObject(evolveForm);
     const candidate = await api("/api/evolve", {
@@ -249,14 +305,18 @@ evolveForm.addEventListener("submit", async (event) => {
       }),
     });
     evolveResult.hidden = false;
-    evolveResult.textContent = JSON.stringify(candidate, null, 2);
-    showToast(`Candidate ${candidate.status}`);
+    evolveResult.textContent = JSON.stringify(
+      localizeCandidate(candidate),
+      null,
+      2
+    );
+    showToast(`وضعیت نامزد: ${translateStatus(candidate.status)}`);
     const audit = await api("/api/audit?limit=50");
     renderAudit(audit.events || []);
     applySearch(globalSearch.value);
   } catch (error) {
     showToast(error.message);
-    evolveResult.textContent = `EVO error: ${error.message}`;
+    evolveResult.textContent = `خطای EVO: ${error.message}`;
   } finally {
     setEvolveThinking(false);
   }

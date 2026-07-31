@@ -29,7 +29,7 @@ class RuntimeTests(unittest.TestCase):
             )
             self.assertTrue(public["configured"])
             self.assertEqual(public["provider"], "nvidia")
-            self.assertEqual(public["api_key"], "configured")
+            self.assertEqual(public["api_key"], "تنظیم‌شده")
             self.assertIn("NVIDIA_API_KEY=test-nvidia-key", env_file.read_text())
 
     def test_read_audit_supports_search(self):

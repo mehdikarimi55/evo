@@ -1,13 +1,13 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fa" dir="rtl">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>EVO Terrarium</title>
+    <title>EVO | زیست‌بوم تکاملی</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Sora:wght@400;500;600&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="/static/app.css" />
@@ -16,15 +16,15 @@
     <div class="atmosphere" aria-hidden="true"></div>
     <header class="hero">
       <p class="brand">EVO</p>
-      <h1>Terrarium</h1>
+      <h1>زیست‌بوم تکاملی</h1>
       <p class="lede">
-        Bounded evolutionary coding experiments. Propose one mutation, evaluate
-        it, never hand the kernel the keys.
+        محیطی کنترل‌شده برای آزمایش تکامل کد؛ یک تغییر پیشنهاد کنید، آن را
+        بسنجید و کلیدهای دسترسی را همیشه از هسته دور نگه دارید.
       </p>
       <div class="hero-actions">
-        <a class="button primary" href="#workspace">Open workspace</a>
+        <a class="button primary" href="#workspace">ورود به محیط کار</a>
         <button class="button ghost" type="button" id="run-doctor">
-          Check configuration
+          بررسی پیکربندی
         </button>
       </div>
     </header>
@@ -32,57 +32,60 @@
     <main id="workspace" class="workspace">
       <section class="panel status-panel" aria-labelledby="status-title">
         <div class="panel-head">
-          <h2 id="status-title">Host status</h2>
-          <p id="status-summary">Loading configuration…</p>
+          <h2 id="status-title">وضعیت میزبان</h2>
+          <p id="status-summary">در حال بارگذاری پیکربندی…</p>
         </div>
         <dl class="status-grid" id="status-grid"></dl>
       </section>
 
       <section class="panel" aria-labelledby="settings-title">
         <div class="panel-head">
-          <h2 id="settings-title">Settings</h2>
-          <p>Provider credentials stay on the host. The UI never displays raw keys.</p>
+          <h2 id="settings-title">تنظیمات</h2>
+          <p>
+            اطلاعات ورود ارائه‌دهنده فقط روی میزبان می‌ماند و کلید خام هرگز
+            در رابط کاربری نمایش داده نمی‌شود.
+          </p>
         </div>
         <form id="settings-form" class="form-grid">
           <label>
-            Provider
+            ارائه‌دهنده
             <select name="provider" id="provider">
               <option value="groq">Groq</option>
               <option value="nvidia">NVIDIA NIM</option>
             </select>
           </label>
           <label>
-            Model
+            مدل
             <input name="model" id="model" autocomplete="off" required />
           </label>
           <label class="wide">
-            Base URL
+            نشانی پایه
             <input name="base_url" id="base_url" autocomplete="off" required />
           </label>
           <label class="wide">
-            API key
+            کلید API
             <input
               name="api_key"
               id="api_key"
               type="password"
               autocomplete="off"
-              placeholder="Leave blank to keep the saved key"
+              placeholder="برای حفظ کلید ذخیره‌شده، این قسمت را خالی بگذارید"
             />
           </label>
           <label>
-            Max input tokens
+            حداکثر توکن ورودی
             <input name="max_input_tokens" id="max_input_tokens" type="number" min="1" required />
           </label>
           <label>
-            Max output tokens
+            حداکثر توکن خروجی
             <input name="max_output_tokens" id="max_output_tokens" type="number" min="1" required />
           </label>
           <label>
-            Max calls per run
+            حداکثر درخواست در هر اجرا
             <input name="max_calls_per_run" id="max_calls_per_run" type="number" min="1" required />
           </label>
           <label>
-            Request timeout (s)
+            مهلت پاسخ‌گویی (ثانیه)
             <input
               name="request_timeout_seconds"
               id="request_timeout_seconds"
@@ -92,30 +95,35 @@
             />
           </label>
           <div class="form-actions wide">
-            <button class="button primary" type="submit">Save settings</button>
-            <button class="button ghost" type="button" id="run-probe">Probe provider</button>
+            <button class="button primary" type="submit">ذخیره تنظیمات</button>
+            <button class="button ghost" type="button" id="run-probe">
+              آزمون اتصال ارائه‌دهنده
+            </button>
           </div>
         </form>
       </section>
 
       <section class="panel evolve-panel" aria-labelledby="evolve-title">
         <div class="panel-head">
-          <h2 id="evolve-title">Run one generation</h2>
-          <p>Produces an eligible or rejected candidate. Nothing is applied to the repo.</p>
+          <h2 id="evolve-title">اجرای یک نسل</h2>
+          <p>
+            یک نامزد واجد شرایط یا ردشده تولید می‌کند؛ هیچ تغییری روی مخزن
+            اعمال نمی‌شود.
+          </p>
         </div>
         <form id="evolve-form" class="form-grid">
           <label class="wide">
-            Objective
+            هدف
             <textarea
               name="task"
               id="task"
               rows="4"
               required
-              placeholder="Improve input validation without changing public behavior."
+              placeholder="اعتبارسنجی ورودی را بدون تغییر رفتار عمومی بهبود بده."
             ></textarea>
           </label>
           <label class="wide">
-            Mutable paths
+            مسیرهای قابل‌تغییر
             <input
               name="mutable_paths"
               id="mutable_paths"
@@ -130,7 +138,7 @@
               id="evolve-button"
               aria-busy="false"
             >
-              <span id="evolve-button-label">Evolve</span>
+              <span id="evolve-button-label">تکامل</span>
             </button>
             <span
               class="thinking-indicator"
@@ -140,7 +148,7 @@
               hidden
             >
               <span class="heartbeat-pulse" aria-hidden="true"></span>
-              Thinking…
+              در حال فکر کردن…
             </span>
           </div>
         </form>
@@ -156,15 +164,15 @@
       <section class="panel" aria-labelledby="audit-title">
         <div class="panel-head audit-head">
           <div>
-            <h2 id="audit-title">Audit trail</h2>
-            <p>Redacted local events from `.evo/audit.jsonl`.</p>
+            <h2 id="audit-title">گزارش رویدادها</h2>
+            <p>رویدادهای محلی پالایش‌شده از `.evo/audit.jsonl`.</p>
           </div>
           <label class="search">
-            <span class="sr-only">Search</span>
+            <span class="sr-only">جست‌وجو</span>
             <input
               id="global-search"
               type="search"
-              placeholder="Search audit, status, settings…"
+              placeholder="جست‌وجو در رویدادها، وضعیت و تنظیمات…"
               autocomplete="off"
             />
           </label>
@@ -173,17 +181,17 @@
           <table>
             <thead>
               <tr>
-                <th scope="col">Action</th>
-                <th scope="col">When</th>
-                <th scope="col">Event</th>
-                <th scope="col">Status</th>
-                <th scope="col">Score</th>
-                <th scope="col">Model</th>
+                <th scope="col">عملیات</th>
+                <th scope="col">زمان</th>
+                <th scope="col">رویداد</th>
+                <th scope="col">وضعیت</th>
+                <th scope="col">امتیاز</th>
+                <th scope="col">مدل</th>
               </tr>
             </thead>
             <tbody id="audit-body">
               <tr>
-                <td colspan="6">No audit events yet.</td>
+                <td colspan="6">هنوز رویدادی ثبت نشده است.</td>
               </tr>
             </tbody>
           </table>

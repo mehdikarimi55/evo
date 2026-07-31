@@ -25,7 +25,7 @@ class GroqProvider:
         max_output_tokens: int = 1200,
     ) -> None:
         if not api_key:
-            raise ValueError("Groq API key is required")
+            raise ValueError("وارد کردن کلید API گروک الزامی است")
         self._api_key = api_key
         self.model = model
         self.base_url = base_url.rstrip("/")
@@ -56,9 +56,13 @@ class GroqProvider:
             except (ValueError, AttributeError):
                 pass
             suffix = f": {detail[:240]}" if detail else ""
-            raise ProviderError(f"Groq returned HTTP {exc.code}{suffix}") from exc
+            raise ProviderError(
+                f"گروک خطای HTTP {exc.code} برگرداند{suffix}"
+            ) from exc
         except (URLError, TimeoutError, json.JSONDecodeError) as exc:
-            raise ProviderError(f"Groq request failed: {type(exc).__name__}") from exc
+            raise ProviderError(
+                f"درخواست از گروک ناموفق بود: {type(exc).__name__}"
+            ) from exc
 
     def healthcheck(self) -> str:
         payload = self._request("/models")
@@ -67,9 +71,9 @@ class GroqProvider:
         }
         if self.model not in model_ids:
             raise ProviderError(
-                f"Configured model is not available to this Groq project: {self.model}"
+                f"مدل انتخاب‌شده در این پروژه گروک در دسترس نیست: {self.model}"
             )
-        return f"Groq reachable; configured model available: {self.model}"
+        return f"اتصال به گروک برقرار است؛ مدل در دسترس: {self.model}"
 
     def generate_json(self, *, system: str, user: str) -> ModelReply:
         payload = {
@@ -94,5 +98,6 @@ class GroqProvider:
                 request_id=result.get("id"),
             )
         except (KeyError, IndexError, TypeError, ValueError) as exc:
-            raise ProviderError("Groq returned an unexpected response schema") from exc
-
+            raise ProviderError(
+                "ساختار پاسخ گروک با قالب مورد انتظار سازگار نیست"
+            ) from exc

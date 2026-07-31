@@ -110,7 +110,7 @@ class TerrariumRuntime:
             "provider": settings.provider,
             "model": settings.model,
             "base_url": settings.base_url,
-            "api_key": "configured",
+            "api_key": "تنظیم‌شده",
             "max_input_tokens": settings.max_input_tokens,
             "max_output_tokens": settings.max_output_tokens,
             "max_calls_per_run": settings.max_calls_per_run,
@@ -122,10 +122,10 @@ class TerrariumRuntime:
     def doctor(self) -> dict[str, object]:
         settings = self.load_settings()
         return {
-            "configuration": "valid",
+            "configuration": "معتبر",
             "provider": settings.provider,
             "model": settings.model,
-            "api_key": "configured",
+            "api_key": "تنظیم‌شده",
         }
 
     def probe(self) -> str:
@@ -141,11 +141,11 @@ class TerrariumRuntime:
     ) -> dict[str, object]:
         objective = task.strip()
         if not objective:
-            raise ValueError("Task objective is required")
+            raise ValueError("وارد کردن هدف الزامی است")
         paths = mutable_paths or ["organisms/"]
         cleaned = [path.strip() for path in paths if path and path.strip()]
         if not cleaned:
-            raise ValueError("At least one mutable path is required")
+            raise ValueError("حداقل یک مسیر قابل‌تغییر لازم است")
         settings = self.load_settings()
         budget = RunBudget(
             max_calls=settings.max_calls_per_run,
@@ -169,7 +169,7 @@ class TerrariumRuntime:
 
     def read_audit(self, *, limit: int = 50, query: str = "") -> list[dict[str, object]]:
         if limit <= 0:
-            raise ValueError("Audit limit must be positive")
+            raise ValueError("محدوده گزارش رویدادها باید بزرگ‌تر از صفر باشد")
         if not self.audit_path.exists():
             return []
         needle = query.strip().lower()
@@ -189,16 +189,19 @@ class TerrariumRuntime:
         provider = str(values.get("provider", "groq")).strip().lower()
         if provider not in SUPPORTED_PROVIDERS:
             raise ConfigurationError(
-                "EVO_PROVIDER must be one of: " + ", ".join(SUPPORTED_PROVIDERS)
+                "EVO_PROVIDER باید یکی از این موارد باشد: "
+                + "، ".join(SUPPORTED_PROVIDERS)
             )
 
         defaults = PROVIDER_DEFAULTS[provider]
         model = str(values.get("model", defaults["model"])).strip()
         if not model:
-            raise ConfigurationError("Configured model cannot be empty")
+            raise ConfigurationError("مدل پیکربندی‌شده نمی‌تواند خالی باشد")
         base_url = str(values.get("base_url", defaults["base_url"])).strip().rstrip("/")
         if not base_url.startswith("https://"):
-            raise ConfigurationError("Provider base URL must use HTTPS")
+            raise ConfigurationError(
+                "نشانی پایه ارائه‌دهنده باید از HTTPS استفاده کند"
+            )
 
         api_key = str(values.get("api_key", "")).strip()
         existing = _read_env_map(self.env_file)
@@ -206,7 +209,9 @@ class TerrariumRuntime:
         if not api_key:
             api_key = existing.get(key_name, os.getenv(key_name, "")).strip()
         if not api_key:
-            raise ConfigurationError(f"{key_name} is required for {provider}")
+            raise ConfigurationError(
+                f"وارد کردن {key_name} برای {provider} الزامی است"
+            )
 
         payload = {
             "EVO_PROVIDER": provider,
@@ -260,9 +265,9 @@ def _positive_setting(
     try:
         number = int(raw)
     except (TypeError, ValueError) as exc:
-        raise ConfigurationError(f"{env_name} must be an integer") from exc
+        raise ConfigurationError(f"{env_name} باید یک عدد صحیح باشد") from exc
     if number <= 0:
-        raise ConfigurationError(f"{env_name} must be positive")
+        raise ConfigurationError(f"{env_name} باید بزرگ‌تر از صفر باشد")
     return str(number)
 
 
@@ -282,7 +287,7 @@ def _read_env_map(path: Path) -> dict[str, str]:
 def _write_env_file(path: Path, values: dict[str, str]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     lines = [
-        "# Managed by EVO Terrarium UI/CLI. Keep real keys only in this file.",
+        "# مدیریت‌شده توسط رابط کاربری و خط فرمان EVO؛ کلیدهای واقعی را فقط در این فایل نگه دارید.",
         f"EVO_PROVIDER={values['EVO_PROVIDER']}",
         "",
         "# Groq",
@@ -316,4 +321,4 @@ def _write_env_file(path: Path, values: dict[str, str]) -> None:
 def serialize_error(exc: Exception) -> dict[str, str]:
     if isinstance(exc, (ConfigurationError, ProviderError, BudgetExceeded, ValueError)):
         return {"error": str(exc)}
-    return {"error": "Unexpected EVO failure"}
+    return {"error": "خطای پیش‌بینی‌نشده در EVO"}

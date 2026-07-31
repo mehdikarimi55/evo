@@ -36,19 +36,19 @@ class RunBudget:
     def reserve_call(self) -> None:
         with self._lock:
             if self._calls + 1 > self.max_calls:
-                raise BudgetExceeded("Model call budget exceeded")
+                raise BudgetExceeded("سقف مجاز درخواست از مدل رد شده است")
             self._calls += 1
 
     def record_usage(self, input_tokens: int, output_tokens: int) -> None:
         if input_tokens < 0 or output_tokens < 0:
-            raise ValueError("Token usage cannot be negative")
+            raise ValueError("میزان مصرف توکن نمی‌تواند منفی باشد")
         with self._lock:
             next_input = self._input_tokens + input_tokens
             next_output = self._output_tokens + output_tokens
             if next_input > self.max_input_tokens:
-                raise BudgetExceeded("Input token budget exceeded")
+                raise BudgetExceeded("سقف مجاز توکن ورودی رد شده است")
             if next_output > self.max_output_tokens:
-                raise BudgetExceeded("Output token budget exceeded")
+                raise BudgetExceeded("سقف مجاز توکن خروجی رد شده است")
             self._input_tokens = next_input
             self._output_tokens = next_output
 
@@ -59,4 +59,3 @@ class RunBudget:
                 input_tokens_used=self._input_tokens,
                 output_tokens_used=self._output_tokens,
             )
-

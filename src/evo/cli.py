@@ -21,41 +21,111 @@ from evo.sandbox import (
 from evo.ui import serve_ui
 
 
+class PersianArgumentParser(argparse.ArgumentParser):
+    def __init__(self, *args, **kwargs) -> None:
+        kwargs["add_help"] = False
+        super().__init__(*args, **kwargs)
+        self._positionals.title = "آرگومان‌ها"
+        self._optionals.title = "گزینه‌ها"
+        self.add_argument(
+            "-h",
+            "--help",
+            action="help",
+            help="نمایش راهنما و خروج",
+        )
+
+    def format_usage(self) -> str:
+        return super().format_usage().replace("usage:", "نحوه استفاده:", 1)
+
+    def format_help(self) -> str:
+        return super().format_help().replace("usage:", "نحوه استفاده:", 1)
+
+    def error(self, message: str) -> None:
+        translations = (
+            (
+                "the following arguments are required:",
+                "آرگومان‌های زیر الزامی هستند:",
+            ),
+            ("unrecognized arguments:", "آرگومان‌های ناشناخته:"),
+            ("invalid choice:", "انتخاب نامعتبر:"),
+            ("expected one argument", "به یک مقدار نیاز دارد"),
+        )
+        for source, target in translations:
+            message = message.replace(source, target)
+        self.print_usage(sys.stderr)
+        self.exit(2, f"{self.prog}: خطا: {message}\n")
+
+
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(prog="evo")
+    parser = PersianArgumentParser(
+        prog="evo",
+        description="محیط کنترل‌شده EVO برای آزمایش تکامل کد",
+    )
     parser.add_argument(
         "--version",
         action="version",
         version=f"%(prog)s {__version__}",
+        help="نمایش نسخه برنامه و خروج",
     )
-    subparsers = parser.add_subparsers(dest="command", required=True)
-    for name in ("doctor", "probe"):
-        command = subparsers.add_parser(name)
-        command.add_argument("--env-file")
-    evolve = subparsers.add_parser("evolve")
-    evolve.add_argument("--env-file")
-    evolve.add_argument("--task", required=True)
-    evolve.add_argument("--mutable-path", action="append", default=["organisms/"])
-    sandbox = subparsers.add_parser("sandbox")
-    sandbox.add_argument("--workspace", default=".")
-    sandbox.add_argument("--image", required=True)
-    sandbox.add_argument("--engine", choices=("podman", "docker"))
-    sandbox.add_argument("--timeout", type=int, default=30)
+    subparsers = parser.add_subparsers(
+        dest="command",
+        required=True,
+        title="دستورها",
+        metavar="دستور",
+    )
+    doctor = subparsers.add_parser(
+        "doctor", help="اعتبارسنجی پیکربندی میزبان"
+    )
+    doctor.add_argument("--env-file", help="مسیر فایل محیطی")
+    probe = subparsers.add_parser(
+        "probe", help="آزمون اتصال به ارائه‌دهنده مدل"
+    )
+    probe.add_argument("--env-file", help="مسیر فایل محیطی")
+    evolve = subparsers.add_parser("evolve", help="اجرای یک نسل تکاملی")
+    evolve.add_argument("--env-file", help="مسیر فایل محیطی")
+    evolve.add_argument("--task", required=True, help="هدف نسل تکاملی")
+    evolve.add_argument(
+        "--mutable-path",
+        action="append",
+        default=["organisms/"],
+        help="مسیر قابل‌تغییر؛ امکان تکرار این گزینه وجود دارد",
+    )
+    sandbox = subparsers.add_parser(
+        "sandbox", help="اجرای دستور در محیط کانتینری ایزوله"
+    )
+    sandbox.add_argument("--workspace", default=".", help="مسیر محیط کار")
+    sandbox.add_argument("--image", required=True, help="نام image کانتینر")
+    sandbox.add_argument(
+        "--engine",
+        choices=("podman", "docker"),
+        help="موتور کانتینر",
+    )
+    sandbox.add_argument(
+        "--timeout", type=int, default=30, help="مهلت اجرا برحسب ثانیه"
+    )
     sandbox.add_argument(
         "--allow-command",
         action="append",
         dest="allowed_commands",
         help=(
-            "allowed executable name; may be repeated "
-            f"(default: {', '.join(DEFAULT_ALLOWED_COMMANDS)})"
+            "نام فایل اجرایی مجاز؛ امکان تکرار دارد "
+            f"(پیش‌فرض: {', '.join(DEFAULT_ALLOWED_COMMANDS)})"
         ),
     )
-    sandbox.add_argument("sandbox_command", nargs=argparse.REMAINDER)
-    ui = subparsers.add_parser("ui")
-    ui.add_argument("--env-file")
-    ui.add_argument("--host", default="127.0.0.1")
-    ui.add_argument("--port", type=int, default=8787)
-    ui.add_argument("--no-browser", action="store_true")
+    sandbox.add_argument(
+        "sandbox_command",
+        nargs=argparse.REMAINDER,
+        help="دستور موردنظر برای اجرا",
+    )
+    ui = subparsers.add_parser("ui", help="اجرای رابط کاربری محلی")
+    ui.add_argument("--env-file", help="مسیر فایل محیطی")
+    ui.add_argument("--host", default="127.0.0.1", help="نشانی میزبان")
+    ui.add_argument("--port", type=int, default=8787, help="شماره درگاه")
+    ui.add_argument(
+        "--no-browser",
+        action="store_true",
+        help="مرورگر را به‌صورت خودکار باز نکن",
+    )
     return parser
 
 
@@ -74,7 +144,18 @@ def main(argv: list[str] | None = None) -> int:
             )
             return 0
         if args.command == "doctor":
-            print(json.dumps(runtime.doctor()))
+            result = runtime.doctor()
+            print(
+                json.dumps(
+                    {
+                        "وضعیت پیکربندی": result["configuration"],
+                        "ارائه‌دهنده": result["provider"],
+                        "مدل": result["model"],
+                        "کلید API": result["api_key"],
+                    },
+                    ensure_ascii=False,
+                )
+            )
             return 0
         if args.command == "probe":
             print(runtime.probe())
@@ -104,7 +185,14 @@ def main(argv: list[str] | None = None) -> int:
             task=args.task,
             mutable_paths=list(args.mutable_path),
         )
-        print(json.dumps(candidate, indent=2, default=str))
+        print(
+            json.dumps(
+                _localize_candidate(candidate),
+                indent=2,
+                default=str,
+                ensure_ascii=False,
+            )
+        )
         return 0 if candidate.get("rejection_reason") is None else 2
     except (
         ConfigurationError,
@@ -113,8 +201,47 @@ def main(argv: list[str] | None = None) -> int:
         SandboxError,
         ValueError,
     ) as exc:
-        print(f"EVO error: {exc}")
+        print(f"خطای EVO: {exc}")
         return 1
+
+
+def _localize_candidate(candidate: dict[str, object]) -> dict[str, object]:
+    proposal = candidate.get("proposal")
+    score = candidate.get("score")
+    status_labels = {
+        "proposed": "پیشنهادشده",
+        "eligible": "واجد شرایط",
+        "rejected": "ردشده",
+    }
+    localized_proposal = (
+        {
+            "مسیر هدف": proposal.get("target_path"),
+            "خلاصه": proposal.get("summary"),
+            "منطق پیشنهاد": proposal.get("rationale"),
+            "فایده مورد انتظار": proposal.get("expected_benefit"),
+            "ریسک": proposal.get("risk"),
+        }
+        if isinstance(proposal, dict)
+        else None
+    )
+    localized_score = (
+        {
+            "اعتبار ساختار": score.get("schema_validity"),
+            "انطباق با سیاست": score.get("policy_compliance"),
+            "کیفیت استدلال": score.get("rationale_quality"),
+        }
+        if isinstance(score, dict)
+        else None
+    )
+    status = str(candidate.get("status", ""))
+    return {
+        "شناسه نامزد": candidate.get("candidate_id"),
+        "اثر انگشت ژنوم": candidate.get("genome_fingerprint"),
+        "پیشنهاد": localized_proposal,
+        "امتیاز": localized_score,
+        "وضعیت": status_labels.get(status, status),
+        "دلیل رد": candidate.get("rejection_reason"),
+    }
 
 
 if __name__ == "__main__":

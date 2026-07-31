@@ -22,7 +22,7 @@ class NvidiaProvider:
         max_output_tokens: int = 1200,
     ) -> None:
         if not api_key:
-            raise ValueError("NVIDIA API key is required")
+            raise ValueError("وارد کردن کلید API انویدیا الزامی است")
         self._api_key = api_key
         self.model = model
         self.base_url = base_url.rstrip("/")
@@ -60,11 +60,11 @@ class NvidiaProvider:
                 pass
             suffix = f": {detail[:240]}" if detail else ""
             raise ProviderError(
-                f"NVIDIA returned HTTP {exc.code}{suffix}"
+                f"انویدیا خطای HTTP {exc.code} برگرداند{suffix}"
             ) from exc
         except (URLError, TimeoutError, json.JSONDecodeError) as exc:
             raise ProviderError(
-                f"NVIDIA request failed: {type(exc).__name__}"
+                f"درخواست از انویدیا ناموفق بود: {type(exc).__name__}"
             ) from exc
 
     def healthcheck(self) -> str:
@@ -74,10 +74,10 @@ class NvidiaProvider:
         }
         if self.model not in model_ids:
             raise ProviderError(
-                "Configured model is not available to this NVIDIA project: "
+                "مدل انتخاب‌شده در این پروژه انویدیا در دسترس نیست: "
                 f"{self.model}"
             )
-        return f"NVIDIA reachable; configured model available: {self.model}"
+        return f"اتصال به انویدیا برقرار است؛ مدل در دسترس: {self.model}"
 
     def generate_json(self, *, system: str, user: str) -> ModelReply:
         payload = {
@@ -103,5 +103,5 @@ class NvidiaProvider:
             )
         except (KeyError, IndexError, TypeError, ValueError) as exc:
             raise ProviderError(
-                "NVIDIA returned an unexpected response schema"
+                "ساختار پاسخ انویدیا با قالب مورد انتظار سازگار نیست"
             ) from exc

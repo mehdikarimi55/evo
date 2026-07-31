@@ -98,7 +98,7 @@ class MutationApplicatorTests(unittest.TestCase):
             manager = GitWorktreeManager(repository)
 
             with manager.candidate("protected") as candidate:
-                with self.assertRaisesRegex(PatchError, "allowed mutation"):
+                with self.assertRaisesRegex(PatchError, "محدوده مجاز"):
                     MutationApplicator().apply(
                         candidate=candidate,
                         patch=patch,
@@ -157,7 +157,7 @@ class MutationApplicatorTests(unittest.TestCase):
             manager = GitWorktreeManager(repository)
 
             with manager.candidate("limits") as candidate:
-                with self.assertRaisesRegex(PatchError, "file limit"):
+                with self.assertRaisesRegex(PatchError, "تعداد فایل"):
                     MutationApplicator(
                         limits=PatchLimits(max_files=1)
                     ).apply(
@@ -166,7 +166,7 @@ class MutationApplicatorTests(unittest.TestCase):
                         mutable_paths=("organisms/",),
                         candidate_id="limits",
                     )
-                with self.assertRaisesRegex(PatchError, "byte limit"):
+                with self.assertRaisesRegex(PatchError, "حجم وصله"):
                     MutationApplicator(
                         limits=PatchLimits(max_bytes=32)
                     ).apply(
@@ -196,7 +196,7 @@ class MutationApplicatorTests(unittest.TestCase):
                 )
 
             with manager.candidate("line-limit") as candidate:
-                with self.assertRaisesRegex(PatchError, "changed-line limit"):
+                with self.assertRaisesRegex(PatchError, "تعداد خطوط"):
                     MutationApplicator(
                         limits=PatchLimits(max_changed_lines=1)
                     ).apply(
@@ -225,7 +225,7 @@ diff --git a/organisms/tool.sh b/organisms/tool.sh
             manager = GitWorktreeManager(repository)
 
             with manager.candidate("executable") as candidate:
-                with self.assertRaisesRegex(PatchError, "executable"):
+                with self.assertRaisesRegex(PatchError, "فایل اجرایی"):
                     MutationApplicator().apply(
                         candidate=candidate,
                         patch=patch,
@@ -242,7 +242,7 @@ diff --git a/organisms/tool.sh b/organisms/tool.sh
             manager = GitWorktreeManager(repository)
 
             with manager.candidate("invalid") as candidate:
-                with self.assertRaisesRegex(PatchError, "cleanly"):
+                with self.assertRaisesRegex(PatchError, "قابل اعمال نیست"):
                     MutationApplicator(audit=AuditLog(audit_path)).apply(
                         candidate=candidate,
                         patch=invalid,
@@ -266,7 +266,7 @@ diff --git a/organisms/tool.sh b/organisms/tool.sh
             with manager.candidate("dirty") as candidate:
                 target = candidate.path / "organisms" / "prompt.md"
                 target.write_text("dirty\n", encoding="utf-8")
-                with self.assertRaisesRegex(PatchError, "must be clean"):
+                with self.assertRaisesRegex(PatchError, "باید پاک باشد"):
                     MutationApplicator().apply(
                         candidate=candidate,
                         patch=VALID_PATCH,
@@ -275,7 +275,7 @@ diff --git a/organisms/tool.sh b/organisms/tool.sh
                     )
 
             with manager.candidate("fenced") as candidate:
-                with self.assertRaisesRegex(PatchError, "raw Git"):
+                with self.assertRaisesRegex(PatchError, "خام گیت"):
                     MutationApplicator().apply(
                         candidate=candidate,
                         patch=f"```diff\n{VALID_PATCH}```\n",

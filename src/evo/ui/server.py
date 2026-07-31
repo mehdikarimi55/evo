@@ -112,7 +112,7 @@ class TerrariumRequestHandler(BaseHTTPRequestHandler):
             return {}
         payload = json.loads(raw.decode("utf-8"))
         if not isinstance(payload, dict):
-            raise ValueError("JSON body must be an object")
+            raise ValueError("بدنه JSON باید یک شیء باشد")
         return payload
 
     def _run_json(self, action: Any) -> None:
@@ -156,15 +156,15 @@ def serve_ui(
     open_browser: bool = True,
 ) -> None:
     if host not in {"127.0.0.1", "localhost"}:
-        raise ValueError("UI server may only bind to localhost")
+        raise ValueError("رابط کاربری فقط می‌تواند روی localhost اجرا شود")
     server = TerrariumUIServer((host, port), runtime)
     url = f"http://{host}:{port}/"
-    print(f"EVO Terrarium UI listening on {url}", flush=True)
+    print(f"رابط کاربری EVO در این نشانی آماده است: {url}", flush=True)
     if open_browser:
         webbrowser.open(url)
     try:
         server.serve_forever()
     except KeyboardInterrupt:
-        print("\nEVO Terrarium UI stopped.")
+        print("\nرابط کاربری EVO متوقف شد.")
     finally:
         server.server_close()

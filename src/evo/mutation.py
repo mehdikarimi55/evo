@@ -26,11 +26,11 @@ class PatchLimits:
 
     def __post_init__(self) -> None:
         if self.max_bytes <= 0:
-            raise ValueError("Patch byte limit must be positive")
+            raise ValueError("محدودیت حجم وصله باید بزرگ‌تر از صفر باشد")
         if self.max_files <= 0:
-            raise ValueError("Patch file limit must be positive")
+            raise ValueError("محدودیت تعداد فایل‌های وصله باید بزرگ‌تر از صفر باشد")
         if self.max_changed_lines <= 0:
-            raise ValueError("Patch line limit must be positive")
+            raise ValueError("محدودیت خطوط وصله باید بزرگ‌تر از صفر باشد")
 
 
 @dataclass(frozen=True, slots=True)
@@ -113,38 +113,38 @@ class MutationApplicator:
         mutable_paths: Sequence[str],
     ) -> PatchApplication:
         if candidate._cleaned or not candidate.path.is_dir():
-            raise PatchError("Candidate worktree is unavailable")
+            raise PatchError("محیط کار نامزد در دسترس نیست")
         if candidate.changed_paths():
-            raise PatchError("Candidate worktree must be clean before applying a patch")
+            raise PatchError("محیط کار نامزد پیش از اعمال وصله باید پاک باشد")
 
         analysis = _analyze_patch(patch, patch_bytes, self.limits)
         prefixes = tuple(path for path in mutable_paths if path)
         if not prefixes:
-            raise PatchError("At least one mutable path is required")
+            raise PatchError("حداقل یک مسیر قابل‌تغییر لازم است")
         for relative in analysis.paths:
             decision = self.policy.authorize_mutation(relative, prefixes)
             if not decision.allowed:
-                raise PatchError("Patch targets a path outside the allowed mutation scope")
+                raise PatchError("وصله مسیری خارج از محدوده مجاز تغییر را هدف گرفته است")
             target = candidate.path / relative
             if target.is_symlink():
-                raise PatchError("Patches may not modify symbolic links")
+                raise PatchError("وصله اجازه تغییر پیوند نمادین را ندارد")
             if target.is_file() and target.stat().st_mode & 0o111:
-                raise PatchError("Patches may not modify executable files")
+                raise PatchError("وصله اجازه تغییر فایل اجرایی را ندارد")
 
         checked = _git_apply(candidate.path, patch, check=True)
         if checked.returncode != 0:
-            raise PatchError("Patch does not apply cleanly")
+            raise PatchError("وصله به‌درستی قابل اعمال نیست")
 
         applied = _git_apply(candidate.path, patch, check=False)
         if applied.returncode != 0:
             _restore(candidate)
-            raise PatchError("Patch application failed")
+            raise PatchError("اعمال وصله ناموفق بود")
 
         validation = candidate.validate_changes(prefixes, policy=self.policy)
         expected = tuple(sorted(analysis.paths))
         if not validation.allowed or validation.changed_paths != expected:
             _restore(candidate)
-            raise PatchError("Applied patch failed post-application validation")
+            raise PatchError("وصله پس از اعمال، اعتبارسنجی نهایی را رد کرد")
 
         return PatchApplication(
             patch_sha256=patch_sha256,
@@ -164,15 +164,15 @@ def _analyze_patch(
     limits: PatchLimits,
 ) -> _PatchAnalysis:
     if not patch or not patch.endswith("\n"):
-        raise PatchError("Patch must be non-empty and end with a newline")
+        raise PatchError("وصله نباید خالی باشد و باید با خط جدید پایان یابد")
     if len(patch_bytes) > limits.max_bytes:
-        raise PatchError("Patch exceeds the configured byte limit")
+        raise PatchError("حجم وصله از محدودیت تعیین‌شده بیشتر است")
     if b"\0" in patch_bytes:
-        raise PatchError("Binary patch content is not allowed")
+        raise PatchError("محتوای باینری در وصله مجاز نیست")
 
     lines = patch.splitlines()
     if not lines or not lines[0].startswith("diff --git "):
-        raise PatchError("Patch must be a raw Git unified diff")
+        raise PatchError("وصله باید یک unified diff خام گیت باشد")
 
     prohibited_prefixes = (
         "GIT binary patch",
@@ -196,7 +196,7 @@ def _analyze_patch(
             return
         path = _validate_section(section)
         if path in paths:
-            raise PatchError("Patch contains duplicate file sections")
+            raise PatchError("وصله شامل بخش‌های تکراری برای یک فایل است")
         paths.append(path)
 
     for line in lines:
@@ -206,13 +206,15 @@ def _analyze_patch(
             in_hunk = False
             continue
         if not section:
-            raise PatchError("Patch contains content outside a file section")
+            raise PatchError("وصله خارج از بخش فایل دارای محتوا است")
         if line.startswith(prohibited_prefixes):
-            raise PatchError("Patch contains a prohibited binary, rename, or mode change")
+            raise PatchError(
+                "وصله شامل تغییر باینری، تغییر نام یا تغییر حالت ممنوع است"
+            )
         if line.startswith("new file mode ") and line != "new file mode 100644":
-            raise PatchError("New files must use regular non-executable mode 100644")
+            raise PatchError("فایل جدید باید حالت عادی و غیر اجرایی 100644 داشته باشد")
         if line.startswith("deleted file mode ") and line != "deleted file mode 100644":
-            raise PatchError("Deleted files must use regular mode 100644")
+            raise PatchError("فایل حذف‌شده باید حالت عادی 100644 داشته باشد")
         if line.startswith("@@ "):
             in_hunk = True
         elif in_hunk and line.startswith(("+", "-")):
@@ -221,13 +223,13 @@ def _analyze_patch(
 
     finish_section()
     if not paths:
-        raise PatchError("Patch does not contain any file changes")
+        raise PatchError("وصله هیچ تغییری در فایل‌ها ندارد")
     if len(paths) > limits.max_files:
-        raise PatchError("Patch exceeds the configured file limit")
+        raise PatchError("تعداد فایل‌های وصله از محدودیت تعیین‌شده بیشتر است")
     if changed_lines == 0:
-        raise PatchError("Patch does not contain any changed lines")
+        raise PatchError("وصله هیچ خط تغییرکرده‌ای ندارد")
     if changed_lines > limits.max_changed_lines:
-        raise PatchError("Patch exceeds the configured changed-line limit")
+        raise PatchError("تعداد خطوط وصله از محدودیت تعیین‌شده بیشتر است")
 
     return _PatchAnalysis(
         paths=tuple(paths),
@@ -241,11 +243,11 @@ def _validate_section(lines: list[str]) -> str:
     if len(header) != 4 or not header[2].startswith("a/") or not header[3].startswith(
         "b/"
     ):
-        raise PatchError("Patch contains an invalid Git file header")
+        raise PatchError("وصله دارای سرآیند فایل نامعتبر گیت است")
     old_path = header[2][2:]
     new_path = header[3][2:]
     if old_path != new_path:
-        raise PatchError("Patch renames and copies are not allowed")
+        raise PatchError("تغییر نام و کپی‌کردن فایل در وصله مجاز نیست")
     _validate_relative_path(old_path)
 
     try:
@@ -253,7 +255,7 @@ def _validate_section(lines: list[str]) -> str:
             index for index, line in enumerate(lines) if line.startswith("@@ ")
         )
     except StopIteration as exc:
-        raise PatchError("Patch file section must contain a unified diff hunk") from exc
+        raise PatchError("بخش فایل وصله باید دارای قطعه unified diff باشد") from exc
     metadata = lines[1:first_hunk]
     old_headers = [
         line[4:].split("\t", 1)[0]
@@ -266,13 +268,13 @@ def _validate_section(lines: list[str]) -> str:
         if line.startswith("+++ ")
     ]
     if len(old_headers) != 1 or len(new_headers) != 1:
-        raise PatchError("Patch must contain exactly one old and new file header")
+        raise PatchError("وصله باید دقیقاً یک سرآیند فایل قدیم و جدید داشته باشد")
     if old_headers[0] not in (f"a/{old_path}", "/dev/null"):
-        raise PatchError("Patch old-file header does not match its target")
+        raise PatchError("سرآیند فایل قدیم با مقصد وصله یکسان نیست")
     if new_headers[0] not in (f"b/{new_path}", "/dev/null"):
-        raise PatchError("Patch new-file header does not match its target")
+        raise PatchError("سرآیند فایل جدید با مقصد وصله یکسان نیست")
     if old_headers[0] == "/dev/null" and new_headers[0] == "/dev/null":
-        raise PatchError("Patch file headers cannot both target /dev/null")
+        raise PatchError("هر دو سرآیند فایل نمی‌توانند /dev/null باشند")
     return old_path
 
 
@@ -284,10 +286,10 @@ def _validate_relative_path(path: str) -> None:
         or any(ord(character) < 32 for character in path)
         or any(character.isspace() for character in path)
     ):
-        raise PatchError("Patch contains an unsafe file path")
+        raise PatchError("وصله دارای مسیر فایل ناامن است")
     normalized = PurePosixPath(path)
     if normalized.as_posix() != path or ".." in normalized.parts:
-        raise PatchError("Patch contains an unsafe file path")
+        raise PatchError("وصله دارای مسیر فایل ناامن است")
 
 
 def _git_apply(worktree: Path, patch: str, *, check: bool) -> CompletedProcess[str]:
@@ -306,7 +308,7 @@ def _git_apply(worktree: Path, patch: str, *, check: bool) -> CompletedProcess[s
             check=False,
         )
     except (OSError, TimeoutExpired) as exc:
-        raise PatchError("Unable to execute Git patch validation") from exc
+        raise PatchError("اجرای اعتبارسنجی وصله گیت ممکن نیست") from exc
 
 
 def _restore(candidate: CandidateWorktree) -> None:
@@ -317,7 +319,7 @@ def _restore(candidate: CandidateWorktree) -> None:
         "-C", str(candidate.path), "clean", "-fdx"
     )
     if reset.returncode != 0 or clean.returncode != 0:
-        raise PatchError("Candidate worktree could not be restored after rejection")
+        raise PatchError("بازیابی محیط کار نامزد پس از رد وصله ممکن نشد")
 
 
 def _git_environment() -> dict[str, str]:

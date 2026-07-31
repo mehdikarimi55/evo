@@ -124,18 +124,18 @@ class WorktreeTests(unittest.TestCase):
                 ),
             )
             reasons = "\n".join(validation.violations)
-            self.assertIn("symbolic links", reasons)
-            self.assertIn("binary mutations", reasons)
-            self.assertIn("immutable kernel", reasons)
+            self.assertIn("پیوند نمادین", reasons)
+            self.assertIn("فایل باینری", reasons)
+            self.assertIn("هسته تغییرناپذیر", reasons)
 
     def test_rejects_non_repository_and_unsafe_candidate_id(self):
         with TemporaryDirectory() as directory:
-            with self.assertRaisesRegex(WorktreeError, "Git repository"):
+            with self.assertRaisesRegex(WorktreeError, "مخزن گیت"):
                 GitWorktreeManager(Path(directory))
 
             repository = self._repository(directory)
             manager = GitWorktreeManager(repository)
-            with self.assertRaisesRegex(WorktreeError, "unsafe"):
+            with self.assertRaisesRegex(WorktreeError, "ناامن"):
                 manager.create("../escape")
 
 

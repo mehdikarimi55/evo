@@ -29,15 +29,15 @@ class SandboxLimits:
 
     def __post_init__(self) -> None:
         if self.timeout_seconds <= 0:
-            raise ValueError("Sandbox timeout must be positive")
+            raise ValueError("مهلت اجرای محیط ایزوله باید بزرگ‌تر از صفر باشد")
         if self.memory_megabytes < 64:
-            raise ValueError("Sandbox memory limit must be at least 64 MiB")
+            raise ValueError("حافظه محیط ایزوله باید حداقل ۶۴ مگابایت باشد")
         if self.cpu_count <= 0:
-            raise ValueError("Sandbox CPU limit must be positive")
+            raise ValueError("محدودیت پردازنده باید بزرگ‌تر از صفر باشد")
         if self.pids <= 0:
-            raise ValueError("Sandbox PID limit must be positive")
+            raise ValueError("محدودیت پردازش‌ها باید بزرگ‌تر از صفر باشد")
         if self.max_output_bytes <= 0:
-            raise ValueError("Sandbox output limit must be positive")
+            raise ValueError("محدودیت خروجی باید بزرگ‌تر از صفر باشد")
 
 
 @dataclass(frozen=True, slots=True)
@@ -88,30 +88,30 @@ class RootlessSandbox:
             command.strip() for command in allowed_commands if command.strip()
         )
         if not self.workspace.is_dir():
-            raise SandboxError("Sandbox workspace must be an existing directory")
+            raise SandboxError("محیط کار ایزوله باید یک پوشه موجود باشد")
         if not self.image or any(character.isspace() for character in self.image):
-            raise SandboxError("Sandbox image must be a non-empty image reference")
+            raise SandboxError("نام image محیط ایزوله نمی‌تواند خالی باشد")
         if self.engine not in {"docker", "podman"}:
-            raise SandboxError("Sandbox engine must be docker or podman")
+            raise SandboxError("موتور محیط ایزوله باید docker یا podman باشد")
         if not self.allowed_commands:
-            raise SandboxError("Sandbox command allowlist cannot be empty")
+            raise SandboxError("فهرست دستورهای مجاز محیط ایزوله نمی‌تواند خالی باشد")
         if any(
             "/" in command
             or "\\" in command
             or any(character.isspace() for character in command)
             for command in self.allowed_commands
         ):
-            raise SandboxError("Sandbox allowlist entries must be executable names")
+            raise SandboxError("فهرست مجاز فقط باید شامل نام فایل‌های اجرایی باشد")
 
     def build_command(self, command: Sequence[str]) -> tuple[str, ...]:
         requested = tuple(str(part) for part in command)
         if not requested or not requested[0].strip():
-            raise SandboxError("Sandbox command cannot be empty")
+            raise SandboxError("دستور محیط ایزوله نمی‌تواند خالی باشد")
         if any("\x00" in part for part in requested):
-            raise SandboxError("Sandbox command contains an invalid null byte")
+            raise SandboxError("دستور محیط ایزوله دارای null byte نامعتبر است")
         if requested[0] not in self.allowed_commands:
             raise SandboxError(
-                f"Sandbox command is not allowed: {requested[0]}"
+                f"اجرای این دستور در محیط ایزوله مجاز نیست: {requested[0]}"
             )
 
         limits = self.limits
@@ -155,7 +155,7 @@ class RootlessSandbox:
         invocation = self.build_command(command)
         if not self.rootless_check(self.engine):
             raise SandboxError(
-                f"{self.engine} is unavailable or is not running in rootless mode"
+                f"{self.engine} در دسترس نیست یا در حالت rootless اجرا نشده است"
             )
         started = monotonic()
         try:
@@ -167,7 +167,7 @@ class RootlessSandbox:
                 env=_engine_environment(),
             )
         except OSError as exc:
-            raise SandboxError("Unable to start the sandbox engine") from exc
+            raise SandboxError("راه‌اندازی موتور محیط ایزوله ممکن نیست") from exc
 
         timed_out = False
         try:
@@ -181,7 +181,7 @@ class RootlessSandbox:
             removed, cleanup_stderr = self._force_remove()
             if not removed:
                 raise SandboxError(
-                    "Sandbox timed out and its container could not be removed: "
+                    "مهلت محیط ایزوله تمام شد و حذف کانتینر ممکن نشد: "
                     + cleanup_stderr
                 )
             stdout, stderr = client_stdout, client_stderr
@@ -209,7 +209,7 @@ class RootlessSandbox:
             )
             _, stderr = cleanup.communicate(input=b"", timeout=10)
         except (OSError, TimeoutExpired):
-            return False, "cleanup command failed"
+            return False, "دستور پاک‌سازی ناموفق بود"
         message = stderr.decode("utf-8", errors="replace").strip()
         removed = cleanup.returncode == 0 or "no such container" in message.lower()
         return removed, message
@@ -220,7 +220,7 @@ def _detect_engine() -> str:
         if which(name):
             return name
     raise SandboxError(
-        "No container sandbox engine found; install rootless Podman or Docker"
+        "موتور کانتینر پیدا نشد؛ Podman یا Docker را در حالت rootless نصب کنید"
     )
 
 
@@ -255,6 +255,6 @@ def _is_rootless_engine(engine: str) -> bool:
 def _bounded(payload: bytes, limit: int) -> tuple[bytes, bool]:
     if len(payload) <= limit:
         return payload, False
-    marker = b"\n[EVO output truncated]\n"
+    marker = "\n[خروجی EVO کوتاه شده است]\n".encode("utf-8")
     retained = max(0, limit - len(marker))
     return payload[:retained] + marker, True

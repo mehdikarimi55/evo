@@ -106,7 +106,7 @@ class SandboxTests(unittest.TestCase):
     def test_rejects_command_outside_allowlist(self):
         with TemporaryDirectory() as directory:
             sandbox = self._sandbox(directory)
-            with self.assertRaisesRegex(SandboxError, "not allowed"):
+            with self.assertRaisesRegex(SandboxError, "مجاز نیست"):
                 sandbox.build_command(("sh", "-c", "python -m unittest"))
 
     def test_custom_command_allowlist_is_exact(self):
@@ -131,7 +131,7 @@ class SandboxTests(unittest.TestCase):
 
         self.assertTrue(result.output_truncated)
         self.assertLessEqual(len(result.stdout.encode()), 64)
-        self.assertIn("output truncated", result.stdout)
+        self.assertIn("خروجی EVO کوتاه شده است", result.stdout)
 
     def test_rejects_missing_workspace_and_empty_command(self):
         with self.assertRaises(SandboxError):
@@ -142,7 +142,7 @@ class SandboxTests(unittest.TestCase):
                 rootless_check=lambda engine: True,
             )
         with TemporaryDirectory() as directory:
-            with self.assertRaisesRegex(SandboxError, "allowlist"):
+            with self.assertRaisesRegex(SandboxError, "فهرست دستورهای مجاز"):
                 self._sandbox(directory, allowed_commands=())
         with TemporaryDirectory() as directory:
             with self.assertRaises(SandboxError):

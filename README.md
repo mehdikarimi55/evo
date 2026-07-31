@@ -1,6 +1,6 @@
 # EVO — Evolutionary Virtual Organism
 
-EVO Terrarium v0.8.0 is a bounded environment for experiments in evolutionary
+EVO Terrarium v0.9.0 is a bounded environment for experiments in evolutionary
 coding agents. It lets an organism propose a mutation, evaluates that mutation,
 and records whether it is eligible for selection. The immutable kernel owns
 credentials, budgets, policy decisions, audit events, and promotion gates.
@@ -35,6 +35,8 @@ This repository starts with a deliberately narrow vertical slice:
 - Ed25519 public evidence attestations and independent reviewer identities;
 - a revocable reviewer registry and immutable JSON promotion policy;
 - signed manual-promotion authorization artifacts with no Git or deployment authority;
+- sealed, authority-signed candidate patches bound to their tested base commit;
+- one-time local promotion with exact confirmation and deterministic rollback;
 - an offline test suite with a narrowly pinned cryptographic dependency.
 
 It does **not** autonomously register accounts, accept legal terms, bypass
@@ -326,6 +328,49 @@ Git, commits, merges, pushes, or deploys. Revoke a compromised identity with:
 .venv/bin/evo trust reviewer-revoke --reviewer-id alice \
   --reason "Reviewer key retired."
 ```
+
+## v0.9 reproducible local promotion
+
+v0.9 closes the gap between an ephemeral sandbox result and the exact patch a
+human may choose to promote. After comparative evaluation passes, EVO stores a
+mode-0600 patch and Ed25519-signed manifest under
+`.evo/candidate-artifacts/`. The manifest binds the candidate to its Git base
+commit, patch hash, changed paths, evaluator evidence, command, and mutable-path
+policy. Failed or regression candidates are never archived.
+
+After the v0.8 evidence, attestation, independent review, and authorization
+steps succeed, inspect the read-only release status:
+
+```bash
+.venv/bin/evo promotion status
+```
+
+Copy the exact artifact ID and confirmation phrase from that output. Applying
+the artifact requires a completely clean repository at the tested base commit:
+
+```bash
+.venv/bin/evo promotion apply \
+  --artifact-id artifact-EXAMPLE \
+  --confirm APPLY-artifact-EXAMPLE
+git diff --check
+git diff
+```
+
+This consumes the signed authorization once and changes only the local working
+tree. EVO does not stage, commit, merge, push, or deploy. Before making any
+other edit or commit, the exact promoted state can be restored with the
+promotion ID and rollback confirmation returned by `promotion status`:
+
+```bash
+.venv/bin/evo promotion rollback \
+  --promotion-id promotion-EXAMPLE \
+  --confirm ROLLBACK-promotion-EXAMPLE
+```
+
+Rollback fails closed if HEAD, any promoted file, or the signed artifact has
+changed. Once a human commits the patch, rollback and release management belong
+to the external Git/release system. Sealed patches may contain repository
+source and must never be published with `.evo/` or moved into public artifacts.
 
 ## Security invariants
 

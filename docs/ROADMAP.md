@@ -112,6 +112,20 @@ complete offline suite passed before v0.4 began.
 - [x] No Git mutation, commit, merge, push, deployment, or production authority
 - [ ] Independent production deployment controller and rollback authority
 
+## v0.9 — Reproducible local promotion
+
+- [x] Mode-0600 sealed patch retained only after sandbox verification
+- [x] Ed25519 manifest binds patch, evidence, base commit, and mutable paths
+- [x] Authorized bundle must cover the exact artifact manifest and patch hashes
+- [x] Clean-repository and exact-tested-HEAD promotion preconditions
+- [x] Explicit confirmation phrase before any local working-tree mutation
+- [x] One-time consumption of independent promotion authorization
+- [x] Signed local promotion ledger with post-state digest
+- [x] Exact-state rollback before human edits or commits
+- [x] Read-only bilingual release observatory; apply/rollback remain CLI-only
+- [x] No staging, commit, merge, push, deployment, or production credentials
+- [ ] External production deployment, health verification, and rollback service
+
 ## Production gate
 
 No candidate may reach production until deterministic replay, security

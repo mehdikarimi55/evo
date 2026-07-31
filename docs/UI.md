@@ -29,6 +29,13 @@ may attest or authorize, but reviewer registration, private-key signing, and
 revocation remain CLI-only operations. No browser request accepts private key
 material or performs Git/deployment actions.
 
+The v0.9 release observatory is read-only. It reports the latest sealed
+candidate artifact, whether the independent authorization is current or
+consumed, local repository cleanliness, the active local promotion, rollback
+availability, and the permanent denial of deployment authority. Patch apply and
+rollback are intentionally absent from the browser and require exact CLI
+confirmation phrases.
+
 The local UI is a stdlib HTTP console for host-side operations.
 
 ## Start

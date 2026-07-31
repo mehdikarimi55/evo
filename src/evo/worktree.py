@@ -248,6 +248,11 @@ class GitWorktreeManager:
         )
         return not result.stdout.strip()
 
+    def head_commit(self) -> str:
+        return self._git(
+            "-C", str(self.repository), "rev-parse", "HEAD"
+        ).stdout.strip()
+
     def cleanup(self) -> None:
         """Remove an owned empty temporary root when no candidate was created."""
         self._remove_owned_root_if_empty()

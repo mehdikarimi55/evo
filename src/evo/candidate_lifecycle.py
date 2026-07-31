@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, replace
 from datetime import UTC, datetime
 from hashlib import sha256
 from pathlib import Path
@@ -11,6 +11,7 @@ from typing import Callable, Sequence
 import json
 
 from evo.mutation import MutationApplicator, PatchApplication, PatchError
+from evo.release_control import CandidateArtifactStore, ReleaseControlError
 from evo.sandbox import RootlessSandbox, SandboxError, SandboxResult
 from evo.worktree import GitWorktreeManager, WorktreeError
 
@@ -39,10 +40,12 @@ class ComparativeEvidence:
     duration_seconds: float
     reason: str | None
     recorded_at: str
+    artifact_id: str | None
+    artifact_manifest_sha256: str | None
 
 
 class CandidateLifecycle:
-    """Evaluate a patch without retaining its temporary branch or worktree."""
+    """Evaluate ephemerally and optionally seal only a verified patch."""
 
     def __init__(
         self,
@@ -51,11 +54,13 @@ class CandidateLifecycle:
         sandbox_factory: SandboxFactory,
         evidence_path: Path,
         mutation: MutationApplicator | None = None,
+        artifact_store: CandidateArtifactStore | None = None,
     ) -> None:
         self.repository = repository.resolve()
         self.sandbox_factory = sandbox_factory
         self.evidence_path = evidence_path
         self.mutation = mutation or MutationApplicator()
+        self.artifact_store = artifact_store
         self._lock = Lock()
 
     def evaluate(
@@ -73,12 +78,14 @@ class CandidateLifecycle:
         application: PatchApplication | None = None
         reason: str | None = None
         manager: GitWorktreeManager | None = None
+        base_commit: str | None = None
         try:
             manager = GitWorktreeManager(self.repository)
             if not manager.repository_is_clean():
                 raise WorktreeError(
                     "Candidate comparison requires a clean repository."
                 )
+            base_commit = manager.head_commit()
             baseline = self.sandbox_factory(self.repository).run(command)
             with manager.candidate(candidate_id) as worktree:
                 application = self.mutation.apply(
@@ -123,7 +130,35 @@ class CandidateLifecycle:
             ),
             reason=reason,
             recorded_at=datetime.now(UTC).isoformat(),
+            artifact_id=None,
+            artifact_manifest_sha256=None,
         )
+        if verified and self.artifact_store and base_commit:
+            try:
+                artifact = self.artifact_store.seal(
+                    candidate_id=candidate_id,
+                    patch=patch,
+                    base_commit=base_commit,
+                    evidence=asdict(evidence),
+                    mutable_paths=mutable_paths,
+                )
+            except ReleaseControlError:
+                evidence = replace(
+                    evidence,
+                    promotion_eligible=False,
+                    reason=(
+                        "Sandbox evaluation passed, but the reproducible "
+                        "candidate artifact could not be sealed."
+                    ),
+                )
+            else:
+                evidence = replace(
+                    evidence,
+                    artifact_id=str(artifact["artifact_id"]),
+                    artifact_manifest_sha256=str(
+                        artifact["artifact_manifest_sha256"]
+                    ),
+                )
         self._append(evidence)
         return evidence
 

@@ -16,6 +16,7 @@ from evo.kernel.budget import BudgetExceeded
 from evo.petri import PetriDish, PetriDishError
 from evo.providers.groq import ProviderError
 from evo.runtime import TerrariumRuntime, serialize_error
+from evo.release_control import ReleaseControlError
 
 STATIC_DIR = Path(__file__).resolve().parent / "static"
 INDEX_FILE = STATIC_DIR / "index.html"
@@ -41,6 +42,10 @@ class TerrariumUIServer(ThreadingHTTPServer):
             petri_dish=self.petri_dish
         )
         self.trust_authority = runtime.trust_authority(
+            evidence_control=self.evidence_control,
+            petri_dish=self.petri_dish,
+        )
+        self.promotion_controller = runtime.promotion_controller(
             evidence_control=self.evidence_control,
             petri_dish=self.petri_dish,
         )
@@ -100,6 +105,9 @@ class TerrariumRequestHandler(BaseHTTPRequestHandler):
             return
         if parsed.path == "/api/trust-authority":
             self._run_json(lambda: self.server.trust_authority.status())
+            return
+        if parsed.path == "/api/promotion-control":
+            self._run_json(lambda: self.server.promotion_controller.status())
             return
         if parsed.path.startswith("/static/"):
             relative = parsed.path.removeprefix("/static/")
@@ -197,6 +205,7 @@ class TerrariumRequestHandler(BaseHTTPRequestHandler):
             PetriDishError,
             ProviderError,
             BudgetExceeded,
+            ReleaseControlError,
             ValueError,
             json.JSONDecodeError,
         ) as exc:

@@ -22,6 +22,7 @@ from evo.sandbox import (
 )
 from evo.ui import serve_ui
 from evo.trust_authority import create_reviewer_identity
+from evo.release_control import ReleaseControlError
 
 
 class PersianArgumentParser(argparse.ArgumentParser):
@@ -201,6 +202,19 @@ def build_parser() -> argparse.ArgumentParser:
     trust.add_argument("--public-key", help="مسیر کلید عمومی بازبین")
     trust.add_argument("--reason", default="", help="دلیل لغو هویت")
     trust.add_argument("--note", default="", help="یادداشت بازبینی امضاشده")
+    promotion = subparsers.add_parser(
+        "promotion", help="ارتقا و بازگردانی کنترل‌شده محلی نسخه ۰٫۹"
+    )
+    promotion.add_argument(
+        "action",
+        choices=("status", "apply", "rollback"),
+        help="عملیات ارتقای محلی",
+    )
+    promotion.add_argument("--artifact-id", help="شناسه بسته نامزد مهروموم‌شده")
+    promotion.add_argument("--promotion-id", help="شناسه رکورد ارتقا")
+    promotion.add_argument(
+        "--confirm", default="", help="عبارت تأیید دقیق نمایش‌داده‌شده در وضعیت"
+    )
     return parser
 
 
@@ -296,6 +310,26 @@ def main(argv: list[str] | None = None) -> int:
                 payload = control.authorize_latest()
             print(json.dumps(payload, indent=2, ensure_ascii=False))
             return 0
+        if args.command == "promotion":
+            controller = runtime.promotion_controller()
+            if args.action == "status":
+                payload = controller.status()
+            elif args.action == "apply":
+                if not args.artifact_id:
+                    raise ValueError("promotion apply requires --artifact-id.")
+                payload = controller.promote(
+                    artifact_id=args.artifact_id,
+                    confirmation=args.confirm,
+                )
+            else:
+                if not args.promotion_id:
+                    raise ValueError("promotion rollback requires --promotion-id.")
+                payload = controller.rollback(
+                    promotion_id=args.promotion_id,
+                    confirmation=args.confirm,
+                )
+            print(json.dumps(payload, indent=2, ensure_ascii=False))
+            return 0
         if args.command == "probe":
             print(runtime.probe())
             return 0
@@ -380,6 +414,7 @@ def main(argv: list[str] | None = None) -> int:
         ProviderError,
         BudgetExceeded,
         SandboxError,
+        ReleaseControlError,
         ValueError,
     ) as exc:
         print(f"خطای EVO: {exc}")

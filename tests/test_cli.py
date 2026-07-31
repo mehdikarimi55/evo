@@ -33,7 +33,7 @@ class CLITests(unittest.TestCase):
             with self.assertRaises(SystemExit) as exit_context:
                 build_parser().parse_args(["--version"])
         self.assertEqual(exit_context.exception.code, 0)
-        self.assertEqual(output.getvalue().strip(), "evo 0.8.0")
+        self.assertEqual(output.getvalue().strip(), "evo 0.9.0")
 
     def test_evidence_command_exposes_explicit_human_decisions(self):
         args = build_parser().parse_args(
@@ -58,6 +58,22 @@ class CLITests(unittest.TestCase):
         self.assertEqual(args.action, "approve")
         self.assertEqual(args.reviewer_id, "reviewer-1")
         self.assertEqual(args.private_key, "/external/reviewer.key")
+
+    def test_promotion_command_requires_exact_confirmation_input(self):
+        args = build_parser().parse_args(
+            [
+                "promotion",
+                "apply",
+                "--artifact-id",
+                "artifact-123",
+                "--confirm",
+                "APPLY-artifact-123",
+            ]
+        )
+        self.assertEqual(args.command, "promotion")
+        self.assertEqual(args.action, "apply")
+        self.assertEqual(args.artifact_id, "artifact-123")
+        self.assertEqual(args.confirm, "APPLY-artifact-123")
 
 
 if __name__ == "__main__":

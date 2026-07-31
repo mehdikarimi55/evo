@@ -226,6 +226,24 @@ const I18N = {
     noAuthorization: "No authorization",
     attestationCreated: "Public evidence attestation created",
     promotionAuthorized: "Manual promotion authorization created",
+    controlledRelease: "CONTROLLED RELEASE · v0.9",
+    releaseControl: "Reproducible local promotion",
+    releaseControlDescription: "Preserve the exact sandbox-verified patch, consume one signed authorization, and support exact-state rollback from the CLI.",
+    releaseControlSafety: "Apply and rollback are CLI-only and require exact confirmation phrases. EVO never commits, pushes, merges, or deploys the promoted worktree.",
+    sealedArtifact: "Sealed candidate artifact",
+    authorizationUse: "Authorization use",
+    localRepository: "Local repository",
+    promotionState: "Promotion state",
+    rollbackState: "Rollback state",
+    noArtifact: "No sealed artifact",
+    authorizationReady: "Ready and unused",
+    authorizationUsed: "Already consumed",
+    authorizationMissing: "No current authorization",
+    clean: "Clean",
+    dirty: "Not clean",
+    noActivePromotion: "No active promotion",
+    rollbackReady: "Exact rollback available",
+    noRollback: "No rollback pending",
     journalStarted: "Autonomous exploration started",
     journalStopped: "Autonomous exploration stopped",
     journalCompleted: "Generation limit reached",
@@ -467,6 +485,24 @@ const I18N = {
     noAuthorization: "هنوز مجوزی صادر نشده است",
     attestationCreated: "گواهی عمومی شواهد ساخته شد",
     promotionAuthorized: "مجوز امضاشدهٔ ارتقای دستی صادر شد",
+    controlledRelease: "انتشار کنترل‌شده · نسخه ۰٫۹",
+    releaseControl: "ارتقای محلی بازتولیدپذیر",
+    releaseControlDescription: "وصلهٔ دقیق و تأییدشده در محیط ایزوله را نگه دارید، یک مجوز امضاشده را فقط یک‌بار مصرف کنید و از خط فرمان بازگردانی دقیق وضعیت را انجام دهید.",
+    releaseControlSafety: "اعمال و بازگردانی فقط از خط فرمان و با عبارت تأیید دقیق انجام می‌شوند. EVO هرگز worktree ارتقایافته را commit، push، merge یا مستقر نمی‌کند.",
+    sealedArtifact: "بستهٔ مهروموم‌شدهٔ نامزد",
+    authorizationUse: "مصرف مجوز",
+    localRepository: "مخزن محلی",
+    promotionState: "وضعیت ارتقا",
+    rollbackState: "وضعیت بازگردانی",
+    noArtifact: "هنوز بسته‌ای مهروموم نشده است",
+    authorizationReady: "آماده و مصرف‌نشده",
+    authorizationUsed: "قبلاً مصرف شده است",
+    authorizationMissing: "مجوز معتبری وجود ندارد",
+    clean: "پاک",
+    dirty: "پاک نیست",
+    noActivePromotion: "ارتقای فعالی وجود ندارد",
+    rollbackReady: "بازگردانی دقیق آماده است",
+    noRollback: "بازگردانی معوقی وجود ندارد",
     journalStarted: "کاوش خودکار آغاز شد",
     journalStopped: "کاوش خودکار متوقف شد",
     journalCompleted: "سقف نسل‌ها تکمیل شد",
@@ -518,6 +554,7 @@ let cachedJournal = [];
 let cachedPetri = null;
 let cachedEvidenceControl = null;
 let cachedTrustAuthority = null;
+let cachedPromotionControl = null;
 
 const statusSummary = document.getElementById("status-summary");
 const statusGrid = document.getElementById("status-grid");
@@ -553,6 +590,7 @@ const approvalForm = document.getElementById("approval-form");
 const trustAuthorityStatus = document.getElementById("trust-authority-status");
 const attestEvidence = document.getElementById("attest-evidence");
 const authorizePromotion = document.getElementById("authorize-promotion");
+const promotionControlStatus = document.getElementById("promotion-control-status");
 
 function t(key) {
   return I18N[language][key] || I18N.en[key] || key;
@@ -590,6 +628,7 @@ function setLanguage(nextLanguage) {
   renderPetriDish(cachedPetri);
   renderEvidenceControl(cachedEvidenceControl);
   renderTrustAuthority(cachedTrustAuthority);
+  renderPromotionControl(cachedPromotionControl);
 }
 
 function renderEvidenceControl(status) {
@@ -645,6 +684,32 @@ function renderTrustAuthority(status) {
   `).join("");
   attestEvidence.disabled = !cachedEvidenceControl?.latest_bundle?.verified;
   authorizePromotion.disabled = !policySatisfied;
+}
+
+function renderPromotionControl(status) {
+  if (!status) return;
+  cachedPromotionControl = status;
+  const artifact = status.latest_artifact;
+  const artifactValid = Boolean(artifact?.verified);
+  const authorizationReady = Boolean(
+    status.authorization_current && !status.authorization_consumed
+  );
+  const active = status.active_promotion;
+  const activeValid = Boolean(active?.verified);
+  const cards = [
+    ["sealedArtifact", artifactValid ? artifact.artifact_id : t("noArtifact"), artifactValid],
+    ["authorizationUse", status.authorization_consumed ? t("authorizationUsed") : authorizationReady ? t("authorizationReady") : t("authorizationMissing"), authorizationReady],
+    ["localRepository", status.repository_clean ? t("clean") : t("dirty"), Boolean(status.repository_clean)],
+    ["promotionState", activeValid ? active.record_id : t("noActivePromotion"), activeValid],
+    ["rollbackState", activeValid ? t("rollbackReady") : t("noRollback"), activeValid],
+    ["deploymentAuthority", t("denied"), false],
+  ];
+  promotionControlStatus.innerHTML = cards.map(([label, value, valid]) => `
+    <article class="gate-status-card ${valid ? "verified" : "restricted"}">
+      <span>${escapeHtml(t(label))}</span>
+      <strong>${escapeHtml(value)}</strong>
+    </article>
+  `).join("");
 }
 
 async function api(path, options = {}) {
@@ -1158,7 +1223,7 @@ function applySearch(query) {
 }
 
 async function refresh() {
-  const [settings, audit, autonomy, journal, petri, evidenceControl, trustAuthority] = await Promise.all([
+  const [settings, audit, autonomy, journal, petri, evidenceControl, trustAuthority, promotionControl] = await Promise.all([
     api("/api/settings"),
     api("/api/audit?limit=50"),
     api("/api/autonomy"),
@@ -1166,6 +1231,7 @@ async function refresh() {
     api("/api/petri-dish"),
     api("/api/evidence-control"),
     api("/api/trust-authority"),
+    api("/api/promotion-control"),
   ]);
   fillSettings(settings);
   renderStatus(settings);
@@ -1175,17 +1241,19 @@ async function refresh() {
   renderPetriDish(petri);
   renderEvidenceControl(evidenceControl);
   renderTrustAuthority(trustAuthority);
+  renderPromotionControl(promotionControl);
   applySearch(globalSearch.value);
 }
 
 async function refreshEvolution() {
-  const [autonomy, journal, audit, petri, evidenceControl, trustAuthority] = await Promise.all([
+  const [autonomy, journal, audit, petri, evidenceControl, trustAuthority, promotionControl] = await Promise.all([
     api("/api/autonomy"),
     api("/api/evolution-journal?limit=100"),
     api("/api/audit?limit=50"),
     api("/api/petri-dish"),
     api("/api/evidence-control"),
     api("/api/trust-authority"),
+    api("/api/promotion-control"),
   ]);
   renderAutonomy(autonomy);
   renderJournal(journal.entries || []);
@@ -1193,6 +1261,7 @@ async function refreshEvolution() {
   renderPetriDish(petri);
   renderEvidenceControl(evidenceControl);
   renderTrustAuthority(trustAuthority);
+  renderPromotionControl(promotionControl);
 }
 
 document.querySelectorAll("[data-language]").forEach((button) => {
@@ -1316,6 +1385,7 @@ createEvidenceBundle.addEventListener("click", async () => {
     await api("/api/evidence/bundle", { method: "POST", body: "{}" });
     renderEvidenceControl(await api("/api/evidence-control"));
     renderTrustAuthority(await api("/api/trust-authority"));
+    renderPromotionControl(await api("/api/promotion-control"));
     showToast(t("bundleCreated"));
   } catch (error) {
     showToast(error.message);
@@ -1357,6 +1427,7 @@ authorizePromotion.addEventListener("click", async () => {
   try {
     await api("/api/trust/authorize", { method: "POST", body: "{}" });
     renderTrustAuthority(await api("/api/trust-authority"));
+    renderPromotionControl(await api("/api/promotion-control"));
     showToast(t("promotionAuthorized"));
   } catch (error) {
     showToast(error.message);

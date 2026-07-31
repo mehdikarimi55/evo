@@ -14,6 +14,7 @@ from evo.config import ConfigurationError, Settings, load_env_file
 from evo.domain import EvolutionTask, Genome
 from evo.evidence_control import EvidenceControl, EvidenceSigner, ReplayService
 from evo.trust_authority import Ed25519Identity, TrustAuthority
+from evo.release_control import CandidateArtifactStore, PromotionController
 from evo.evolution import EvolutionEngine
 from evo.kernel.audit import AuditLog
 from evo.kernel.budget import BudgetExceeded, RunBudget
@@ -184,12 +185,37 @@ class TerrariumRuntime:
         return TrustAuthority(
             evidence_control=evidence_control
             or self.evidence_control(petri_dish=petri_dish),
-            authority_identity=Ed25519Identity(
-                private_key_path=(
-                    self.workspace / ".evo/trust/authority-ed25519.key"
-                )
-            ),
+            authority_identity=self._authority_identity(),
             trust_dir=self.workspace / ".evo/trust",
+        )
+
+    def candidate_artifacts(self) -> CandidateArtifactStore:
+        return CandidateArtifactStore(
+            root=self.workspace / ".evo/candidate-artifacts",
+            identity=self._authority_identity(),
+        )
+
+    def promotion_controller(
+        self,
+        *,
+        evidence_control: EvidenceControl | None = None,
+        petri_dish: PetriDish | None = None,
+    ) -> PromotionController:
+        trust = self.trust_authority(
+            evidence_control=evidence_control,
+            petri_dish=petri_dish,
+        )
+        return PromotionController(
+            repository=self.workspace,
+            artifacts=self.candidate_artifacts(),
+            trust=trust,
+            identity=self._authority_identity(),
+            ledger_path=self.workspace / ".evo/promotion-ledger.jsonl",
+        )
+
+    def _authority_identity(self) -> Ed25519Identity:
+        return Ed25519Identity(
+            private_key_path=self.workspace / ".evo/trust/authority-ed25519.key"
         )
 
     def evolve(
@@ -283,6 +309,7 @@ class TerrariumRuntime:
                     allowed_commands=(command[0],),
                 ),
                 mutation=MutationApplicator(audit=AuditLog(self.audit_path)),
+                artifact_store=self.candidate_artifacts(),
             ).evaluate(
                 candidate_id=candidate.candidate_id,
                 team_ids=team_ids,

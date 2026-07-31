@@ -51,6 +51,18 @@ class Ed25519Identity:
             "ascii"
         )
 
+    def verify(self, payload: dict[str, object], signature: object) -> bool:
+        if not isinstance(signature, str):
+            return False
+        public_key = self.initialize()["public_key"]
+        try:
+            Ed25519PublicKey.from_public_bytes(
+                _decode_public_key(public_key)
+            ).verify(b64decode(signature, validate=True), _canonical(payload))
+        except (InvalidSignature, ValueError, TypeError):
+            return False
+        return True
+
     def _private_key(self) -> Ed25519PrivateKey:
         if not self.private_key_path.exists():
             self.private_key_path.parent.mkdir(parents=True, exist_ok=True)
@@ -359,9 +371,30 @@ class TrustAuthority:
             "latest_authorization": _with_verification(
                 latest_authorization, self.verify_authorization
             ),
+            "authorization_current": bool(self.current_authorization()),
             "repository_mutation_performed": False,
             "deployment_authorized": False,
         }
+
+    def current_authorization(self) -> dict[str, Any] | None:
+        """Return the latest authorization only while every prerequisite holds."""
+
+        authorization = self._latest_json(self.authorization_dir)
+        attestation = self._latest_attestation()
+        if (
+            not authorization
+            or not attestation
+            or not self.verify_authorization(authorization)
+            or not self._attestation_is_current(attestation)
+            or not self.evaluate_policy()["satisfied"]
+            or authorization.get("bundle_id") != attestation.get("bundle_id")
+            or authorization.get("bundle_sha256")
+            != attestation.get("bundle_sha256")
+            or authorization.get("attestation_id")
+            != attestation.get("attestation_id")
+        ):
+            return None
+        return authorization
 
     def _verify_authority_record(
         self, record: dict[str, object], *, expected_kind: str

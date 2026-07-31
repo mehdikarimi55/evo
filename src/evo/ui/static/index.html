@@ -19,7 +19,7 @@
         <a class="brand-lockup" href="#workspace" aria-label="EVO">
           <span class="brand-mark" aria-hidden="true"></span>
           <span class="brand">EVO</span>
-          <span class="brand-version">v0.8.0</span>
+          <span class="brand-version">v0.9.0</span>
         </a>
         <div class="language-switch" aria-label="Language">
           <button class="language-option active" type="button" data-language="en">EN</button>
@@ -376,6 +376,19 @@
           </div>
           <p class="safety-note" data-i18n="trustAuthoritySafety">
             Reviewer keys are managed only through the CLI. Authorization creates a signed artifact; EVO still cannot modify Git, push, merge, or deploy.
+          </p>
+        </div>
+        <div class="release-control" aria-labelledby="release-control-title">
+          <div class="panel-head compact">
+            <p class="section-kicker" data-i18n="controlledRelease">CONTROLLED RELEASE · v0.9</p>
+            <h3 id="release-control-title" data-i18n="releaseControl">Reproducible local promotion</h3>
+            <p data-i18n="releaseControlDescription">
+              Preserve the exact sandbox-verified patch, consume one signed authorization, and support exact-state rollback from the CLI.
+            </p>
+          </div>
+          <div class="gate-status-grid" id="promotion-control-status"></div>
+          <p class="safety-note" data-i18n="releaseControlSafety">
+            Apply and rollback are CLI-only and require exact confirmation phrases. EVO never commits, pushes, merges, or deploys the promoted worktree.
           </p>
         </div>
       </section>

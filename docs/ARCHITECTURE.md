@@ -189,6 +189,31 @@ merge, push, deployment, credential, or rollback capability. This keeps trust
 decisions outside the evolving population and execution remains a separate
 human-owned concern.
 
+## v0.9 sealed artifact and local promotion boundary
+
+The v0.6 worktree remains ephemeral, but a v0.9 `CandidateArtifactStore` may
+retain the exact raw patch only after identical baseline/candidate sandbox
+evaluation marks it verified. The mode-0600 patch is accompanied by an
+Ed25519-signed manifest that binds its SHA-256, byte count, changed paths,
+mutable paths, evaluation digest and command, candidate ID, and exact Git base
+commit. Regression, incomplete, rejected, or unsealed candidates remain
+ineligible for controlled promotion.
+
+The evidence ledger stores the artifact ID and signed-manifest digest. A local
+promotion therefore requires a current v0.8 authorization whose exact bundle
+contains that verified evidence entry. The controller additionally requires an
+unused authorization, a completely clean repository, the tested HEAD, and a
+literal confirmation phrase. It applies the sealed patch to the working tree,
+verifies the resulting path set, records a content-and-mode state digest, and
+writes an authority-signed promotion record.
+
+Rollback is available only while HEAD and every promoted path still match that
+recorded post-state. It reverse-applies the same verified patch and requires the
+repository to return to its original clean state. Authorization remains
+consumed after rollback. No controller method stages, commits, merges, pushes,
+deploys, handles production credentials, or bypasses the immutable mutation
+policy. The localhost UI is deliberately read-only for release control.
+
 ## Rootless sandbox boundary
 
 `evo sandbox` runs evaluator commands through Podman or Docker without a direct

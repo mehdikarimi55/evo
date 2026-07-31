@@ -1080,6 +1080,12 @@ td:first-child {
 .panel-head.compact h3 { margin: 0.2rem 0 0.35rem; font-size: 0.9rem; }
 .trust-actions { display: flex; flex-wrap: wrap; gap: 0.65rem; margin-top: 0.8rem; }
 
+.release-control {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(129, 210, 176, 0.16);
+}
+
 .gate-status-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));

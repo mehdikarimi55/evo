@@ -84,8 +84,9 @@ class UIServerTests(unittest.TestCase):
         self.assertIn('id="trust-authority-status"', html)
         self.assertIn('id="attest-evidence"', html)
         self.assertIn('id="authorize-promotion"', html)
+        self.assertIn('id="promotion-control-status"', html)
         self.assertIn("Digital Petri Dish", html)
-        self.assertIn("v0.8.0", html)
+        self.assertIn("v0.9.0", html)
         self.assertIn('id="sandbox_image"', html)
         self.assertIn('id="evaluation_command"', html)
         self.assertIn('class="organism-visual"', html)
@@ -111,6 +112,7 @@ class UIServerTests(unittest.TestCase):
         self.assertIn('api("/api/trust-authority")', javascript)
         self.assertIn('api("/api/trust/attest"', javascript)
         self.assertIn('api("/api/trust/authorize"', javascript)
+        self.assertIn('api("/api/promotion-control")', javascript)
         self.assertIn("renderPetriDish", javascript)
         self.assertIn("ACHIEVEMENT_CATALOG", javascript)
         self.assertIn("achievementUnlocked", javascript)
@@ -132,6 +134,7 @@ class UIServerTests(unittest.TestCase):
         self.assertIn(".evidence-state", stylesheet)
         self.assertIn(".gate-status-grid", stylesheet)
         self.assertIn(".trust-authority", stylesheet)
+        self.assertIn(".release-control", stylesheet)
 
     def test_autonomy_status_and_journal_endpoints(self):
         status, payload = self._request("GET", "/api/autonomy")
@@ -212,6 +215,15 @@ class UIServerTests(unittest.TestCase):
         self.assertTrue(authorization["verified"])
         self.assertFalse(authorization["repository_mutation_performed"])
         self.assertFalse(authorization["deployment_authorized"])
+
+    def test_v09_promotion_status_is_read_only_and_denies_deployment(self):
+        status, payload = self._request("GET", "/api/promotion-control")
+        self.assertEqual(status, 200)
+        self.assertIsNone(payload["latest_artifact"])
+        self.assertFalse(payload["authorization_current"])
+        self.assertFalse(payload["commit_performed"])
+        self.assertFalse(payload["push_performed"])
+        self.assertFalse(payload["deployment_authorized"])
 
     def test_probe_endpoint_uses_runtime(self):
         with patch.object(self.runtime, "probe", return_value="ok"):

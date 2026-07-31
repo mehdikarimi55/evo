@@ -33,7 +33,15 @@ class CLITests(unittest.TestCase):
             with self.assertRaises(SystemExit) as exit_context:
                 build_parser().parse_args(["--version"])
         self.assertEqual(exit_context.exception.code, 0)
-        self.assertEqual(output.getvalue().strip(), "evo 0.6.0")
+        self.assertEqual(output.getvalue().strip(), "evo 0.7.0")
+
+    def test_evidence_command_exposes_explicit_human_decisions(self):
+        args = build_parser().parse_args(
+            ["evidence", "approve", "--approver", "Local reviewer"]
+        )
+        self.assertEqual(args.command, "evidence")
+        self.assertEqual(args.action, "approve")
+        self.assertEqual(args.approver, "Local reviewer")
 
 
 if __name__ == "__main__":

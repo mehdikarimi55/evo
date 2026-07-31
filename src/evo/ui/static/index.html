@@ -19,7 +19,7 @@
         <a class="brand-lockup" href="#workspace" aria-label="EVO">
           <span class="brand-mark" aria-hidden="true"></span>
           <span class="brand">EVO</span>
-          <span class="brand-version">v0.6.0</span>
+          <span class="brand-version">v0.7.0</span>
         </a>
         <div class="language-switch" aria-label="Language">
           <button class="language-option active" type="button" data-language="en">EN</button>
@@ -315,6 +315,48 @@
           ></svg>
         </div>
         <div class="population-roster" id="population-roster"></div>
+      </section>
+
+      <section class="panel evidence-gate-panel" aria-labelledby="promotion-gate-title">
+        <div class="panel-head">
+          <p class="section-kicker" data-i18n="evidenceIntegrity">EVIDENCE INTEGRITY</p>
+          <h2 id="promotion-gate-title" data-i18n="promotionGate">Human-controlled promotion gate</h2>
+          <p data-i18n="promotionGateDescription">
+            Replay every ecological epoch, authenticate the evidence bundle, and record an explicit human decision.
+          </p>
+        </div>
+        <div class="gate-status-grid" id="evidence-control-status"></div>
+        <div class="gate-workbench">
+          <div class="bundle-action">
+            <p data-i18n="bundleInstructions">Create a host-authenticated snapshot only after deterministic replay succeeds.</p>
+            <button class="button primary" type="button" id="create-evidence-bundle" data-i18n="createEvidenceBundle">
+              Create evidence bundle
+            </button>
+          </div>
+          <form class="approval-form" id="approval-form">
+            <label>
+              <span data-i18n="approver">Reviewer</span>
+              <input name="approver" maxlength="120" required data-i18n-placeholder="approverPlaceholder" placeholder="Your name or local reviewer label" />
+            </label>
+            <label>
+              <span data-i18n="decision">Decision</span>
+              <select name="decision" required>
+                <option value="approve" data-i18n="approve">Approve</option>
+                <option value="reject" data-i18n="rejectDecision">Reject</option>
+              </select>
+            </label>
+            <label class="wide">
+              <span data-i18n="reviewNote">Review note</span>
+              <textarea name="note" maxlength="2000" rows="3" data-i18n-placeholder="reviewNotePlaceholder" placeholder="What evidence did you inspect?"></textarea>
+            </label>
+            <button class="button ghost wide" type="submit" id="record-promotion-decision" data-i18n="recordDecision">
+              Record human decision
+            </button>
+          </form>
+        </div>
+        <p class="safety-note gate-safety" data-i18n="promotionGateSafety">
+          This is a signed local assertion—not verified identity, repository promotion, merge, or deployment authorization.
+        </p>
       </section>
 
       <section class="panel journal-panel" aria-labelledby="journal-title">

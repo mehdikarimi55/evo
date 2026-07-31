@@ -43,7 +43,7 @@ measurement → evidence archive → cleanup`
 - [x] Parent-child lineage evidence
 - [x] Bilingual population observatory and lineage visualization
 - [ ] Baseline/candidate execution fitness from the rootless sandbox
-- [ ] Deterministic replay package for complete ecological epochs
+- [x] Deterministic replay package for complete ecological epochs
 
 ## v0.4 — Niches and primitive self-organization
 
@@ -70,7 +70,7 @@ complete offline suite passed before v0.4 began.
 - [x] Honest open-endedness proxy with bounded history
 - [x] Candidate patch generation wired to the mutation/worktree pipeline
 - [x] Automatic baseline-versus-candidate sandbox comparison
-- [ ] Deterministic replay package for complete ecological epochs
+- [x] Deterministic replay package for complete ecological epochs
 
 ## v0.6 — Ephemeral candidate lifecycle
 
@@ -83,8 +83,21 @@ complete offline suite passed before v0.4 began.
 - [x] Regression, preserved-baseline, and repaired-baseline classification
 - [x] Promotion eligibility requires verified comparative evidence
 - [x] Bilingual sandbox configuration and lifecycle evidence UI
-- [ ] Deterministic replay package for complete ecological epochs
+- [x] Deterministic replay package for complete ecological epochs
 - [ ] Signed evidence bundles and external human promotion approval
+
+## v0.7 — Deterministic evidence and human gate
+
+- [x] Complete bounded replay inputs for ecological epochs
+- [x] Fresh-state replay with deterministic organism-selection verification
+- [x] Canonical timestamp-free state digest comparison
+- [x] Host-authenticated HMAC-SHA256 evidence bundles
+- [x] Mode-0600 local signing-key enforcement
+- [x] Signed approve/reject records from an explicit local reviewer
+- [x] Bilingual evidence and promotion-gate observatory
+- [x] CLI and localhost API for bundle creation and review
+- [x] No merge, push, deployment, or production authority
+- [ ] External identity verification and independent production approval
 
 ## Production gate
 

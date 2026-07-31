@@ -1,6 +1,6 @@
 # EVO — Evolutionary Virtual Organism
 
-EVO Terrarium v0.6.0 is a bounded environment for experiments in evolutionary
+EVO Terrarium v0.7.0 is a bounded environment for experiments in evolutionary
 coding agents. It lets an organism propose a mutation, evaluates that mutation,
 and records whether it is eligible for selection. The immutable kernel owns
 credentials, budgets, policy decisions, audit events, and promotion gates.
@@ -29,6 +29,9 @@ This repository starts with a deliberately narrow vertical slice:
 - ecological stability, population diversity, and open-endedness proxy metrics;
 - bounded model-generated unified diffs using limited source context;
 - ephemeral candidate worktrees and automatic baseline comparisons;
+- deterministic replay of complete ecological epochs;
+- host-authenticated evidence bundles and signed local review records;
+- an explicit human-controlled promotion gate with no deployment authority;
 - an offline test suite based entirely on the Python standard library.
 
 It does **not** autonomously register accounts, accept legal terms, bypass
@@ -257,6 +260,31 @@ write access, elevated capabilities, or promotion authority. A dirty repository
 fails closed because baseline and candidate evidence would not be comparable.
 Passing evidence sets `promotion_eligible` only; it does not merge, commit,
 push, deploy, or modify the original worktree.
+
+## Deterministic replay and human promotion gate
+
+v0.7 records the bounded candidate input required to replay every ecological
+epoch. Before an evidence bundle is created, EVO reconstructs a fresh Petri
+Dish, repeats deterministic organism selection and every recorded outcome, and
+compares a canonical timestamp-free SHA-256 state digest. The complete replay
+history is bounded to 10,000 epochs.
+
+Evidence bundles include the replay manifest and candidate-evaluation ledger.
+They are authenticated with HMAC-SHA256 using a 32-byte, mode-0600 host key at
+`.evo/evidence-signing.key`. This proves integrity to the same host; it is not a
+publicly verifiable identity signature. Use the UI promotion gate or CLI:
+
+```bash
+.venv/bin/evo evidence bundle
+.venv/bin/evo evidence approve --approver "Local reviewer" \
+  --note "Replay and sandbox evidence inspected."
+.venv/bin/evo evidence status
+```
+
+An approval is a signed local human assertion. It never merges, pushes, or
+deploys, and `deployment_authorized` remains false. Production promotion still
+requires an independently authenticated external approval and deployment
+system.
 
 ## Security invariants
 

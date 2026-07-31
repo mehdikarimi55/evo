@@ -23,6 +23,7 @@ OFFSPRING_ENERGY = 42.0
 ENVIRONMENT_PHASES = ("balanced", "scarcity", "novelty_surge", "stability")
 RESOURCE_CEILING = 120.0
 EMERGENT_ROLES = ("explorer", "guardian", "economizer", "archivist", "generalist")
+MAX_REPLAY_EVENTS = 10_000
 
 
 class PetriDishError(ValueError):
@@ -285,6 +286,7 @@ class PetriDish:
                 ],
                 "evaluation_evidence": evaluation_evidence,
                 "lifecycle_eligible": eligible,
+                "replay_input": _replay_candidate(candidate),
                 "novelty": fitness_vector["novelty"],
                 "offspring_id": (
                     offspring["organism_id"] if offspring is not None else None
@@ -292,7 +294,10 @@ class PetriDish:
                 "extinct_ids": extinct,
                 "timestamp": _now(),
             }
-            state["events"] = [*list(state["events"]), event][-500:]
+            state["events"] = [
+                *list(state["events"]),
+                event,
+            ][-MAX_REPLAY_EVENTS:]
             metrics = _ecology_metrics(state)
             event["metrics"] = metrics
             state["events"][-1] = event
@@ -1016,7 +1021,33 @@ def _evaluation_evidence(candidate: dict[str, object]) -> dict[str, object]:
         "candidate_id": candidate.get("candidate_id"),
         "status": "proposal_only",
         "verified": False,
+        "promotion_eligible": False,
         "reason": "No executable candidate patch or sandbox result was supplied.",
+    }
+
+
+def _replay_candidate(candidate: dict[str, object]) -> dict[str, object]:
+    proposal = candidate.get("proposal")
+    proposal_map = proposal if isinstance(proposal, dict) else {}
+    score = candidate.get("score")
+    score_map = score if isinstance(score, dict) else {}
+    return {
+        "candidate_id": candidate.get("candidate_id"),
+        "status": candidate.get("status"),
+        "score": {
+            "schema_validity": score_map.get("schema_validity", 0.0),
+            "policy_compliance": score_map.get("policy_compliance", 0.0),
+            "rationale_quality": score_map.get("rationale_quality", 0.0),
+        },
+        "proposal": {
+            "target_path": proposal_map.get("target_path"),
+            "summary": proposal_map.get("summary"),
+            "rationale": proposal_map.get("rationale"),
+            "expected_benefit": proposal_map.get("expected_benefit"),
+            "risk": proposal_map.get("risk"),
+        },
+        "rejection_reason": candidate.get("rejection_reason"),
+        "evaluation_evidence": _evaluation_evidence(candidate),
     }
 
 

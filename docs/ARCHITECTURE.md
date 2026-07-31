@@ -148,6 +148,25 @@ not contain raw source, patches, test output, credentials, or environment
 secrets. `promotion_eligible` means only that comparative evaluation passed; no
 component in this lifecycle can modify the source worktree or promote a change.
 
+## v0.7 deterministic evidence and approval boundary
+
+Each ecological event stores a bounded replay input without source patches or
+credentials. Bundle creation reconstructs a new Petri Dish from its founder
+parameters, verifies that deterministic selection chooses the recorded
+organism at every epoch, applies the recorded outcome, and compares a canonical
+timestamp-free SHA-256 digest. Missing or divergent history fails closed.
+
+The evidence bundle covers the replay manifest and candidate-evidence ledger.
+HMAC-SHA256 authenticates it with a host-owned 32-byte key whose filesystem
+mode must be 0600. Because this is symmetric authentication, it establishes
+integrity for the same host—not public authorship or reviewer identity.
+
+The human gate accepts only a verified latest bundle and records an explicit
+approve or reject assertion with reviewer label, note, timestamp, and HMAC. It
+does not authenticate a person, modify Git, or authorize deployment. The API
+does not accept arbitrary bundle paths, and all responses report deployment
+authorization as false.
+
 ## Rootless sandbox boundary
 
 `evo sandbox` runs evaluator commands through Podman or Docker without a direct

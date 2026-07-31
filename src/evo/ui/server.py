@@ -37,6 +37,9 @@ class TerrariumUIServer(ThreadingHTTPServer):
             journal_path=runtime.workspace / ".evo/evolution-journal.jsonl",
             petri_dish=self.petri_dish,
         )
+        self.evidence_control = runtime.evidence_control(
+            petri_dish=self.petri_dish
+        )
         super().__init__(server_address, TerrariumRequestHandler)
 
     def server_close(self) -> None:
@@ -87,6 +90,9 @@ class TerrariumRequestHandler(BaseHTTPRequestHandler):
                     "entries": self.server.autonomy.read_journal(limit=limit)
                 }
             )
+            return
+        if parsed.path == "/api/evidence-control":
+            self._run_json(lambda: self.server.evidence_control.status())
             return
         if parsed.path.startswith("/static/"):
             relative = parsed.path.removeprefix("/static/")
@@ -140,6 +146,18 @@ class TerrariumRequestHandler(BaseHTTPRequestHandler):
             return
         if parsed.path == "/api/autonomy/stop":
             self._run_json(lambda: self.server.autonomy.stop())
+            return
+        if parsed.path == "/api/evidence/bundle":
+            self._run_json(lambda: self.server.evidence_control.create_bundle())
+            return
+        if parsed.path == "/api/evidence/approve":
+            self._run_json(
+                lambda: self.server.evidence_control.approve_latest(
+                    approver=str(body.get("approver", "")),
+                    decision=str(body.get("decision", "")),
+                    note=str(body.get("note", "")),
+                )
+            )
             return
         self._send_json({"error": "API endpoint not found."}, status=HTTPStatus.NOT_FOUND)
 

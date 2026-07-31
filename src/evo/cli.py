@@ -165,6 +165,17 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="مرورگر را به‌صورت خودکار باز نکن",
     )
+    evidence = subparsers.add_parser(
+        "evidence", help="بازپخش، امضا و بررسی انسانی شواهد"
+    )
+    evidence.add_argument(
+        "action",
+        choices=("status", "bundle", "approve", "reject"),
+        help="عملیات شواهد",
+    )
+    evidence.add_argument("--env-file", help="مسیر فایل محیطی")
+    evidence.add_argument("--approver", help="نام بازبین محلی")
+    evidence.add_argument("--note", default="", help="یادداشت بازبینی")
     return parser
 
 
@@ -195,6 +206,20 @@ def main(argv: list[str] | None = None) -> int:
                     ensure_ascii=False,
                 )
             )
+            return 0
+        if args.command == "evidence":
+            control = runtime.evidence_control()
+            if args.action == "status":
+                payload = control.status()
+            elif args.action == "bundle":
+                payload = control.create_bundle()
+            else:
+                payload = control.approve_latest(
+                    approver=args.approver or "",
+                    decision=args.action,
+                    note=args.note,
+                )
+            print(json.dumps(payload, indent=2, ensure_ascii=False))
             return 0
         if args.command == "probe":
             print(runtime.probe())

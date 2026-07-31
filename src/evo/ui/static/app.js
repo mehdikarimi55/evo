@@ -182,6 +182,31 @@ const I18N = {
     incomplete: "Incomplete evaluation",
     promotionEligible: "Promotion eligible",
     changedPaths: "Changed paths",
+    evidenceIntegrity: "EVIDENCE INTEGRITY",
+    promotionGate: "Human-controlled promotion gate",
+    promotionGateDescription: "Replay every ecological epoch, authenticate the evidence bundle, and record an explicit human decision.",
+    bundleInstructions: "Create a host-authenticated snapshot only after deterministic replay succeeds.",
+    createEvidenceBundle: "Create evidence bundle",
+    approver: "Reviewer",
+    approverPlaceholder: "Your name or local reviewer label",
+    decision: "Decision",
+    approve: "Approve",
+    rejectDecision: "Reject",
+    reviewNote: "Review note",
+    reviewNotePlaceholder: "What evidence did you inspect?",
+    recordDecision: "Record human decision",
+    promotionGateSafety: "This is a signed local assertion—not verified identity, repository promotion, merge, or deployment authorization.",
+    evidenceBundle: "Evidence bundle",
+    deterministicReplay: "Deterministic replay",
+    humanDecision: "Human decision",
+    deploymentAuthority: "Deployment authority",
+    noBundle: "No bundle yet",
+    noDecision: "No decision yet",
+    verified: "Verified",
+    unverified: "Unverified",
+    denied: "Not authorized",
+    bundleCreated: "Verified evidence bundle created",
+    decisionRecorded: "Human decision recorded",
     journalStarted: "Autonomous exploration started",
     journalStopped: "Autonomous exploration stopped",
     journalCompleted: "Generation limit reached",
@@ -379,6 +404,31 @@ const I18N = {
     incomplete: "ارزیابی ناقص",
     promotionEligible: "واجد شرایط ارتقا",
     changedPaths: "مسیرهای تغییرکرده",
+    evidenceIntegrity: "یکپارچگی شواهد",
+    promotionGate: "دروازه ارتقا با کنترل انسانی",
+    promotionGateDescription: "تمام دوره‌های بوم‌شناختی را بازپخش کنید، اصالت بسته شواهد را بسنجید و تصمیم صریح انسان را ثبت کنید.",
+    bundleInstructions: "تنها پس از موفقیت بازپخش قطعی، یک نمای لحظه‌ای احرازاصالت‌شده توسط میزبان بسازید.",
+    createEvidenceBundle: "ساخت بسته شواهد",
+    approver: "بازبین",
+    approverPlaceholder: "نام شما یا عنوان بازبین محلی",
+    decision: "تصمیم",
+    approve: "تأیید",
+    rejectDecision: "رد",
+    reviewNote: "یادداشت بازبینی",
+    reviewNotePlaceholder: "کدام شواهد را بررسی کردید؟",
+    recordDecision: "ثبت تصمیم انسانی",
+    promotionGateSafety: "این فقط یک اظهار محلی امضاشده است؛ نه هویت تأییدشده، ارتقای مخزن، ادغام یا مجوز استقرار.",
+    evidenceBundle: "بسته شواهد",
+    deterministicReplay: "بازپخش قطعی",
+    humanDecision: "تصمیم انسانی",
+    deploymentAuthority: "اختیار استقرار",
+    noBundle: "هنوز بسته‌ای ساخته نشده",
+    noDecision: "هنوز تصمیمی ثبت نشده",
+    verified: "تأییدشده",
+    unverified: "تأییدنشده",
+    denied: "مجاز نیست",
+    bundleCreated: "بسته شواهد تأییدشده ساخته شد",
+    decisionRecorded: "تصمیم انسانی ثبت شد",
     journalStarted: "کاوش خودکار آغاز شد",
     journalStopped: "کاوش خودکار متوقف شد",
     journalCompleted: "سقف نسل‌ها تکمیل شد",
@@ -428,6 +478,7 @@ let cachedAudit = [];
 let cachedAutonomy = null;
 let cachedJournal = [];
 let cachedPetri = null;
+let cachedEvidenceControl = null;
 
 const statusSummary = document.getElementById("status-summary");
 const statusGrid = document.getElementById("status-grid");
@@ -457,6 +508,9 @@ const cooperationNetwork = document.getElementById("cooperation-network");
 const ecologyMetrics = document.getElementById("ecology-metrics");
 const evaluationEvidence = document.getElementById("evaluation-evidence");
 const teamObservatory = document.getElementById("team-observatory");
+const evidenceControlStatus = document.getElementById("evidence-control-status");
+const createEvidenceBundle = document.getElementById("create-evidence-bundle");
+const approvalForm = document.getElementById("approval-form");
 
 function t(key) {
   return I18N[language][key] || I18N.en[key] || key;
@@ -492,6 +546,32 @@ function setLanguage(nextLanguage) {
   renderAutonomy(cachedAutonomy);
   renderJournal(cachedJournal);
   renderPetriDish(cachedPetri);
+  renderEvidenceControl(cachedEvidenceControl);
+}
+
+function renderEvidenceControl(status) {
+  if (!status) return;
+  cachedEvidenceControl = status;
+  const bundle = status.latest_bundle;
+  const approval = status.latest_approval;
+  const replayVerified = Boolean(bundle?.replay_verified);
+  const bundleVerified = Boolean(bundle?.verified);
+  const approvalValid = Boolean(
+    approval && status.approval_signature_valid && bundleVerified
+  );
+  const cards = [
+    ["evidenceBundle", bundle?.bundle_id || t("noBundle"), bundleVerified],
+    ["deterministicReplay", bundle ? (replayVerified ? t("verified") : t("unverified")) : t("noBundle"), replayVerified],
+    ["humanDecision", approvalValid ? `${t(approval.decision === "approve" ? "approve" : "rejectDecision")} · ${approval.approver}` : t("noDecision"), approvalValid],
+    ["deploymentAuthority", t("denied"), false],
+  ];
+  evidenceControlStatus.innerHTML = cards.map(([label, value, valid]) => `
+    <article class="gate-status-card ${valid ? "verified" : "restricted"}">
+      <span>${escapeHtml(t(label))}</span>
+      <strong>${escapeHtml(value)}</strong>
+    </article>
+  `).join("");
+  approvalForm.querySelector("button[type='submit']").disabled = !bundleVerified;
 }
 
 async function api(path, options = {}) {
@@ -1005,12 +1085,13 @@ function applySearch(query) {
 }
 
 async function refresh() {
-  const [settings, audit, autonomy, journal, petri] = await Promise.all([
+  const [settings, audit, autonomy, journal, petri, evidenceControl] = await Promise.all([
     api("/api/settings"),
     api("/api/audit?limit=50"),
     api("/api/autonomy"),
     api("/api/evolution-journal?limit=100"),
     api("/api/petri-dish"),
+    api("/api/evidence-control"),
   ]);
   fillSettings(settings);
   renderStatus(settings);
@@ -1018,20 +1099,23 @@ async function refresh() {
   renderAutonomy(autonomy);
   renderJournal(journal.entries || []);
   renderPetriDish(petri);
+  renderEvidenceControl(evidenceControl);
   applySearch(globalSearch.value);
 }
 
 async function refreshEvolution() {
-  const [autonomy, journal, audit, petri] = await Promise.all([
+  const [autonomy, journal, audit, petri, evidenceControl] = await Promise.all([
     api("/api/autonomy"),
     api("/api/evolution-journal?limit=100"),
     api("/api/audit?limit=50"),
     api("/api/petri-dish"),
+    api("/api/evidence-control"),
   ]);
   renderAutonomy(autonomy);
   renderJournal(journal.entries || []);
   renderAudit(audit.events || []);
   renderPetriDish(petri);
+  renderEvidenceControl(evidenceControl);
 }
 
 document.querySelectorAll("[data-language]").forEach((button) => {
@@ -1144,6 +1228,34 @@ document.getElementById("stop-autonomy").addEventListener("click", async () => {
     renderAutonomy(cachedAutonomy);
     showToast(t("autonomyStopped"));
     await refreshEvolution();
+  } catch (error) {
+    showToast(error.message);
+  }
+});
+
+createEvidenceBundle.addEventListener("click", async () => {
+  createEvidenceBundle.disabled = true;
+  try {
+    await api("/api/evidence/bundle", { method: "POST", body: "{}" });
+    renderEvidenceControl(await api("/api/evidence-control"));
+    showToast(t("bundleCreated"));
+  } catch (error) {
+    showToast(error.message);
+  } finally {
+    createEvidenceBundle.disabled = false;
+  }
+});
+
+approvalForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  try {
+    const payload = formObject(approvalForm);
+    await api("/api/evidence/approve", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+    renderEvidenceControl(await api("/api/evidence-control"));
+    showToast(t("decisionRecorded"));
   } catch (error) {
     showToast(error.message);
   }

@@ -12,11 +12,13 @@ import shlex
 from evo.candidate_lifecycle import CandidateLifecycle
 from evo.config import ConfigurationError, Settings, load_env_file
 from evo.domain import EvolutionTask, Genome
+from evo.evidence_control import EvidenceControl, EvidenceSigner, ReplayService
 from evo.evolution import EvolutionEngine
 from evo.kernel.audit import AuditLog
 from evo.kernel.budget import BudgetExceeded, RunBudget
 from evo.kernel.policy import KernelPolicy
 from evo.mutation import MutationApplicator
+from evo.petri import PetriDish
 from evo.providers.base import ModelProvider
 from evo.providers.groq import GroqProvider, ProviderError
 from evo.providers.nvidia import NvidiaProvider
@@ -149,6 +151,26 @@ class TerrariumRuntime:
 
     def probe(self) -> str:
         return self.build_provider().healthcheck()
+
+    def evidence_control(
+        self,
+        *,
+        petri_dish: PetriDish | None = None,
+    ) -> EvidenceControl:
+        dish = petri_dish or PetriDish(
+            state_path=self.workspace / ".evo/petri-dish.json"
+        )
+        return EvidenceControl(
+            replay=ReplayService(petri_dish=dish),
+            signer=EvidenceSigner(
+                key_path=self.workspace / ".evo/evidence-signing.key"
+            ),
+            bundle_dir=self.workspace / ".evo/evidence-bundles",
+            candidate_evidence_path=(
+                self.workspace / ".evo/candidate-evidence.jsonl"
+            ),
+            approval_path=self.workspace / ".evo/promotion-approvals.jsonl",
+        )
 
     def evolve(
         self,

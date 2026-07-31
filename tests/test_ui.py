@@ -77,8 +77,11 @@ class UIServerTests(unittest.TestCase):
         self.assertIn('id="ecology-metrics"', html)
         self.assertIn('id="evaluation-evidence"', html)
         self.assertIn('id="team-observatory"', html)
+        self.assertIn('id="evidence-control-status"', html)
+        self.assertIn('id="create-evidence-bundle"', html)
+        self.assertIn('id="approval-form"', html)
         self.assertIn("Digital Petri Dish", html)
-        self.assertIn("v0.6.0", html)
+        self.assertIn("v0.7.0", html)
         self.assertIn('id="sandbox_image"', html)
         self.assertIn('id="evaluation_command"', html)
         self.assertIn('class="organism-visual"', html)
@@ -98,6 +101,9 @@ class UIServerTests(unittest.TestCase):
         self.assertIn('localStorage.getItem("evo-language") || "en"', javascript)
         self.assertIn('api("/api/autonomy")', javascript)
         self.assertIn('api("/api/petri-dish")', javascript)
+        self.assertIn('api("/api/evidence-control")', javascript)
+        self.assertIn('api("/api/evidence/bundle"', javascript)
+        self.assertIn('api("/api/evidence/approve"', javascript)
         self.assertIn("renderPetriDish", javascript)
         self.assertIn("ACHIEVEMENT_CATALOG", javascript)
         self.assertIn("achievementUnlocked", javascript)
@@ -117,6 +123,7 @@ class UIServerTests(unittest.TestCase):
         self.assertIn(".cooperation-edge", stylesheet)
         self.assertIn(".metric-card", stylesheet)
         self.assertIn(".evidence-state", stylesheet)
+        self.assertIn(".gate-status-grid", stylesheet)
 
     def test_autonomy_status_and_journal_endpoints(self):
         status, payload = self._request("GET", "/api/autonomy")
@@ -135,6 +142,34 @@ class UIServerTests(unittest.TestCase):
         self.assertEqual(payload["environment"]["phase"], "balanced")
         self.assertEqual(payload["summary"]["cooperation_links"], 0)
         self.assertIn("open_endedness_proxy", payload["metrics"])
+
+    def test_evidence_bundle_and_human_gate_endpoints(self):
+        status, payload = self._request("GET", "/api/evidence-control")
+        self.assertEqual(status, 200)
+        self.assertIsNone(payload["latest_bundle"])
+        self.assertFalse(payload["deployment_authorized"])
+
+        status, bundle = self._request("POST", "/api/evidence/bundle", {})
+        self.assertEqual(status, 200)
+        self.assertTrue(bundle["verified"])
+        self.assertTrue(bundle["replay_verified"])
+
+        status, approval = self._request(
+            "POST",
+            "/api/evidence/approve",
+            {
+                "approver": "Local reviewer",
+                "decision": "approve",
+                "note": "Replay and host signature inspected.",
+            },
+        )
+        self.assertEqual(status, 200)
+        self.assertEqual(approval["decision"], "approve")
+        self.assertFalse(approval["deploy_authorized"])
+
+        _, gate = self._request("GET", "/api/evidence-control")
+        self.assertTrue(gate["approval_signature_valid"])
+        self.assertFalse(gate["deployment_authorized"])
 
     def test_probe_endpoint_uses_runtime(self):
         with patch.object(self.runtime, "probe", return_value="ok"):

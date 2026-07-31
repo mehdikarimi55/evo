@@ -70,10 +70,20 @@ class AutonomyTests(unittest.TestCase):
                 state["selected_adaptations"][0]["summary"],
                 "Increase adaptive diversity.",
             )
+            self.assertEqual(state["achievements"][0]["id"], "first_spark")
             entries = controller.read_journal()
             event_types = [entry["event_type"] for entry in entries]
             self.assertIn("autonomy.generation", event_types)
             self.assertIn("autonomy.completed", event_types)
+            generation_entry = next(
+                entry
+                for entry in entries
+                if entry["event_type"] == "autonomy.generation"
+            )
+            self.assertEqual(
+                generation_entry["payload"]["achievements"][0]["id"],
+                "first_spark",
+            )
             controller.shutdown()
 
     def test_provider_failure_enters_backoff_and_can_be_stopped(self):

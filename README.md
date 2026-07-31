@@ -1,6 +1,6 @@
 # EVO — Evolutionary Virtual Organism
 
-EVO Terrarium v0.2.0 is a bounded environment for experiments in evolutionary
+EVO Terrarium v0.2.1 is a bounded environment for experiments in evolutionary
 coding agents. It lets an organism propose a mutation, evaluates that mutation,
 and records whether it is eligible for selection. The immutable kernel owns
 credentials, budgets, policy decisions, audit events, and promotion gates.
@@ -17,6 +17,7 @@ This repository starts with a deliberately narrow vertical slice:
 - a localhost web UI for settings, probe, evolve, and audit search;
 - an English-first bilingual interface with persistent English/Persian switching;
 - a bounded autonomous generation loop and public-facing evolution journal;
+- persistent milestone achievements recorded against the evolving lineage;
 - an offline test suite based entirely on the Python standard library.
 
 It does **not** autonomously register accounts, accept legal terms, bypass
@@ -149,6 +150,11 @@ The enabled state is persisted in `.evo/autonomy-state.json`, so autonomous mode
 resumes when the UI process is started again. The public progress narrative is
 stored in `.evo/evolution-journal.jsonl`; the lower-level security audit remains
 in `.evo/audit.jsonl`.
+
+Selected generations also unlock persistent lineage achievements. Milestones
+currently mark the first viable adaptation and generations 5, 10, 25, 50, 100,
+500, and 1,000. Every unlock is attached to the exact journal entry that earned
+it and appears in the Evolutionary Achievements gallery.
 
 Autonomous mode is deliberately opt-in because each generation consumes API
 quota. It has a configurable attempt limit (maximum 10,000), a minimum

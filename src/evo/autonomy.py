@@ -16,6 +16,17 @@ DEFAULT_OBJECTIVE = (
     "observability without weakening the immutable kernel."
 )
 
+ACHIEVEMENT_MILESTONES = (
+    ("first_spark", 1),
+    ("stable_lineage", 5),
+    ("adaptive_colony", 10),
+    ("open_ended_explorer", 25),
+    ("emergent_ecology", 50),
+    ("century_organism", 100),
+    ("deep_time", 500),
+    ("millennium_lineage", 1_000),
+)
+
 
 class AutonomyError(ValueError):
     """A safe validation error for the autonomous loop."""
@@ -195,6 +206,7 @@ class AutonomyController:
                 )
                 eligible = candidate.get("status") == "eligible"
                 proposal = candidate.get("proposal")
+                unlocked_now: list[dict[str, object]] = []
                 with self._lock:
                     latest = self._read_state()
                     latest["attempts"] = int(latest["attempts"]) + 1
@@ -223,6 +235,15 @@ class AutonomyController:
                             }
                         )
                         latest["selected_adaptations"] = adaptations[-100:]
+                        unlocked_now = _unlock_achievements(
+                            generation=int(latest["generation"]),
+                            existing=list(latest["achievements"]),
+                        )
+                        if unlocked_now:
+                            latest["achievements"] = [
+                                *list(latest["achievements"]),
+                                *unlocked_now,
+                            ]
                     reached_limit = int(latest["attempts"]) >= int(
                         latest["max_generations"]
                     )
@@ -278,6 +299,7 @@ class AutonomyController:
                             else None
                         ),
                         "rejection_reason": candidate.get("rejection_reason"),
+                        "achievements": unlocked_now,
                     },
                 )
                 if reached_limit:
@@ -335,6 +357,7 @@ class AutonomyController:
             "last_status": None,
             "last_error": None,
             "selected_adaptations": [],
+            "achievements": [],
             "updated_at": None,
         }
         if not self.state_path.exists():
@@ -415,3 +438,25 @@ def _candidate_score(value: object) -> float | None:
         )
     except (KeyError, TypeError, ValueError):
         return None
+
+
+def _unlock_achievements(
+    *,
+    generation: int,
+    existing: list[object],
+) -> list[dict[str, object]]:
+    unlocked_ids = {
+        str(item.get("id"))
+        for item in existing
+        if isinstance(item, dict) and item.get("id")
+    }
+    unlocked_at = _now()
+    return [
+        {
+            "id": achievement_id,
+            "generation": generation,
+            "unlocked_at": unlocked_at,
+        }
+        for achievement_id, threshold in ACHIEVEMENT_MILESTONES
+        if generation >= threshold and achievement_id not in unlocked_ids
+    ]

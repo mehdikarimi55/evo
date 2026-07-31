@@ -7,7 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=Vazirmatn:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="/static/app.css" />
@@ -16,28 +16,52 @@
     <div class="atmosphere" aria-hidden="true"></div>
     <header class="hero">
       <div class="topbar">
-        <p class="brand">EVO</p>
+        <a class="brand-lockup" href="#workspace" aria-label="EVO">
+          <span class="brand-mark" aria-hidden="true"></span>
+          <span class="brand">EVO</span>
+          <span class="brand-version">v0.2.1</span>
+        </a>
         <div class="language-switch" aria-label="Language">
           <button class="language-option active" type="button" data-language="en">EN</button>
           <button class="language-option" type="button" data-language="fa">فا</button>
         </div>
       </div>
-      <h1 data-i18n="heroTitle">Evolutionary Terrarium</h1>
-      <p class="lede" data-i18n="heroDescription">
-        A bounded environment for evolving digital organisms without exposing
-        the immutable kernel.
-      </p>
-      <div class="hero-actions">
-        <a class="button primary" href="#workspace" data-i18n="openWorkspace">Open workspace</a>
-        <button class="button ghost" type="button" id="run-doctor" data-i18n="checkConfig">
-          Check configuration
-        </button>
+      <div class="hero-grid">
+        <div class="hero-copy">
+          <p class="eyebrow" data-i18n="heroEyebrow">DIGITAL ABIOGENESIS · SPECIMEN 0001</p>
+          <h1 data-i18n="heroTitle">Evolutionary Terrarium</h1>
+          <p class="lede" data-i18n="heroDescription">
+            A living laboratory where bounded intelligence accumulates memory,
+            selects adaptations, and grows a digital lineage.
+          </p>
+          <p class="hero-note" data-i18n="heroNote">
+            Observe emergence in real time. Every generation leaves evidence.
+          </p>
+          <div class="hero-actions">
+            <a class="button primary" href="#workspace" data-i18n="openWorkspace">Enter the terrarium</a>
+            <button class="button ghost" type="button" id="run-doctor" data-i18n="checkConfig">
+              Check life support
+            </button>
+          </div>
+        </div>
+        <div class="organism-visual" aria-hidden="true">
+          <div class="orbital-ring ring-one"></div>
+          <div class="orbital-ring ring-two"></div>
+          <div class="cell-core">
+            <span class="cell-pulse"></span>
+            <span class="cell-label">GNOME<br />0001</span>
+          </div>
+          <span class="gene-node node-one"></span>
+          <span class="gene-node node-two"></span>
+          <span class="gene-node node-three"></span>
+        </div>
       </div>
     </header>
 
     <main id="workspace" class="workspace">
       <section class="panel status-panel" aria-labelledby="status-title">
         <div class="panel-head">
+          <p class="section-kicker" data-i18n="lifeSupport">LIFE SUPPORT</p>
           <h2 id="status-title" data-i18n="hostStatus">Host status</h2>
           <p id="status-summary" data-i18n="loadingConfig">Loading configuration…</p>
         </div>
@@ -46,6 +70,7 @@
 
       <section class="panel" aria-labelledby="settings-title">
         <div class="panel-head">
+          <p class="section-kicker" data-i18n="environmentControls">ENVIRONMENT CONTROLS</p>
           <h2 id="settings-title" data-i18n="settings">Settings</h2>
           <p data-i18n="settingsDescription">
             Provider credentials remain on the host. Raw keys are never displayed.
@@ -111,6 +136,7 @@
 
       <section class="panel evolve-panel" aria-labelledby="evolve-title">
         <div class="panel-head">
+          <p class="section-kicker" data-i18n="manualSelection">MANUAL SELECTION</p>
           <h2 id="evolve-title" data-i18n="runGeneration">Run one generation</h2>
           <p data-i18n="generationDescription">
             Produces an eligible or rejected candidate. Nothing is applied to the repository.
@@ -170,6 +196,7 @@
       <section class="panel autonomy-panel" aria-labelledby="autonomy-title">
         <div class="panel-head autonomy-head">
           <div>
+            <p class="section-kicker" data-i18n="openEndedLoop">OPEN-ENDED LOOP</p>
             <h2 id="autonomy-title" data-i18n="autonomousEvolution">Autonomous evolution</h2>
             <p data-i18n="autonomyDescription">
               Continuously explores digital abiogenesis and open-ended artificial life while the app is running.
@@ -218,10 +245,20 @@
 
       <section class="panel journal-panel" aria-labelledby="journal-title">
         <div class="panel-head">
+          <p class="section-kicker" data-i18n="lineageRecord">LINEAGE RECORD</p>
           <h2 id="journal-title" data-i18n="evolutionJournal">Evolution journal</h2>
           <p data-i18n="journalDescription">
             A public-facing chronicle of this gnome’s selected generations, adaptations, and setbacks.
           </p>
+        </div>
+        <div class="achievement-section">
+          <div class="achievement-heading">
+            <h3 data-i18n="achievements">Evolutionary achievements</h3>
+            <span id="achievement-count">0 / 8</span>
+          </div>
+          <div class="achievement-gallery" id="achievement-gallery">
+            <p class="empty-state" data-i18n="noAchievements">No achievements unlocked yet.</p>
+          </div>
         </div>
         <div class="timeline" id="evolution-journal">
           <p class="empty-state" data-i18n="noEvolutionYet">No autonomous evolution has been recorded yet.</p>
@@ -231,6 +268,7 @@
       <section class="panel" aria-labelledby="audit-title">
         <div class="panel-head audit-head">
           <div>
+            <p class="section-kicker" data-i18n="immutableMemory">IMMUTABLE MEMORY</p>
             <h2 id="audit-title" data-i18n="auditTrail">Audit trail</h2>
             <p data-i18n="auditDescription">Redacted local events from `.evo/audit.jsonl`.</p>
           </div>

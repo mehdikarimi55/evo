@@ -67,6 +67,8 @@ class UIServerTests(unittest.TestCase):
         self.assertIn('data-language="fa"', html)
         self.assertIn('id="autonomy-form"', html)
         self.assertIn('id="evolution-journal"', html)
+        self.assertIn('id="achievement-gallery"', html)
+        self.assertIn('class="organism-visual"', html)
         self.assertIn('id="evolve-thinking"', html)
         self.assertIn('aria-busy="false"', html)
 
@@ -82,11 +84,15 @@ class UIServerTests(unittest.TestCase):
         self.assertIn("در حال فکر کردن", javascript)
         self.assertIn('localStorage.getItem("evo-language") || "en"', javascript)
         self.assertIn('api("/api/autonomy")', javascript)
+        self.assertIn("ACHIEVEMENT_CATALOG", javascript)
+        self.assertIn("achievementUnlocked", javascript)
         self.assertIn("@keyframes heartbeat", stylesheet)
         self.assertIn("white-space: pre-wrap", stylesheet)
         self.assertIn("overflow-wrap: anywhere", stylesheet)
         self.assertIn("font-size: 14px", stylesheet)
         self.assertIn('[dir="rtl"] textarea', stylesheet)
+        self.assertIn(".achievement-card", stylesheet)
+        self.assertIn(".cell-core", stylesheet)
 
     def test_autonomy_status_and_journal_endpoints(self):
         status, payload = self._request("GET", "/api/autonomy")

@@ -12,10 +12,18 @@ const DEFAULTS = {
 const I18N = {
   en: {
     pageTitle: "EVO | Evolutionary Terrarium",
+    heroEyebrow: "DIGITAL ABIOGENESIS · SPECIMEN 0001",
     heroTitle: "Evolutionary Terrarium",
-    heroDescription: "A bounded environment for evolving digital organisms without exposing the immutable kernel.",
-    openWorkspace: "Open workspace",
-    checkConfig: "Check configuration",
+    heroDescription: "A living laboratory where bounded intelligence accumulates memory, selects adaptations, and grows a digital lineage.",
+    heroNote: "Observe emergence in real time. Every generation leaves evidence.",
+    openWorkspace: "Enter the terrarium",
+    checkConfig: "Check life support",
+    lifeSupport: "LIFE SUPPORT",
+    environmentControls: "ENVIRONMENT CONTROLS",
+    manualSelection: "MANUAL SELECTION",
+    openEndedLoop: "OPEN-ENDED LOOP",
+    lineageRecord: "LINEAGE RECORD",
+    immutableMemory: "IMMUTABLE MEMORY",
     hostStatus: "Host status",
     loadingConfig: "Loading configuration…",
     settings: "Settings",
@@ -51,6 +59,9 @@ const I18N = {
     stopAutonomy: "Stop",
     evolutionJournal: "Evolution journal",
     journalDescription: "A public-facing chronicle of this gnome’s selected generations, adaptations, and setbacks.",
+    achievements: "Evolutionary achievements",
+    noAchievements: "No achievements unlocked yet.",
+    achievementUnlocked: "Achievement unlocked",
     noEvolutionYet: "No autonomous evolution has been recorded yet.",
     auditTrail: "Audit trail",
     auditDescription: "Redacted local events from `.evo/audit.jsonl`.",
@@ -117,13 +128,37 @@ const I18N = {
     attempt: "Attempt",
     seconds: "seconds",
     retrying: "The gnome will retry automatically.",
+    achievement_first_spark: "First Spark",
+    achievement_first_spark_desc: "The first viable adaptation entered the lineage.",
+    achievement_stable_lineage: "Stable Lineage",
+    achievement_stable_lineage_desc: "Five selected generations now share inherited memory.",
+    achievement_adaptive_colony: "Adaptive Colony",
+    achievement_adaptive_colony_desc: "Ten generations accumulated into a resilient colony.",
+    achievement_open_ended_explorer: "Open-ended Explorer",
+    achievement_open_ended_explorer_desc: "Twenty-five generations expanded the search frontier.",
+    achievement_emergent_ecology: "Emergent Ecology",
+    achievement_emergent_ecology_desc: "Fifty generations formed a deeper digital ecology.",
+    achievement_century_organism: "Century Organism",
+    achievement_century_organism_desc: "One hundred selected generations survived the terrarium.",
+    achievement_deep_time: "Deep Time",
+    achievement_deep_time_desc: "Five hundred generations entered evolutionary deep time.",
+    achievement_millennium_lineage: "Millennium Lineage",
+    achievement_millennium_lineage_desc: "One thousand generations formed an enduring digital lineage.",
   },
   fa: {
     pageTitle: "EVO | زیست‌بوم تکاملی",
+    heroEyebrow: "زایش دیجیتال · نمونه ۰۰۰۱",
     heroTitle: "زیست‌بوم تکاملی",
-    heroDescription: "محیطی کنترل‌شده برای تکامل جانداران دیجیتال، بدون دسترسی به هسته تغییرناپذیر.",
-    openWorkspace: "ورود به محیط کار",
-    checkConfig: "بررسی پیکربندی",
+    heroDescription: "آزمایشگاهی زنده که در آن هوش کنترل‌شده حافظه می‌اندوزد، سازگاری‌ها را برمی‌گزیند و یک تبار دیجیتال می‌پروراند.",
+    heroNote: "ظهور رفتار را زنده تماشا کنید؛ هر نسل، مدرکی از خود به جا می‌گذارد.",
+    openWorkspace: "ورود به زیست‌بوم",
+    checkConfig: "بررسی پشتیبانی حیات",
+    lifeSupport: "پشتیبانی حیات",
+    environmentControls: "کنترل‌های محیط",
+    manualSelection: "گزینش دستی",
+    openEndedLoop: "چرخه بی‌پایان",
+    lineageRecord: "روایت تبار",
+    immutableMemory: "حافظه تغییرناپذیر",
     hostStatus: "وضعیت میزبان",
     loadingConfig: "در حال بارگذاری پیکربندی…",
     settings: "تنظیمات",
@@ -159,6 +194,9 @@ const I18N = {
     stopAutonomy: "توقف",
     evolutionJournal: "روایت تکامل",
     journalDescription: "روایتی عمومی از نسل‌های برگزیده، سازگاری‌ها و ناکامی‌های این گنوم.",
+    achievements: "دستاوردهای تکاملی",
+    noAchievements: "هنوز دستاوردی باز نشده است.",
+    achievementUnlocked: "دستاورد تازه",
     noEvolutionYet: "هنوز تکامل خودکاری ثبت نشده است.",
     auditTrail: "گزارش رویدادها",
     auditDescription: "رویدادهای محلی پالایش‌شده از `.evo/audit.jsonl`.",
@@ -225,7 +263,34 @@ const I18N = {
     attempt: "تلاش",
     seconds: "ثانیه",
     retrying: "گنوم به‌صورت خودکار دوباره تلاش می‌کند.",
+    achievement_first_spark: "نخستین جرقه",
+    achievement_first_spark_desc: "نخستین سازگاری پایدار وارد تبار شد.",
+    achievement_stable_lineage: "تبار پایدار",
+    achievement_stable_lineage_desc: "پنج نسل برگزیده اکنون حافظه‌ای موروثی دارند.",
+    achievement_adaptive_colony: "کلونی سازگار",
+    achievement_adaptive_colony_desc: "ده نسل در قالب کلونی مقاومی انباشته شدند.",
+    achievement_open_ended_explorer: "کاوشگر بی‌پایان",
+    achievement_open_ended_explorer_desc: "بیست‌وپنج نسل مرز جست‌وجو را گسترش دادند.",
+    achievement_emergent_ecology: "بوم‌شناسی نوظهور",
+    achievement_emergent_ecology_desc: "پنجاه نسل، بوم‌شناسی دیجیتال عمیق‌تری پدید آوردند.",
+    achievement_century_organism: "جاندار صدنسلی",
+    achievement_century_organism_desc: "صد نسل برگزیده در زیست‌بوم دوام آوردند.",
+    achievement_deep_time: "زمان ژرف",
+    achievement_deep_time_desc: "پانصد نسل وارد دوران ژرف تکاملی شدند.",
+    achievement_millennium_lineage: "تبار هزاره",
+    achievement_millennium_lineage_desc: "هزار نسل، تباری دیجیتال و ماندگار ساختند.",
   },
+};
+
+const ACHIEVEMENT_CATALOG = {
+  first_spark: { symbol: "✦" },
+  stable_lineage: { symbol: "Ⅴ" },
+  adaptive_colony: { symbol: "Ⅹ" },
+  open_ended_explorer: { symbol: "∞" },
+  emergent_ecology: { symbol: "◌" },
+  century_organism: { symbol: "C" },
+  deep_time: { symbol: "◈" },
+  millennium_lineage: { symbol: "M" },
 };
 
 const AUTONOMY_OBJECTIVES = {
@@ -256,6 +321,8 @@ const autonomyBadge = document.getElementById("autonomy-badge");
 const autonomyStats = document.getElementById("autonomy-stats");
 const autonomyObjective = document.getElementById("autonomy-objective");
 const journalContainer = document.getElementById("evolution-journal");
+const achievementGallery = document.getElementById("achievement-gallery");
+const achievementCount = document.getElementById("achievement-count");
 
 function t(key) {
   return I18N[language][key] || I18N.en[key] || key;
@@ -437,6 +504,7 @@ function renderAudit(events) {
 function renderAutonomy(state) {
   if (!state) return;
   cachedAutonomy = state;
+  renderAchievements(state.achievements || []);
   const phaseKey = state.enabled ? state.phase || "enabled" : state.phase || "stopped";
   autonomyBadge.textContent = t(phaseKey);
   autonomyBadge.className = state.phase === "backoff" ? "badge rejected" : "badge";
@@ -467,6 +535,37 @@ function renderAutonomy(state) {
   document.getElementById("stop-autonomy").disabled = !state.enabled;
 }
 
+function achievementName(id) {
+  return t(`achievement_${id}`);
+}
+
+function achievementDescription(id) {
+  return t(`achievement_${id}_desc`);
+}
+
+function renderAchievements(achievements) {
+  const total = Object.keys(ACHIEVEMENT_CATALOG).length;
+  achievementCount.textContent = `${achievements.length} / ${total}`;
+  if (!achievements.length) {
+    achievementGallery.innerHTML =
+      `<p class="empty-state">${escapeHtml(t("noAchievements"))}</p>`;
+    return;
+  }
+  achievementGallery.innerHTML = achievements
+    .map((achievement) => {
+      const catalog = ACHIEVEMENT_CATALOG[achievement.id] || { symbol: "✦" };
+      return `
+        <article class="achievement-card">
+          <span class="achievement-symbol" aria-hidden="true">${escapeHtml(catalog.symbol)}</span>
+          <div>
+            <strong>${escapeHtml(achievementName(achievement.id))}</strong>
+            <small>${escapeHtml(achievementDescription(achievement.id))}</small>
+          </div>
+        </article>`;
+    })
+    .join("");
+}
+
 function renderJournal(entries) {
   cachedJournal = entries || [];
   if (!cachedJournal.length) {
@@ -494,6 +593,14 @@ function renderJournal(entries) {
       const meta = isGeneration
         ? `${t("attempt")} ${payload.attempt ?? "—"} · ${translateStatus(payload.status)} · ${t("score")}: ${payload.score ?? "—"}`
         : "";
+      const achievementChips = (payload.achievements || [])
+        .map(
+          (achievement) => `
+            <span class="achievement-chip">
+              ✦ ${escapeHtml(t("achievementUnlocked"))}: ${escapeHtml(achievementName(achievement.id))}
+            </span>`
+        )
+        .join("");
       return `
         <article class="timeline-entry ${entry.event_type === "autonomy.error" ? "error" : ""}">
           <h3>${escapeHtml(String(title))}</h3>
@@ -501,6 +608,7 @@ function renderJournal(entries) {
           ${detail ? `<p>${escapeHtml(String(detail))}</p>` : ""}
           ${payload.expected_benefit ? `<p><strong>${escapeHtml(t("expectedBenefit"))}:</strong> ${escapeHtml(String(payload.expected_benefit))}</p>` : ""}
           ${payload.risk ? `<p><strong>${escapeHtml(t("risk"))}:</strong> ${escapeHtml(String(payload.risk))}</p>` : ""}
+          ${achievementChips ? `<div class="achievement-unlocks">${achievementChips}</div>` : ""}
         </article>`;
     })
     .join("");

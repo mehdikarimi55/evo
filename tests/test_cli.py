@@ -33,7 +33,7 @@ class CLITests(unittest.TestCase):
             with self.assertRaises(SystemExit) as exit_context:
                 build_parser().parse_args(["--version"])
         self.assertEqual(exit_context.exception.code, 0)
-        self.assertEqual(output.getvalue().strip(), "evo 0.2.0")
+        self.assertEqual(output.getvalue().strip(), "evo 0.2.1")
 
 
 if __name__ == "__main__":

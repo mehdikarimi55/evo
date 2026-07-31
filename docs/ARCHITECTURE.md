@@ -214,6 +214,33 @@ consumed after rollback. No controller method stages, commits, merges, pushes,
 deploys, handles production credentials, or bypasses the immutable mutation
 policy. The localhost UI is deliberately read-only for release control.
 
+## v1.0 signed external deployment handoff boundary
+
+The deployment handoff accepts only a clean repository whose HEAD is one direct,
+non-merge commit above the signed v0.9 promotion base. The commit's complete
+changed-path set and content/mode digest must match the promoted artifact. A
+signed release capsule binds that commit, tree, rollback commit, artifact,
+promotion, authorization, and evidence bundle.
+
+EVO can emit signed intents for four ordered transitions: stage, verify health,
+promote to production, and rollback. Each intent states that execution authority
+belongs exclusively to an external operator and that EVO forwarded no cloud
+credentials or network request. Literal confirmation phrases prevent accidental
+intent generation.
+
+Operators own separate Ed25519 private keys outside EVO. EVO stores revocable
+public identities and accepts one signed receipt per intent. A successful receipt
+must name an external deployment reference. The latest trusted health receipt
+must be `healthy` before a production intent can be created; an `unhealthy`
+receipt blocks promotion until a later trusted recovery receipt is imported.
+Revoked identities cease to validate immediately.
+
+This is a cryptographic coordination protocol, not a cloud deployment service.
+EVO holds no production credentials, calls no provider deployment API, opens no
+deployment network connection, and cannot assert success on the operator's
+behalf. The localhost panel is status-only; operator and transition actions are
+CLI-only.
+
 ## Rootless sandbox boundary
 
 `evo sandbox` runs evaluator commands through Podman or Docker without a direct

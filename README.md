@@ -1,6 +1,6 @@
 # EVO — Evolutionary Virtual Organism
 
-EVO Terrarium v0.9.0 is a bounded environment for experiments in evolutionary
+EVO Terrarium v1.0.0 is a bounded environment for experiments in evolutionary
 coding agents. It lets an organism propose a mutation, evaluates that mutation,
 and records whether it is eligible for selection. The immutable kernel owns
 credentials, budgets, policy decisions, audit events, and promotion gates.
@@ -37,6 +37,10 @@ This repository starts with a deliberately narrow vertical slice:
 - signed manual-promotion authorization artifacts with no Git or deployment authority;
 - sealed, authority-signed candidate patches bound to their tested base commit;
 - one-time local promotion with exact confirmation and deterministic rollback;
+- signed release capsules bound to the exact human-committed candidate;
+- credential-free stage, health, production, and rollback handoff intents;
+- independently signed, revocable operator receipts and fail-closed transitions;
+- a read-only bilingual production-handoff observatory;
 - an offline test suite with a narrowly pinned cryptographic dependency.
 
 It does **not** autonomously register accounts, accept legal terms, bypass
@@ -372,6 +376,59 @@ changed. Once a human commits the patch, rollback and release management belong
 to the external Git/release system. Sealed patches may contain repository
 source and must never be published with `.evo/` or moved into public artifacts.
 
+## v1.0 signed deployment handoff
+
+v1.0 verifies that the human commit is exactly one non-merge commit above the
+tested base and contains exactly the promoted artifact. EVO then creates an
+Ed25519-signed release capsule. It still has no cloud credentials, deployment
+API client, or network execution authority.
+
+An independent operator creates a separate keypair and registers only its
+public key with EVO:
+
+```bash
+.venv/bin/evo deployment operator-create --operator-id operator-1 \
+  --private-key ../operator-keys/operator-1.key \
+  --public-key ../operator-keys/operator-1.pub
+.venv/bin/evo deployment operator-register --operator-id operator-1 \
+  --display-name "Production operator" \
+  --public-key ../operator-keys/operator-1.pub
+.venv/bin/evo deployment prepare
+.venv/bin/evo deployment status
+```
+
+Copy the release ID and exact confirmation from `deployment status`, then emit
+a signed staging intent:
+
+```bash
+.venv/bin/evo deployment request-stage --release-id release-EXAMPLE \
+  --confirm STAGE-release-EXAMPLE
+```
+
+The external operator consumes the intent file, performs the real action using
+its own deployment system, and signs a receipt offline:
+
+```bash
+.venv/bin/evo deployment receipt-create \
+  --intent-path .evo/deployment/outbox/intent-EXAMPLE.json \
+  --authority-public-key .evo/deployment/authority-ed25519.pub \
+  --operator-id operator-1 \
+  --private-key ../operator-keys/operator-1.key \
+  --receipt-status staged --deployment-ref deploy/staging-123 \
+  --output ../operator-receipts/staging-123.json
+.venv/bin/evo deployment receipt-import \
+  --receipt-path ../operator-receipts/staging-123.json
+```
+
+Repeat the same controlled pattern with `request-health`/`healthy`,
+`request-promote`/`promoted`, and, when needed,
+`request-rollback`/`rolled_back`. Production promotion is permitted only after
+the latest trusted health receipt is `healthy`. Revocation immediately removes
+an operator's receipts from trusted state. The web UI reports this state but
+offers no deployment controls.
+The receipt tool verifies the intent against the published EVO authority key
+before it signs; distribute that public key through an authenticated channel.
+
 ## Security invariants
 
 1. Organisms receive capabilities, never raw credentials.
@@ -381,8 +438,7 @@ source and must never be published with `.evo/` or moved into public artifacts.
 4. Every model call consumes a bounded call/token budget.
 5. A mutation cannot promote itself.
 6. Audit records redact common API-key formats.
-7. Production deployment and financial actions always require an external
-   approval system.
+7. Production execution and financial actions always remain external to EVO.
 
 See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) and
 [docs/ROADMAP.md](docs/ROADMAP.md) for the system boundary and next milestones.

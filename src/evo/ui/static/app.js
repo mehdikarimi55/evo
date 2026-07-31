@@ -244,6 +244,44 @@ const I18N = {
     noActivePromotion: "No active promotion",
     rollbackReady: "Exact rollback available",
     noRollback: "No rollback pending",
+    productionHandoff: "PRODUCTION HANDOFF · v1.0",
+    deploymentHandoff: "Signed external deployment handoff",
+    deploymentHandoffDescription: "Bind a committed release to signed stage, health, production, and rollback intents, then verify receipts from an independent operator.",
+    deploymentHandoffSafety: "This panel is read-only. EVO holds no cloud credentials and performs no network deployment; an independent operator executes every external change.",
+    releaseCapsule: "Signed release capsule",
+    trustedOperators: "Trusted operators",
+    deploymentPhase: "Deployment phase",
+    nextDeploymentAction: "Next controlled action",
+    operatorReceipt: "Latest operator receipt",
+    externalExecution: "External execution",
+    noReleaseCapsule: "No release capsule",
+    noOperatorReceipt: "No receipt yet",
+    required: "Required",
+    ready_to_stage: "Ready to request staging",
+    stage_requested: "Awaiting staging receipt",
+    staged: "Staged",
+    health_requested: "Awaiting health receipt",
+    unhealthy: "Health check failed",
+    healthy: "Healthy in staging",
+    promotion_requested: "Awaiting production receipt",
+    promoted: "Promoted to production",
+    rollback_requested: "Awaiting rollback receipt",
+    rolled_back: "Rolled back",
+    no_release: "No prepared release",
+    failed: "External action failed",
+    prepare_release: "Prepare a signed release",
+    request_stage: "Request staging",
+    await_operator_receipt: "Await operator receipt",
+    request_health: "Request a health check",
+    await_health_receipt: "Await health receipt",
+    request_health_or_rollback: "Retry health or request rollback",
+    request_promote: "Request production promotion",
+    await_promotion_receipt: "Await production receipt",
+    monitor_or_request_rollback: "Monitor or request rollback",
+    await_rollback_receipt: "Await rollback receipt",
+    complete: "Complete",
+    retry_failed_action: "Retry the failed action",
+    inspect_state: "Inspect state",
     journalStarted: "Autonomous exploration started",
     journalStopped: "Autonomous exploration stopped",
     journalCompleted: "Generation limit reached",
@@ -503,6 +541,44 @@ const I18N = {
     noActivePromotion: "ارتقای فعالی وجود ندارد",
     rollbackReady: "بازگردانی دقیق آماده است",
     noRollback: "بازگردانی معوقی وجود ندارد",
+    productionHandoff: "تحویل به محیط عملیاتی · نسخه ۱٫۰",
+    deploymentHandoff: "تحویل امضاشده به اپراتور مستقل استقرار",
+    deploymentHandoffDescription: "انتشار commit‌شده را به درخواست‌های امضاشدهٔ مرحله‌بندی، سلامت، محیط عملیاتی و بازگردانی پیوند دهید و سپس رسیدهای اپراتور مستقل را اعتبارسنجی کنید.",
+    deploymentHandoffSafety: "این بخش فقط خواندنی است. EVO هیچ کلید دسترسی ابری نگه نمی‌دارد و استقرار شبکه‌ای انجام نمی‌دهد؛ تمام تغییرات بیرونی را اپراتور مستقل اجرا می‌کند.",
+    releaseCapsule: "کپسول امضاشدهٔ انتشار",
+    trustedOperators: "اپراتورهای مورد اعتماد",
+    deploymentPhase: "مرحلهٔ استقرار",
+    nextDeploymentAction: "اقدام کنترل‌شدهٔ بعدی",
+    operatorReceipt: "آخرین رسید اپراتور",
+    externalExecution: "اجرای بیرونی",
+    noReleaseCapsule: "هنوز کپسول انتشاری وجود ندارد",
+    noOperatorReceipt: "هنوز رسیدی دریافت نشده است",
+    required: "الزامی",
+    ready_to_stage: "آمادهٔ درخواست مرحله‌بندی",
+    stage_requested: "در انتظار رسید مرحله‌بندی",
+    staged: "مرحله‌بندی‌شده",
+    health_requested: "در انتظار رسید سلامت",
+    unhealthy: "بررسی سلامت ناموفق بود",
+    healthy: "در محیط آزمایشی سالم است",
+    promotion_requested: "در انتظار رسید محیط عملیاتی",
+    promoted: "به محیط عملیاتی ارتقا یافت",
+    rollback_requested: "در انتظار رسید بازگردانی",
+    rolled_back: "بازگردانی شد",
+    no_release: "انتشاری آماده نشده است",
+    failed: "اقدام بیرونی ناموفق بود",
+    prepare_release: "آماده‌سازی انتشار امضاشده",
+    request_stage: "درخواست مرحله‌بندی",
+    await_operator_receipt: "انتظار برای رسید اپراتور",
+    request_health: "درخواست بررسی سلامت",
+    await_health_receipt: "انتظار برای رسید سلامت",
+    request_health_or_rollback: "تکرار بررسی سلامت یا درخواست بازگردانی",
+    request_promote: "درخواست ارتقا به محیط عملیاتی",
+    await_promotion_receipt: "انتظار برای رسید محیط عملیاتی",
+    monitor_or_request_rollback: "پایش یا درخواست بازگردانی",
+    await_rollback_receipt: "انتظار برای رسید بازگردانی",
+    complete: "تکمیل‌شده",
+    retry_failed_action: "تکرار اقدام ناموفق",
+    inspect_state: "بررسی وضعیت",
     journalStarted: "کاوش خودکار آغاز شد",
     journalStopped: "کاوش خودکار متوقف شد",
     journalCompleted: "سقف نسل‌ها تکمیل شد",
@@ -555,6 +631,7 @@ let cachedPetri = null;
 let cachedEvidenceControl = null;
 let cachedTrustAuthority = null;
 let cachedPromotionControl = null;
+let cachedDeploymentControl = null;
 
 const statusSummary = document.getElementById("status-summary");
 const statusGrid = document.getElementById("status-grid");
@@ -591,6 +668,7 @@ const trustAuthorityStatus = document.getElementById("trust-authority-status");
 const attestEvidence = document.getElementById("attest-evidence");
 const authorizePromotion = document.getElementById("authorize-promotion");
 const promotionControlStatus = document.getElementById("promotion-control-status");
+const deploymentControlStatus = document.getElementById("deployment-control-status");
 
 function t(key) {
   return I18N[language][key] || I18N.en[key] || key;
@@ -629,6 +707,7 @@ function setLanguage(nextLanguage) {
   renderEvidenceControl(cachedEvidenceControl);
   renderTrustAuthority(cachedTrustAuthority);
   renderPromotionControl(cachedPromotionControl);
+  renderDeploymentControl(cachedDeploymentControl);
 }
 
 function renderEvidenceControl(status) {
@@ -705,6 +784,29 @@ function renderPromotionControl(status) {
     ["deploymentAuthority", t("denied"), false],
   ];
   promotionControlStatus.innerHTML = cards.map(([label, value, valid]) => `
+    <article class="gate-status-card ${valid ? "verified" : "restricted"}">
+      <span>${escapeHtml(t(label))}</span>
+      <strong>${escapeHtml(value)}</strong>
+    </article>
+  `).join("");
+}
+
+function renderDeploymentControl(status) {
+  if (!status) return;
+  cachedDeploymentControl = status;
+  const release = status.latest_release;
+  const receipt = status.latest_receipt;
+  const releaseValid = Boolean(release?.verified);
+  const operatorCount = Number(status.trusted_operator_count || 0);
+  const cards = [
+    ["releaseCapsule", releaseValid ? release.release_id : t("noReleaseCapsule"), releaseValid],
+    ["trustedOperators", String(operatorCount), operatorCount > 0],
+    ["deploymentPhase", t(status.phase || "no_release"), ["healthy", "promoted", "rolled_back"].includes(status.phase)],
+    ["nextDeploymentAction", t(status.next_action || "inspect_state"), false],
+    ["operatorReceipt", receipt ? `${t(receipt.status)} · ${receipt.operator_id}` : t("noOperatorReceipt"), Boolean(receipt)],
+    ["externalExecution", t("required"), Boolean(status.external_execution_required)],
+  ];
+  deploymentControlStatus.innerHTML = cards.map(([label, value, valid]) => `
     <article class="gate-status-card ${valid ? "verified" : "restricted"}">
       <span>${escapeHtml(t(label))}</span>
       <strong>${escapeHtml(value)}</strong>
@@ -1223,7 +1325,7 @@ function applySearch(query) {
 }
 
 async function refresh() {
-  const [settings, audit, autonomy, journal, petri, evidenceControl, trustAuthority, promotionControl] = await Promise.all([
+  const [settings, audit, autonomy, journal, petri, evidenceControl, trustAuthority, promotionControl, deploymentControl] = await Promise.all([
     api("/api/settings"),
     api("/api/audit?limit=50"),
     api("/api/autonomy"),
@@ -1232,6 +1334,7 @@ async function refresh() {
     api("/api/evidence-control"),
     api("/api/trust-authority"),
     api("/api/promotion-control"),
+    api("/api/deployment-control"),
   ]);
   fillSettings(settings);
   renderStatus(settings);
@@ -1242,11 +1345,12 @@ async function refresh() {
   renderEvidenceControl(evidenceControl);
   renderTrustAuthority(trustAuthority);
   renderPromotionControl(promotionControl);
+  renderDeploymentControl(deploymentControl);
   applySearch(globalSearch.value);
 }
 
 async function refreshEvolution() {
-  const [autonomy, journal, audit, petri, evidenceControl, trustAuthority, promotionControl] = await Promise.all([
+  const [autonomy, journal, audit, petri, evidenceControl, trustAuthority, promotionControl, deploymentControl] = await Promise.all([
     api("/api/autonomy"),
     api("/api/evolution-journal?limit=100"),
     api("/api/audit?limit=50"),
@@ -1254,6 +1358,7 @@ async function refreshEvolution() {
     api("/api/evidence-control"),
     api("/api/trust-authority"),
     api("/api/promotion-control"),
+    api("/api/deployment-control"),
   ]);
   renderAutonomy(autonomy);
   renderJournal(journal.entries || []);
@@ -1262,6 +1367,7 @@ async function refreshEvolution() {
   renderEvidenceControl(evidenceControl);
   renderTrustAuthority(trustAuthority);
   renderPromotionControl(promotionControl);
+  renderDeploymentControl(deploymentControl);
 }
 
 document.querySelectorAll("[data-language]").forEach((button) => {

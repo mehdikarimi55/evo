@@ -126,6 +126,19 @@ complete offline suite passed before v0.4 began.
 - [x] No staging, commit, merge, push, deployment, or production credentials
 - [ ] External production deployment, health verification, and rollback service
 
+## v1.0 — Signed external deployment handoff
+
+- [x] Release capsule bound to one exact human commit and tested artifact
+- [x] Ed25519-signed stage, health, production, and rollback intents
+- [x] Independent operator identity creation, registration, and revocation
+- [x] Offline operator receipt creation with deployment references
+- [x] Fail-closed receipt import and one-receipt-per-intent enforcement
+- [x] Latest-health gating before production promotion
+- [x] Signed rollback request and independently observed rollback receipt
+- [x] Read-only English/Persian deployment observatory
+- [x] No cloud credentials, deployment API client, or network execution in EVO
+- [ ] Provider-specific deployment adapter owned by a separate operator system
+
 ## Production gate
 
 No candidate may reach production until deterministic replay, security

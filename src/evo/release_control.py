@@ -368,6 +368,25 @@ class PromotionController:
             "deployment_authorized": False,
         }
 
+    def latest_active_promotion(self) -> dict[str, Any] | None:
+        """Return the latest verified promotion that has not been rolled back."""
+
+        return next(
+            (
+                entry
+                for entry in reversed(list(_read_jsonl(self.ledger_path)))
+                if entry.get("action") == "promote"
+                and self._verify_record(entry)
+                and not self._promotion_rolled_back(
+                    str(entry.get("record_id", ""))
+                )
+            ),
+            None,
+        )
+
+    def verify_record(self, record: Mapping[str, object]) -> bool:
+        return self._verify_record(record)
+
     def _verify_bundle_binding(
         self,
         artifact: Mapping[str, object],

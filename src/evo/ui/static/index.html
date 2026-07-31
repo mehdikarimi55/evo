@@ -19,7 +19,7 @@
         <a class="brand-lockup" href="#workspace" aria-label="EVO">
           <span class="brand-mark" aria-hidden="true"></span>
           <span class="brand">EVO</span>
-          <span class="brand-version">v0.9.0</span>
+          <span class="brand-version">v1.0.0</span>
         </a>
         <div class="language-switch" aria-label="Language">
           <button class="language-option active" type="button" data-language="en">EN</button>
@@ -389,6 +389,19 @@
           <div class="gate-status-grid" id="promotion-control-status"></div>
           <p class="safety-note" data-i18n="releaseControlSafety">
             Apply and rollback are CLI-only and require exact confirmation phrases. EVO never commits, pushes, merges, or deploys the promoted worktree.
+          </p>
+        </div>
+        <div class="deployment-handoff" aria-labelledby="deployment-handoff-title">
+          <div class="panel-head compact">
+            <p class="section-kicker" data-i18n="productionHandoff">PRODUCTION HANDOFF · v1.0</p>
+            <h3 id="deployment-handoff-title" data-i18n="deploymentHandoff">Signed external deployment handoff</h3>
+            <p data-i18n="deploymentHandoffDescription">
+              Bind a committed release to signed stage, health, production, and rollback intents, then verify receipts from an independent operator.
+            </p>
+          </div>
+          <div class="gate-status-grid" id="deployment-control-status"></div>
+          <p class="safety-note" data-i18n="deploymentHandoffSafety">
+            This panel is read-only. EVO holds no cloud credentials and performs no network deployment; an independent operator executes every external change.
           </p>
         </div>
       </section>

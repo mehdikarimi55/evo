@@ -9,6 +9,236 @@ const DEFAULTS = {
   },
 };
 
+const I18N = {
+  en: {
+    pageTitle: "EVO | Evolutionary Terrarium",
+    heroTitle: "Evolutionary Terrarium",
+    heroDescription: "A bounded environment for evolving digital organisms without exposing the immutable kernel.",
+    openWorkspace: "Open workspace",
+    checkConfig: "Check configuration",
+    hostStatus: "Host status",
+    loadingConfig: "Loading configuration…",
+    settings: "Settings",
+    settingsDescription: "Provider credentials remain on the host. Raw keys are never displayed.",
+    provider: "Provider",
+    model: "Model",
+    baseUrl: "Base URL",
+    apiKey: "API key",
+    keepSavedKey: "Leave blank to keep the saved key",
+    enterNewKey: "Enter a newly generated provider key",
+    maxInputTokens: "Maximum input tokens",
+    maxOutputTokens: "Maximum output tokens",
+    maxCalls: "Maximum calls per run",
+    requestTimeout: "Request timeout (seconds)",
+    saveSettings: "Save settings",
+    probeProvider: "Probe provider",
+    runGeneration: "Run one generation",
+    generationDescription: "Produces an eligible or rejected candidate. Nothing is applied to the repository.",
+    objective: "Objective",
+    objectivePlaceholder: "Improve input validation without changing public behavior.",
+    mutablePaths: "Mutable paths",
+    evolve: "Evolve",
+    thinking: "Thinking…",
+    autonomousEvolution: "Autonomous evolution",
+    autonomyDescription: "Continuously explores digital abiogenesis and open-ended artificial life while the app is running.",
+    autonomousObjective: "Autonomous objective",
+    autonomyObjectivePlaceholder: "Explore digital abiogenesis and open-ended artificial life...",
+    intervalSeconds: "Interval between generations (seconds)",
+    generationLimit: "Generation attempt limit",
+    autonomyMutablePaths: "Autonomous mutable paths",
+    autonomySafety: "Autonomous mode consumes provider API quota. It evaluates and selects proposals, but never merges, deploys, purchases, or changes the immutable kernel.",
+    startAutonomy: "Start autonomous evolution",
+    stopAutonomy: "Stop",
+    evolutionJournal: "Evolution journal",
+    journalDescription: "A public-facing chronicle of this gnome’s selected generations, adaptations, and setbacks.",
+    noEvolutionYet: "No autonomous evolution has been recorded yet.",
+    auditTrail: "Audit trail",
+    auditDescription: "Redacted local events from `.evo/audit.jsonl`.",
+    search: "Search",
+    searchPlaceholder: "Search audit, status, and settings…",
+    action: "Action",
+    when: "When",
+    event: "Event",
+    status: "Status",
+    score: "Score",
+    noAuditEvents: "No audit events yet.",
+    requestFailed: "Request failed",
+    configured: "Configured",
+    yes: "Yes",
+    no: "No",
+    envFile: "Environment file",
+    present: "Present",
+    missing: "Missing",
+    callsPerRun: "Calls per run",
+    configurationIncomplete: "Configuration incomplete",
+    inspectEvent: "Inspect event",
+    proposed: "Proposed",
+    eligible: "Eligible",
+    rejected: "Rejected",
+    generationCompleted: "Generation completed",
+    mutationApplied: "Mutation applied",
+    mutationRejected: "Mutation rejected",
+    settingsSaved: "Settings saved to .env.local",
+    configurationValid: "Configuration is valid",
+    waitingCandidate: "Waiting for the model to propose a candidate…",
+    candidateStatus: "Candidate status",
+    evoError: "EVO error",
+    candidateId: "candidate_id",
+    genomeFingerprint: "genome_fingerprint",
+    proposal: "proposal",
+    targetPath: "target_path",
+    summary: "summary",
+    rationale: "rationale",
+    expectedBenefit: "expected_benefit",
+    risk: "risk",
+    schemaValidity: "schema_validity",
+    policyCompliance: "policy_compliance",
+    rationaleQuality: "rationale_quality",
+    rejectionReason: "rejection_reason",
+    phase: "Phase",
+    generation: "Selected generation",
+    attempts: "Attempts",
+    nextInterval: "Interval",
+    stopped: "Stopped",
+    starting: "Starting",
+    evolving: "Evolving",
+    waiting: "Waiting",
+    backoff: "Waiting for connection",
+    completed: "Completed",
+    finalizing: "Finalizing",
+    enabled: "Running",
+    autonomyStarted: "Autonomous evolution started",
+    autonomyStopped: "Autonomous evolution stopped",
+    journalStarted: "Autonomous exploration started",
+    journalStopped: "Autonomous exploration stopped",
+    journalCompleted: "Generation limit reached",
+    journalError: "Provider connection interrupted",
+    journalGeneration: "Generation",
+    attempt: "Attempt",
+    seconds: "seconds",
+    retrying: "The gnome will retry automatically.",
+  },
+  fa: {
+    pageTitle: "EVO | زیست‌بوم تکاملی",
+    heroTitle: "زیست‌بوم تکاملی",
+    heroDescription: "محیطی کنترل‌شده برای تکامل جانداران دیجیتال، بدون دسترسی به هسته تغییرناپذیر.",
+    openWorkspace: "ورود به محیط کار",
+    checkConfig: "بررسی پیکربندی",
+    hostStatus: "وضعیت میزبان",
+    loadingConfig: "در حال بارگذاری پیکربندی…",
+    settings: "تنظیمات",
+    settingsDescription: "اطلاعات ورود ارائه‌دهنده روی میزبان می‌ماند و کلید خام هرگز نمایش داده نمی‌شود.",
+    provider: "ارائه‌دهنده",
+    model: "مدل",
+    baseUrl: "نشانی پایه",
+    apiKey: "کلید API",
+    keepSavedKey: "برای حفظ کلید ذخیره‌شده، این قسمت را خالی بگذارید",
+    enterNewKey: "کلید تازه ایجادشده ارائه‌دهنده را وارد کنید",
+    maxInputTokens: "حداکثر توکن ورودی",
+    maxOutputTokens: "حداکثر توکن خروجی",
+    maxCalls: "حداکثر درخواست در هر اجرا",
+    requestTimeout: "مهلت پاسخ‌گویی (ثانیه)",
+    saveSettings: "ذخیره تنظیمات",
+    probeProvider: "آزمون اتصال ارائه‌دهنده",
+    runGeneration: "اجرای یک نسل",
+    generationDescription: "یک نامزد واجد شرایط یا ردشده تولید می‌کند؛ هیچ تغییری روی مخزن اعمال نمی‌شود.",
+    objective: "هدف",
+    objectivePlaceholder: "اعتبارسنجی ورودی را بدون تغییر رفتار عمومی بهبود بده.",
+    mutablePaths: "مسیرهای قابل‌تغییر",
+    evolve: "تکامل",
+    thinking: "در حال فکر کردن…",
+    autonomousEvolution: "تکامل خودکار",
+    autonomyDescription: "تا زمانی که برنامه در حال اجراست، زایش دیجیتال و حیات مصنوعی بی‌پایان را پیوسته کاوش می‌کند.",
+    autonomousObjective: "هدف تکامل خودکار",
+    autonomyObjectivePlaceholder: "زایش دیجیتال و حیات مصنوعی بی‌پایان را کاوش کن...",
+    intervalSeconds: "فاصله میان نسل‌ها (ثانیه)",
+    generationLimit: "سقف تلاش برای تولید نسل",
+    autonomyMutablePaths: "مسیرهای قابل‌تغییر در حالت خودکار",
+    autonomySafety: "حالت خودکار از سهمیه API ارائه‌دهنده مصرف می‌کند. پیشنهادها را ارزیابی و انتخاب می‌کند، اما هرگز ادغام، استقرار، خرید یا تغییر هسته را انجام نمی‌دهد.",
+    startAutonomy: "شروع تکامل خودکار",
+    stopAutonomy: "توقف",
+    evolutionJournal: "روایت تکامل",
+    journalDescription: "روایتی عمومی از نسل‌های برگزیده، سازگاری‌ها و ناکامی‌های این گنوم.",
+    noEvolutionYet: "هنوز تکامل خودکاری ثبت نشده است.",
+    auditTrail: "گزارش رویدادها",
+    auditDescription: "رویدادهای محلی پالایش‌شده از `.evo/audit.jsonl`.",
+    search: "جست‌وجو",
+    searchPlaceholder: "جست‌وجو در رویدادها، وضعیت و تنظیمات…",
+    action: "عملیات",
+    when: "زمان",
+    event: "رویداد",
+    status: "وضعیت",
+    score: "امتیاز",
+    noAuditEvents: "هنوز رویدادی ثبت نشده است.",
+    requestFailed: "درخواست ناموفق بود",
+    configured: "پیکربندی",
+    yes: "انجام شده",
+    no: "انجام نشده",
+    envFile: "فایل محیطی",
+    present: "موجود",
+    missing: "ناموجود",
+    callsPerRun: "درخواست در هر اجرا",
+    configurationIncomplete: "پیکربندی کامل نیست",
+    inspectEvent: "مشاهده جزئیات رویداد",
+    proposed: "پیشنهادشده",
+    eligible: "واجد شرایط",
+    rejected: "ردشده",
+    generationCompleted: "تکمیل نسل",
+    mutationApplied: "اعمال تغییر",
+    mutationRejected: "رد تغییر",
+    settingsSaved: "تنظیمات در فایل .env.local ذخیره شد",
+    configurationValid: "پیکربندی معتبر است",
+    waitingCandidate: "در انتظار پیشنهاد نامزد از سوی مدل…",
+    candidateStatus: "وضعیت نامزد",
+    evoError: "خطای EVO",
+    candidateId: "شناسه_نامزد",
+    genomeFingerprint: "اثرانگشت_ژنوم",
+    proposal: "پیشنهاد",
+    targetPath: "مسیر_هدف",
+    summary: "خلاصه",
+    rationale: "منطق_پیشنهاد",
+    expectedBenefit: "فایده_موردانتظار",
+    risk: "ریسک",
+    schemaValidity: "اعتبار_ساختار",
+    policyCompliance: "انطباق_با_سیاست",
+    rationaleQuality: "کیفیت_استدلال",
+    rejectionReason: "دلیل_رد",
+    phase: "مرحله",
+    generation: "نسل برگزیده",
+    attempts: "تلاش‌ها",
+    nextInterval: "فاصله",
+    stopped: "متوقف",
+    starting: "در حال آغاز",
+    evolving: "در حال تکامل",
+    waiting: "در انتظار",
+    backoff: "در انتظار اتصال",
+    completed: "تکمیل‌شده",
+    finalizing: "در حال نهایی‌سازی",
+    enabled: "در حال اجرا",
+    autonomyStarted: "تکامل خودکار آغاز شد",
+    autonomyStopped: "تکامل خودکار متوقف شد",
+    journalStarted: "کاوش خودکار آغاز شد",
+    journalStopped: "کاوش خودکار متوقف شد",
+    journalCompleted: "سقف نسل‌ها تکمیل شد",
+    journalError: "ارتباط با ارائه‌دهنده قطع شد",
+    journalGeneration: "نسل",
+    attempt: "تلاش",
+    seconds: "ثانیه",
+    retrying: "گنوم به‌صورت خودکار دوباره تلاش می‌کند.",
+  },
+};
+
+const AUTONOMY_OBJECTIVES = {
+  en: "Explore digital abiogenesis and artificial life through open-ended, self-organizing multi-agent systems. Propose one safe, incremental improvement that increases emergence, adaptation, diversity, or observability without weakening the immutable kernel.",
+  fa: "زایش دیجیتال و حیات مصنوعی را از مسیر سامانه‌های چندعاملی خودسازمان‌ده و بی‌پایان کاوش کن. یک بهبود ایمن و تدریجی پیشنهاد بده که ظهور رفتار، سازگاری، تنوع یا مشاهده‌پذیری را بدون تضعیف هسته تغییرناپذیر افزایش دهد.",
+};
+
+let language = localStorage.getItem("evo-language") || "en";
+let cachedSettings = null;
+let cachedAudit = [];
+let cachedAutonomy = null;
+let cachedJournal = [];
+
 const statusSummary = document.getElementById("status-summary");
 const statusGrid = document.getElementById("status-grid");
 const settingsForm = document.getElementById("settings-form");
@@ -21,15 +251,58 @@ const auditBody = document.getElementById("audit-body");
 const toast = document.getElementById("toast");
 const globalSearch = document.getElementById("global-search");
 const providerSelect = document.getElementById("provider");
+const autonomyForm = document.getElementById("autonomy-form");
+const autonomyBadge = document.getElementById("autonomy-badge");
+const autonomyStats = document.getElementById("autonomy-stats");
+const autonomyObjective = document.getElementById("autonomy-objective");
+const journalContainer = document.getElementById("evolution-journal");
+
+function t(key) {
+  return I18N[language][key] || I18N.en[key] || key;
+}
+
+function setLanguage(nextLanguage) {
+  const previousLanguage = language;
+  language = nextLanguage === "fa" ? "fa" : "en";
+  localStorage.setItem("evo-language", language);
+  document.documentElement.lang = language;
+  document.documentElement.dir = language === "fa" ? "rtl" : "ltr";
+  document.title = t("pageTitle");
+  document.querySelectorAll("[data-i18n]").forEach((element) => {
+    element.textContent = t(element.dataset.i18n);
+  });
+  document.querySelectorAll("[data-i18n-placeholder]").forEach((element) => {
+    element.placeholder = t(element.dataset.i18nPlaceholder);
+  });
+  document.querySelectorAll("[data-language]").forEach((button) => {
+    button.classList.toggle("active", button.dataset.language === language);
+  });
+  if (
+    !autonomyObjective.value ||
+    autonomyObjective.value === AUTONOMY_OBJECTIVES[previousLanguage]
+  ) {
+    autonomyObjective.value = AUTONOMY_OBJECTIVES[language];
+  }
+  if (cachedSettings) {
+    fillSettings(cachedSettings);
+    renderStatus(cachedSettings);
+  }
+  renderAudit(cachedAudit);
+  renderAutonomy(cachedAutonomy);
+  renderJournal(cachedJournal);
+}
 
 async function api(path, options = {}) {
   const response = await fetch(path, {
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      "Accept-Language": language,
+    },
     ...options,
   });
   const payload = await response.json();
   if (!response.ok) {
-    throw new Error(payload.error || "درخواست ناموفق بود");
+    throw new Error(payload.error || t("requestFailed"));
   }
   return payload;
 }
@@ -44,6 +317,7 @@ function showToast(message) {
 }
 
 function fillSettings(settings) {
+  cachedSettings = settings;
   const provider = settings.provider || "groq";
   const defaults = DEFAULTS[provider] || DEFAULTS.groq;
   providerSelect.value = provider;
@@ -56,95 +330,80 @@ function fillSettings(settings) {
     settings.request_timeout_seconds || 45;
   document.getElementById("api_key").value = "";
   document.getElementById("api_key").placeholder = settings.configured
-    ? "کلید روی میزبان ذخیره شده است؛ برای جایگزینی، کلید جدید را وارد کنید"
-    : "کلید تازه ایجادشده ارائه‌دهنده را وارد کنید";
+    ? t("keepSavedKey")
+    : t("enterNewKey");
 }
 
 function renderStatus(settings) {
   const rows = [
-    ["پیکربندی", settings.configured ? "انجام شده" : "انجام نشده"],
-    ["ارائه‌دهنده", settings.provider || "—"],
-    ["مدل", settings.model || "—"],
-    ["کلید API", settings.api_key ? "تنظیم‌شده" : "وارد نشده"],
-    ["فایل محیطی", settings.env_file_exists ? "موجود" : "ناموجود"],
-    ["درخواست در هر اجرا", settings.max_calls_per_run || "—"],
+    [t("configured"), settings.configured ? t("yes") : t("no")],
+    [t("provider"), settings.provider || "—"],
+    [t("model"), settings.model || "—"],
+    [t("apiKey"), settings.api_key ? t("configured") : t("missing")],
+    [t("envFile"), settings.env_file_exists ? t("present") : t("missing")],
+    [t("callsPerRun"), settings.max_calls_per_run || "—"],
   ];
   statusGrid.innerHTML = rows
     .map(
       ([label, value]) => `
       <div>
-        <dt>${label}</dt>
+        <dt>${escapeHtml(String(label))}</dt>
         <dd>${escapeHtml(String(value))}</dd>
       </div>`
     )
     .join("");
   statusSummary.textContent = settings.configured
     ? `${settings.provider} · ${settings.model}`
-    : settings.error || "پیکربندی کامل نیست";
+    : settings.error || t("configurationIncomplete");
 }
 
-const STATUS_LABELS = {
-  proposed: "پیشنهادشده",
-  eligible: "واجد شرایط",
-  rejected: "ردشده",
-};
-
-const EVENT_LABELS = {
-  "generation.completed": "تکمیل نسل",
-  "mutation.applied": "اعمال تغییر",
-  "mutation.rejected": "رد تغییر",
-};
-
 function translateStatus(value) {
-  return STATUS_LABELS[value] || value || "—";
+  return t(value) || value || "—";
 }
 
 function translateEvent(value) {
-  return EVENT_LABELS[value] || value || "—";
+  const eventKeys = {
+    "generation.completed": "generationCompleted",
+    "mutation.applied": "mutationApplied",
+    "mutation.rejected": "mutationRejected",
+  };
+  return eventKeys[value] ? t(eventKeys[value]) : value || "—";
 }
 
 function localizeCandidate(candidate) {
   const proposal = candidate.proposal
     ? {
-        مسیر_هدف: candidate.proposal.target_path,
-        خلاصه: candidate.proposal.summary,
-        منطق_پیشنهاد: candidate.proposal.rationale,
-        فایده_موردانتظار: candidate.proposal.expected_benefit,
-        ریسک: candidate.proposal.risk,
+        [t("targetPath")]: candidate.proposal.target_path,
+        [t("summary")]: candidate.proposal.summary,
+        [t("rationale")]: candidate.proposal.rationale,
+        [t("expectedBenefit")]: candidate.proposal.expected_benefit,
+        [t("risk")]: candidate.proposal.risk,
       }
     : null;
   const score = candidate.score
     ? {
-        اعتبار_ساختار: candidate.score.schema_validity,
-        انطباق_با_سیاست: candidate.score.policy_compliance,
-        کیفیت_استدلال: candidate.score.rationale_quality,
+        [t("schemaValidity")]: candidate.score.schema_validity,
+        [t("policyCompliance")]: candidate.score.policy_compliance,
+        [t("rationaleQuality")]: candidate.score.rationale_quality,
       }
     : null;
   return {
-    شناسه_نامزد: candidate.candidate_id,
-    اثرانگشت_ژنوم: candidate.genome_fingerprint,
-    پیشنهاد: proposal,
-    امتیاز: score,
-    وضعیت: translateStatus(candidate.status),
-    دلیل_رد: candidate.rejection_reason,
-  };
-}
-
-function localizeEvent(event) {
-  return {
-    زمان: event.timestamp,
-    نوع_رویداد: translateEvent(event.event_type),
-    جزئیات: event.payload,
+    [t("candidateId")]: candidate.candidate_id,
+    [t("genomeFingerprint")]: candidate.genome_fingerprint,
+    [t("proposal")]: proposal,
+    [t("score")]: score,
+    [t("status")]: translateStatus(candidate.status),
+    [t("rejectionReason")]: candidate.rejection_reason,
   };
 }
 
 function renderAudit(events) {
-  if (!events.length) {
-    auditBody.innerHTML =
-      `<tr><td colspan="6">هنوز رویدادی ثبت نشده است.</td></tr>`;
+  cachedAudit = events || [];
+  if (!cachedAudit.length) {
+    auditBody.innerHTML = `<tr><td colspan="6">${t("noAuditEvents")}</td></tr>`;
     return;
   }
-  auditBody.innerHTML = events
+  auditBody.innerHTML = cachedAudit
     .map((event, index) => {
       const payload = event.payload || {};
       const status = payload.status || "—";
@@ -152,13 +411,10 @@ function renderAudit(events) {
       return `
         <tr data-search="${escapeAttr(JSON.stringify(event).toLowerCase())}">
           <td>
-            <button
-              class="icon-button"
-              type="button"
-              title="مشاهده جزئیات رویداد"
-              aria-label="مشاهده رویداد ${index + 1}"
-              data-event-index="${index}"
-            >◉</button>
+            <button class="icon-button" type="button"
+              title="${escapeAttr(t("inspectEvent"))}"
+              aria-label="${escapeAttr(`${t("inspectEvent")} ${index + 1}`)}"
+              data-event-index="${index}">◉</button>
           </td>
           <td>${escapeHtml(formatTime(event.timestamp))}</td>
           <td>${escapeHtml(translateEvent(event.event_type))}</td>
@@ -168,26 +424,97 @@ function renderAudit(events) {
         </tr>`;
     })
     .join("");
-
   auditBody.querySelectorAll("[data-event-index]").forEach((button) => {
     button.addEventListener("click", () => {
-      const event = events[Number(button.dataset.eventIndex)];
+      const event = cachedAudit[Number(button.dataset.eventIndex)];
       evolveResult.hidden = false;
-      evolveResult.textContent = JSON.stringify(localizeEvent(event), null, 2);
+      evolveResult.textContent = JSON.stringify(event, null, 2);
       evolveResult.scrollIntoView({ behavior: "smooth", block: "center" });
     });
   });
+}
+
+function renderAutonomy(state) {
+  if (!state) return;
+  cachedAutonomy = state;
+  const phaseKey = state.enabled ? state.phase || "enabled" : state.phase || "stopped";
+  autonomyBadge.textContent = t(phaseKey);
+  autonomyBadge.className = state.phase === "backoff" ? "badge rejected" : "badge";
+  autonomyStats.innerHTML = [
+    [t("phase"), t(phaseKey)],
+    [t("generation"), state.generation ?? 0],
+    [t("attempts"), `${state.attempts ?? 0} / ${state.max_generations ?? "—"}`],
+    [t("nextInterval"), `${state.interval_seconds ?? "—"} ${t("seconds")}`],
+  ]
+    .map(
+      ([label, value]) => `
+        <div class="autonomy-stat">
+          <span>${escapeHtml(String(label))}</span>
+          <strong>${escapeHtml(String(value))}</strong>
+        </div>`
+    )
+    .join("");
+  if (document.activeElement !== autonomyObjective) {
+    autonomyObjective.value = state.updated_at
+      ? state.objective
+      : AUTONOMY_OBJECTIVES[language];
+  }
+  document.getElementById("interval_seconds").value = state.interval_seconds || 300;
+  document.getElementById("max_generations").value = state.max_generations || 100;
+  document.getElementById("autonomy-mutable-paths").value =
+    (state.mutable_paths || ["organisms/"]).join(", ");
+  document.getElementById("start-autonomy").disabled = Boolean(state.enabled);
+  document.getElementById("stop-autonomy").disabled = !state.enabled;
+}
+
+function renderJournal(entries) {
+  cachedJournal = entries || [];
+  if (!cachedJournal.length) {
+    journalContainer.innerHTML = `<p class="empty-state">${t("noEvolutionYet")}</p>`;
+    return;
+  }
+  const titles = {
+    "autonomy.started": "journalStarted",
+    "autonomy.stopped": "journalStopped",
+    "autonomy.completed": "journalCompleted",
+    "autonomy.error": "journalError",
+  };
+  journalContainer.innerHTML = cachedJournal
+    .map((entry) => {
+      const payload = entry.payload || {};
+      const isGeneration = entry.event_type === "autonomy.generation";
+      const title = isGeneration
+        ? `${t("journalGeneration")} ${payload.generation ?? "—"}`
+        : t(titles[entry.event_type] || "evolutionJournal");
+      const detail = isGeneration
+        ? payload.summary || payload.rejection_reason || "—"
+        : entry.event_type === "autonomy.error"
+          ? `${payload.message || "—"} ${t("retrying")}`
+          : payload.objective || "";
+      const meta = isGeneration
+        ? `${t("attempt")} ${payload.attempt ?? "—"} · ${translateStatus(payload.status)} · ${t("score")}: ${payload.score ?? "—"}`
+        : "";
+      return `
+        <article class="timeline-entry ${entry.event_type === "autonomy.error" ? "error" : ""}">
+          <h3>${escapeHtml(String(title))}</h3>
+          <div class="timeline-meta">${escapeHtml(`${formatTime(entry.timestamp)}${meta ? ` · ${meta}` : ""}`)}</div>
+          ${detail ? `<p>${escapeHtml(String(detail))}</p>` : ""}
+          ${payload.expected_benefit ? `<p><strong>${escapeHtml(t("expectedBenefit"))}:</strong> ${escapeHtml(String(payload.expected_benefit))}</p>` : ""}
+          ${payload.risk ? `<p><strong>${escapeHtml(t("risk"))}:</strong> ${escapeHtml(String(payload.risk))}</p>` : ""}
+        </article>`;
+    })
+    .join("");
 }
 
 function formatTime(value) {
   if (!value) return "—";
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return value;
-  return date.toLocaleString("fa-IR");
+  return date.toLocaleString(language === "fa" ? "fa-IR" : "en-US");
 }
 
 function escapeHtml(value) {
-  return value
+  return String(value)
     .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;")
@@ -206,7 +533,7 @@ function setEvolveThinking(active) {
   evolveButton.disabled = active;
   evolveButton.classList.toggle("is-thinking", active);
   evolveButton.setAttribute("aria-busy", String(active));
-  evolveButtonLabel.textContent = active ? "در حال فکر کردن…" : "تکامل";
+  evolveButtonLabel.textContent = active ? t("thinking") : t("evolve");
   evolveThinking.hidden = !active;
   evolveResult.setAttribute("aria-busy", String(active));
 }
@@ -214,33 +541,40 @@ function setEvolveThinking(active) {
 function applySearch(query) {
   const needle = query.trim().toLowerCase();
   document.querySelectorAll(".panel").forEach((panel) => {
-    if (!needle) {
-      panel.classList.remove("hidden-by-search");
-      return;
-    }
     const haystack = panel.textContent.toLowerCase();
-    panel.classList.toggle("hidden-by-search", !haystack.includes(needle));
-  });
-  document.querySelectorAll("#audit-body tr[data-search]").forEach((row) => {
-    if (!needle) {
-      row.classList.remove("hidden-by-search");
-      return;
-    }
-    row.classList.toggle(
-      "hidden-by-search",
-      !row.dataset.search.includes(needle)
-    );
+    panel.classList.toggle("hidden-by-search", Boolean(needle) && !haystack.includes(needle));
   });
 }
 
 async function refresh() {
-  const settings = await api("/api/settings");
+  const [settings, audit, autonomy, journal] = await Promise.all([
+    api("/api/settings"),
+    api("/api/audit?limit=50"),
+    api("/api/autonomy"),
+    api("/api/evolution-journal?limit=100"),
+  ]);
   fillSettings(settings);
   renderStatus(settings);
-  const audit = await api("/api/audit?limit=50");
   renderAudit(audit.events || []);
+  renderAutonomy(autonomy);
+  renderJournal(journal.entries || []);
   applySearch(globalSearch.value);
 }
+
+async function refreshEvolution() {
+  const [autonomy, journal, audit] = await Promise.all([
+    api("/api/autonomy"),
+    api("/api/evolution-journal?limit=100"),
+    api("/api/audit?limit=50"),
+  ]);
+  renderAutonomy(autonomy);
+  renderJournal(journal.entries || []);
+  renderAudit(audit.events || []);
+}
+
+document.querySelectorAll("[data-language]").forEach((button) => {
+  button.addEventListener("click", () => setLanguage(button.dataset.language));
+});
 
 providerSelect.addEventListener("change", () => {
   const defaults = DEFAULTS[providerSelect.value];
@@ -264,7 +598,7 @@ settingsForm.addEventListener("submit", async (event) => {
     });
     fillSettings(settings);
     renderStatus(settings);
-    showToast("تنظیمات در فایل .env.local ذخیره شد");
+    showToast(t("settingsSaved"));
   } catch (error) {
     showToast(error.message);
   }
@@ -273,7 +607,7 @@ settingsForm.addEventListener("submit", async (event) => {
 document.getElementById("run-doctor").addEventListener("click", async () => {
   try {
     const result = await api("/api/doctor");
-    showToast(`پیکربندی معتبر است: ${result.provider} · ${result.model}`);
+    showToast(`${t("configurationValid")}: ${result.provider} · ${result.model}`);
     await refresh();
   } catch (error) {
     showToast(error.message);
@@ -294,7 +628,7 @@ evolveForm.addEventListener("submit", async (event) => {
   if (evolveButton.disabled) return;
   setEvolveThinking(true);
   evolveResult.hidden = false;
-  evolveResult.textContent = "در انتظار پیشنهاد نامزد از سوی مدل…";
+  evolveResult.textContent = t("waitingCandidate");
   try {
     const payload = formObject(evolveForm);
     const candidate = await api("/api/evolve", {
@@ -302,31 +636,65 @@ evolveForm.addEventListener("submit", async (event) => {
       body: JSON.stringify({
         task: payload.task,
         mutable_paths: payload.mutable_paths,
+        language,
       }),
     });
-    evolveResult.hidden = false;
-    evolveResult.textContent = JSON.stringify(
-      localizeCandidate(candidate),
-      null,
-      2
-    );
-    showToast(`وضعیت نامزد: ${translateStatus(candidate.status)}`);
-    const audit = await api("/api/audit?limit=50");
-    renderAudit(audit.events || []);
-    applySearch(globalSearch.value);
+    evolveResult.textContent = JSON.stringify(localizeCandidate(candidate), null, 2);
+    showToast(`${t("candidateStatus")}: ${translateStatus(candidate.status)}`);
+    await refreshEvolution();
   } catch (error) {
     showToast(error.message);
-    evolveResult.textContent = `خطای EVO: ${error.message}`;
+    evolveResult.textContent = `${t("evoError")}: ${error.message}`;
   } finally {
     setEvolveThinking(false);
   }
 });
 
-globalSearch.addEventListener("input", () => {
-  applySearch(globalSearch.value);
+autonomyForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  try {
+    const payload = formObject(autonomyForm);
+    cachedAutonomy = await api("/api/autonomy/start", {
+      method: "POST",
+      body: JSON.stringify({
+        objective: payload.objective,
+        mutable_paths: payload.mutable_paths,
+        interval_seconds: Number(payload.interval_seconds),
+        max_generations: Number(payload.max_generations),
+        language,
+      }),
+    });
+    renderAutonomy(cachedAutonomy);
+    showToast(t("autonomyStarted"));
+    await refreshEvolution();
+  } catch (error) {
+    showToast(error.message);
+  }
 });
 
+document.getElementById("stop-autonomy").addEventListener("click", async () => {
+  try {
+    cachedAutonomy = await api("/api/autonomy/stop", {
+      method: "POST",
+      body: "{}",
+    });
+    renderAutonomy(cachedAutonomy);
+    showToast(t("autonomyStopped"));
+    await refreshEvolution();
+  } catch (error) {
+    showToast(error.message);
+  }
+});
+
+globalSearch.addEventListener("input", () => applySearch(globalSearch.value));
+
+setLanguage(language);
 refresh().catch((error) => {
   statusSummary.textContent = error.message;
   showToast(error.message);
 });
+window.setInterval(() => {
+  if (cachedAutonomy?.enabled) {
+    refreshEvolution().catch(() => {});
+  }
+}, 5000);

@@ -61,9 +61,12 @@ class UIServerTests(unittest.TestCase):
         with urlopen(f"{self.base}/", timeout=5) as response:
             html = response.read().decode()
         self.assertIn("EVO", html)
-        self.assertIn('lang="fa"', html)
-        self.assertIn('dir="rtl"', html)
-        self.assertIn("زیست‌بوم تکاملی", html)
+        self.assertIn('lang="en"', html)
+        self.assertIn('dir="ltr"', html)
+        self.assertIn("Evolutionary Terrarium", html)
+        self.assertIn('data-language="fa"', html)
+        self.assertIn('id="autonomy-form"', html)
+        self.assertIn('id="evolution-journal"', html)
         self.assertIn('id="evolve-thinking"', html)
         self.assertIn('aria-busy="false"', html)
 
@@ -75,12 +78,23 @@ class UIServerTests(unittest.TestCase):
 
         self.assertIn("setEvolveThinking(true)", javascript)
         self.assertIn("setEvolveThinking(false)", javascript)
+        self.assertIn("Thinking…", javascript)
         self.assertIn("در حال فکر کردن", javascript)
-        self.assertIn("واجد شرایط", javascript)
+        self.assertIn('localStorage.getItem("evo-language") || "en"', javascript)
+        self.assertIn('api("/api/autonomy")', javascript)
         self.assertIn("@keyframes heartbeat", stylesheet)
         self.assertIn("white-space: pre-wrap", stylesheet)
         self.assertIn("overflow-wrap: anywhere", stylesheet)
-        self.assertIn("direction: rtl", stylesheet)
+        self.assertIn("font-size: 14px", stylesheet)
+        self.assertIn('[dir="rtl"] textarea', stylesheet)
+
+    def test_autonomy_status_and_journal_endpoints(self):
+        status, payload = self._request("GET", "/api/autonomy")
+        self.assertEqual(status, 200)
+        self.assertFalse(payload["enabled"])
+        status, payload = self._request("GET", "/api/evolution-journal")
+        self.assertEqual(status, 200)
+        self.assertEqual(payload["entries"], [])
 
     def test_probe_endpoint_uses_runtime(self):
         with patch.object(self.runtime, "probe", return_value="ok"):

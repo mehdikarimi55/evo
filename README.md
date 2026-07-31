@@ -1,6 +1,6 @@
 # EVO — Evolutionary Virtual Organism
 
-EVO Terrarium v0.1.1 is a bounded environment for experiments in evolutionary
+EVO Terrarium v0.2.0 is a bounded environment for experiments in evolutionary
 coding agents. It lets an organism propose a mutation, evaluates that mutation,
 and records whether it is eligible for selection. The immutable kernel owns
 credentials, budgets, policy decisions, audit events, and promotion gates.
@@ -15,10 +15,12 @@ This repository starts with a deliberately narrow vertical slice:
 - local JSONL audit records;
 - a fail-closed rootless container command runner;
 - a localhost web UI for settings, probe, evolve, and audit search;
+- an English-first bilingual interface with persistent English/Persian switching;
+- a bounded autonomous generation loop and public-facing evolution journal;
 - an offline test suite based entirely on the Python standard library.
 
 It does **not** autonomously register accounts, accept legal terms, bypass
-identity checks, obtain credentials, spend money, or deploy changes.
+identity checks, obtain credentials, merge code, spend money, or deploy changes.
 
 ## Quick start
 
@@ -117,10 +119,42 @@ Open [http://127.0.0.1:8787/](http://127.0.0.1:8787/). From the UI you can:
 - save provider settings into `.env.local` without displaying raw keys;
 - run doctor and probe checks;
 - run one bounded generation;
+- switch between English (default) and Persian;
+- start or stop bounded autonomous evolution;
+- follow the gnome's progress in a dedicated evolution journal;
 - search the redacted audit trail.
 
 Use `--no-browser` if you prefer to open the page yourself, and `--port` to choose
 a different local port.
+
+## Autonomous evolution
+
+Autonomous mode repeatedly asks the configured model provider for one bounded
+mutation proposal, evaluates it against the immutable policy, advances the
+selected generation when eligible, feeds the cumulative adaptation history
+into the next generation, and records the result. Its default
+objective explores digital abiogenesis and artificial life through open-ended,
+self-organizing multi-agent systems.
+
+To use it:
+
+1. Configure and probe a provider in the local UI.
+2. Review the objective, mutable paths, interval, and attempt limit.
+3. Select **Start autonomous evolution** once.
+4. Keep the EVO UI process running. If the provider or internet connection is
+   temporarily unavailable, the worker records the failure and retries after
+   the configured interval.
+
+The enabled state is persisted in `.evo/autonomy-state.json`, so autonomous mode
+resumes when the UI process is started again. The public progress narrative is
+stored in `.evo/evolution-journal.jsonl`; the lower-level security audit remains
+in `.evo/audit.jsonl`.
+
+Autonomous mode is deliberately opt-in because each generation consumes API
+quota. It has a configurable attempt limit (maximum 10,000), a minimum
+30-second interval, and never applies or promotes source changes. Applying
+tested mutations inside candidate worktrees can be added as a later promotion
+stage with a separate approval policy.
 
 ## Security invariants
 

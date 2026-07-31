@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import asdict
 from pathlib import Path
+from typing import Any
 import json
 import os
 
@@ -138,6 +139,9 @@ class TerrariumRuntime:
         mutable_paths: list[str] | None = None,
         organism_id: str = "cell-0001",
         task_id: str = "interactive",
+        generation: int = 0,
+        language: str = "en",
+        traits: dict[str, Any] | None = None,
     ) -> dict[str, object]:
         objective = task.strip()
         if not objective:
@@ -146,6 +150,11 @@ class TerrariumRuntime:
         cleaned = [path.strip() for path in paths if path and path.strip()]
         if not cleaned:
             raise ValueError("حداقل یک مسیر قابل‌تغییر لازم است")
+        if generation < 0:
+            raise ValueError("Generation cannot be negative.")
+        language_name = {"en": "English", "fa": "Persian"}.get(language)
+        if language_name is None:
+            raise ValueError("Language must be en or fa.")
         settings = self.load_settings()
         budget = RunBudget(
             max_calls=settings.max_calls_per_run,
@@ -161,9 +170,12 @@ class TerrariumRuntime:
         candidate = engine.run_generation(
             Genome(
                 organism_id=organism_id,
+                generation=generation,
                 mutable_paths=tuple(dict.fromkeys(cleaned)),
+                traits=traits or {},
             ),
             EvolutionTask(task_id=task_id, objective=objective),
+            language=language_name,
         )
         return asdict(candidate)
 

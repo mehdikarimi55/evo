@@ -26,7 +26,7 @@ You cannot execute tools, modify files, request credentials, create accounts,
 spend money, or deploy. Return one JSON object with exactly these string fields:
 target_path, summary, rationale, expected_benefit, risk.
 The target_path must be within one of the supplied mutable path prefixes.
-Write summary, rationale, expected_benefit, and risk in fluent Persian.
+Write summary, rationale, expected_benefit, and risk in fluent {language}.
 Keep target_path as a repository-relative technical path.
 """
 
@@ -45,7 +45,13 @@ class EvolutionEngine:
         self.budget = budget
         self.audit = audit
 
-    def run_generation(self, genome: Genome, task: EvolutionTask) -> Candidate:
+    def run_generation(
+        self,
+        genome: Genome,
+        task: EvolutionTask,
+        *,
+        language: str = "English",
+    ) -> Candidate:
         self.budget.reserve_call()
         request = json.dumps(
             {
@@ -57,7 +63,10 @@ class EvolutionEngine:
             },
             sort_keys=True,
         )
-        reply = self.provider.generate_json(system=SYSTEM_PROMPT, user=request)
+        reply = self.provider.generate_json(
+            system=SYSTEM_PROMPT.format(language=language),
+            user=request,
+        )
         self.budget.record_usage(reply.input_tokens, reply.output_tokens)
 
         rejection_reason: str | None = None

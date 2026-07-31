@@ -14,8 +14,10 @@ from evo.providers.base import ModelReply
 class FakeProvider:
     def __init__(self, response: dict):
         self.response = response
+        self.last_system = ""
 
     def generate_json(self, *, system: str, user: str) -> ModelReply:
+        self.last_system = system
         return ModelReply(
             text=json.dumps(self.response),
             input_tokens=40,
@@ -71,6 +73,33 @@ class EngineTests(unittest.TestCase):
                 EvolutionTask("task-1", "Improve yourself"),
             )
         self.assertEqual(candidate.status, CandidateStatus.REJECTED)
+
+    def test_generation_requests_the_selected_output_language(self):
+        response = {
+            "target_path": "organisms/cell/prompt.md",
+            "summary": "خلاصه",
+            "rationale": " ".join(["استدلال"] * 20),
+            "expected_benefit": "فایده",
+            "risk": "ریسک",
+        }
+        with TemporaryDirectory() as directory:
+            provider = FakeProvider(response)
+            engine = EvolutionEngine(
+                provider=provider,
+                policy=KernelPolicy(),
+                budget=RunBudget(
+                    max_calls=1,
+                    max_input_tokens=100,
+                    max_output_tokens=100,
+                ),
+                audit=AuditLog(Path(directory) / "audit.jsonl"),
+            )
+            engine.run_generation(
+                Genome("cell-1"),
+                EvolutionTask("task-1", "بهبود"),
+                language="Persian",
+            )
+        self.assertIn("fluent Persian", provider.last_system)
 
 
 if __name__ == "__main__":

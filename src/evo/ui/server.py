@@ -10,6 +10,7 @@ from urllib.parse import parse_qs, urlparse
 import json
 import webbrowser
 
+from evo.autonomy import AutonomyController, AutonomyError
 from evo.config import ConfigurationError
 from evo.kernel.budget import BudgetExceeded
 from evo.providers.groq import ProviderError
@@ -26,7 +27,16 @@ class TerrariumUIServer(ThreadingHTTPServer):
         runtime: TerrariumRuntime,
     ) -> None:
         self.runtime = runtime
+        self.autonomy = AutonomyController(
+            evolve=runtime.evolve,
+            state_path=runtime.workspace / ".evo/autonomy-state.json",
+            journal_path=runtime.workspace / ".evo/evolution-journal.jsonl",
+        )
         super().__init__(server_address, TerrariumRequestHandler)
+
+    def server_close(self) -> None:
+        self.autonomy.shutdown()
+        super().server_close()
 
 
 class TerrariumRequestHandler(BaseHTTPRequestHandler):
@@ -55,6 +65,18 @@ class TerrariumRequestHandler(BaseHTTPRequestHandler):
                     "events": self.server.runtime.read_audit(
                         limit=limit, query=search
                     )
+                }
+            )
+            return
+        if parsed.path == "/api/autonomy":
+            self._send_json(self.server.autonomy.status())
+            return
+        if parsed.path == "/api/evolution-journal":
+            query = parse_qs(parsed.query)
+            limit = int(query.get("limit", ["100"])[0])
+            self._run_json(
+                lambda: {
+                    "entries": self.server.autonomy.read_journal(limit=limit)
                 }
             )
             return
@@ -98,8 +120,15 @@ class TerrariumRequestHandler(BaseHTTPRequestHandler):
                 lambda: self.server.runtime.evolve(
                     task=str(body.get("task", "")),
                     mutable_paths=list(mutable_paths),
+                    language=str(body.get("language", "en")),
                 )
             )
+            return
+        if parsed.path == "/api/autonomy/start":
+            self._run_json(lambda: self.server.autonomy.start(body))
+            return
+        if parsed.path == "/api/autonomy/stop":
+            self._run_json(lambda: self.server.autonomy.stop())
             return
         self.send_error(HTTPStatus.NOT_FOUND)
 
@@ -120,6 +149,7 @@ class TerrariumRequestHandler(BaseHTTPRequestHandler):
             self._send_json(action())
         except (
             ConfigurationError,
+            AutonomyError,
             ProviderError,
             BudgetExceeded,
             ValueError,
@@ -130,7 +160,7 @@ class TerrariumRequestHandler(BaseHTTPRequestHandler):
     def _send_json(
         self, payload: dict[str, Any] | list[Any], status: HTTPStatus = HTTPStatus.OK
     ) -> None:
-        body = json.dumps(payload, default=str).encode("utf-8")
+        body = json.dumps(payload, default=str, ensure_ascii=False).encode("utf-8")
         self.send_response(status)
         self.send_header("Content-Type", "application/json; charset=utf-8")
         self.send_header("Content-Length", str(len(body)))

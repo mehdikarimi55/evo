@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="fa" dir="rtl">
+<html lang="en" dir="ltr">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>EVO | زیست‌بوم تکاملی</title>
+    <title>EVO | Evolutionary Terrarium</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -15,16 +15,22 @@
   <body>
     <div class="atmosphere" aria-hidden="true"></div>
     <header class="hero">
-      <p class="brand">EVO</p>
-      <h1>زیست‌بوم تکاملی</h1>
-      <p class="lede">
-        محیطی کنترل‌شده برای آزمایش تکامل کد؛ یک تغییر پیشنهاد کنید، آن را
-        بسنجید و کلیدهای دسترسی را همیشه از هسته دور نگه دارید.
+      <div class="topbar">
+        <p class="brand">EVO</p>
+        <div class="language-switch" aria-label="Language">
+          <button class="language-option active" type="button" data-language="en">EN</button>
+          <button class="language-option" type="button" data-language="fa">فا</button>
+        </div>
+      </div>
+      <h1 data-i18n="heroTitle">Evolutionary Terrarium</h1>
+      <p class="lede" data-i18n="heroDescription">
+        A bounded environment for evolving digital organisms without exposing
+        the immutable kernel.
       </p>
       <div class="hero-actions">
-        <a class="button primary" href="#workspace">ورود به محیط کار</a>
-        <button class="button ghost" type="button" id="run-doctor">
-          بررسی پیکربندی
+        <a class="button primary" href="#workspace" data-i18n="openWorkspace">Open workspace</a>
+        <button class="button ghost" type="button" id="run-doctor" data-i18n="checkConfig">
+          Check configuration
         </button>
       </div>
     </header>
@@ -32,60 +38,60 @@
     <main id="workspace" class="workspace">
       <section class="panel status-panel" aria-labelledby="status-title">
         <div class="panel-head">
-          <h2 id="status-title">وضعیت میزبان</h2>
-          <p id="status-summary">در حال بارگذاری پیکربندی…</p>
+          <h2 id="status-title" data-i18n="hostStatus">Host status</h2>
+          <p id="status-summary" data-i18n="loadingConfig">Loading configuration…</p>
         </div>
         <dl class="status-grid" id="status-grid"></dl>
       </section>
 
       <section class="panel" aria-labelledby="settings-title">
         <div class="panel-head">
-          <h2 id="settings-title">تنظیمات</h2>
-          <p>
-            اطلاعات ورود ارائه‌دهنده فقط روی میزبان می‌ماند و کلید خام هرگز
-            در رابط کاربری نمایش داده نمی‌شود.
+          <h2 id="settings-title" data-i18n="settings">Settings</h2>
+          <p data-i18n="settingsDescription">
+            Provider credentials remain on the host. Raw keys are never displayed.
           </p>
         </div>
         <form id="settings-form" class="form-grid">
           <label>
-            ارائه‌دهنده
+            <span data-i18n="provider">Provider</span>
             <select name="provider" id="provider">
               <option value="groq">Groq</option>
               <option value="nvidia">NVIDIA NIM</option>
             </select>
           </label>
           <label>
-            مدل
+            <span data-i18n="model">Model</span>
             <input name="model" id="model" autocomplete="off" required />
           </label>
           <label class="wide">
-            نشانی پایه
+            <span data-i18n="baseUrl">Base URL</span>
             <input name="base_url" id="base_url" autocomplete="off" required />
           </label>
           <label class="wide">
-            کلید API
+            <span data-i18n="apiKey">API key</span>
             <input
               name="api_key"
               id="api_key"
               type="password"
               autocomplete="off"
-              placeholder="برای حفظ کلید ذخیره‌شده، این قسمت را خالی بگذارید"
+              data-i18n-placeholder="keepSavedKey"
+              placeholder="Leave blank to keep the saved key"
             />
           </label>
           <label>
-            حداکثر توکن ورودی
+            <span data-i18n="maxInputTokens">Maximum input tokens</span>
             <input name="max_input_tokens" id="max_input_tokens" type="number" min="1" required />
           </label>
           <label>
-            حداکثر توکن خروجی
+            <span data-i18n="maxOutputTokens">Maximum output tokens</span>
             <input name="max_output_tokens" id="max_output_tokens" type="number" min="1" required />
           </label>
           <label>
-            حداکثر درخواست در هر اجرا
+            <span data-i18n="maxCalls">Maximum calls per run</span>
             <input name="max_calls_per_run" id="max_calls_per_run" type="number" min="1" required />
           </label>
           <label>
-            مهلت پاسخ‌گویی (ثانیه)
+            <span data-i18n="requestTimeout">Request timeout (seconds)</span>
             <input
               name="request_timeout_seconds"
               id="request_timeout_seconds"
@@ -95,9 +101,9 @@
             />
           </label>
           <div class="form-actions wide">
-            <button class="button primary" type="submit">ذخیره تنظیمات</button>
-            <button class="button ghost" type="button" id="run-probe">
-              آزمون اتصال ارائه‌دهنده
+            <button class="button primary" type="submit" data-i18n="saveSettings">Save settings</button>
+            <button class="button ghost" type="button" id="run-probe" data-i18n="probeProvider">
+              Probe provider
             </button>
           </div>
         </form>
@@ -105,25 +111,25 @@
 
       <section class="panel evolve-panel" aria-labelledby="evolve-title">
         <div class="panel-head">
-          <h2 id="evolve-title">اجرای یک نسل</h2>
-          <p>
-            یک نامزد واجد شرایط یا ردشده تولید می‌کند؛ هیچ تغییری روی مخزن
-            اعمال نمی‌شود.
+          <h2 id="evolve-title" data-i18n="runGeneration">Run one generation</h2>
+          <p data-i18n="generationDescription">
+            Produces an eligible or rejected candidate. Nothing is applied to the repository.
           </p>
         </div>
         <form id="evolve-form" class="form-grid">
           <label class="wide">
-            هدف
+            <span data-i18n="objective">Objective</span>
             <textarea
               name="task"
               id="task"
               rows="4"
               required
-              placeholder="اعتبارسنجی ورودی را بدون تغییر رفتار عمومی بهبود بده."
+              data-i18n-placeholder="objectivePlaceholder"
+              placeholder="Improve input validation without changing public behavior."
             ></textarea>
           </label>
           <label class="wide">
-            مسیرهای قابل‌تغییر
+            <span data-i18n="mutablePaths">Mutable paths</span>
             <input
               name="mutable_paths"
               id="mutable_paths"
@@ -138,7 +144,7 @@
               id="evolve-button"
               aria-busy="false"
             >
-              <span id="evolve-button-label">تکامل</span>
+              <span id="evolve-button-label" data-i18n="evolve">Evolve</span>
             </button>
             <span
               class="thinking-indicator"
@@ -148,7 +154,7 @@
               hidden
             >
               <span class="heartbeat-pulse" aria-hidden="true"></span>
-              در حال فکر کردن…
+              <span data-i18n="thinking">Thinking…</span>
             </span>
           </div>
         </form>
@@ -161,18 +167,80 @@
         ></pre>
       </section>
 
+      <section class="panel autonomy-panel" aria-labelledby="autonomy-title">
+        <div class="panel-head autonomy-head">
+          <div>
+            <h2 id="autonomy-title" data-i18n="autonomousEvolution">Autonomous evolution</h2>
+            <p data-i18n="autonomyDescription">
+              Continuously explores digital abiogenesis and open-ended artificial life while the app is running.
+            </p>
+          </div>
+          <span class="badge" id="autonomy-badge">Stopped</span>
+        </div>
+        <div class="autonomy-stats" id="autonomy-stats"></div>
+        <form id="autonomy-form" class="form-grid">
+          <label class="wide">
+            <span data-i18n="autonomousObjective">Autonomous objective</span>
+            <textarea
+              name="objective"
+              id="autonomy-objective"
+              rows="4"
+              required
+              data-i18n-placeholder="autonomyObjectivePlaceholder"
+              placeholder="Explore digital abiogenesis and open-ended artificial life..."
+            ></textarea>
+          </label>
+          <label>
+            <span data-i18n="intervalSeconds">Interval between generations (seconds)</span>
+            <input name="interval_seconds" id="interval_seconds" type="number" min="30" max="86400" value="300" required />
+          </label>
+          <label>
+            <span data-i18n="generationLimit">Generation attempt limit</span>
+            <input name="max_generations" id="max_generations" type="number" min="1" max="10000" value="100" required />
+          </label>
+          <label class="wide">
+            <span data-i18n="autonomyMutablePaths">Autonomous mutable paths</span>
+            <input name="mutable_paths" id="autonomy-mutable-paths" value="organisms/" required />
+          </label>
+          <p class="safety-note wide" data-i18n="autonomySafety">
+            Autonomous mode consumes provider API quota. It evaluates and selects proposals, but never merges, deploys, purchases, or changes the immutable kernel.
+          </p>
+          <div class="form-actions wide">
+            <button class="button primary" type="submit" id="start-autonomy" data-i18n="startAutonomy">
+              Start autonomous evolution
+            </button>
+            <button class="button ghost danger" type="button" id="stop-autonomy" data-i18n="stopAutonomy">
+              Stop
+            </button>
+          </div>
+        </form>
+      </section>
+
+      <section class="panel journal-panel" aria-labelledby="journal-title">
+        <div class="panel-head">
+          <h2 id="journal-title" data-i18n="evolutionJournal">Evolution journal</h2>
+          <p data-i18n="journalDescription">
+            A public-facing chronicle of this gnome’s selected generations, adaptations, and setbacks.
+          </p>
+        </div>
+        <div class="timeline" id="evolution-journal">
+          <p class="empty-state" data-i18n="noEvolutionYet">No autonomous evolution has been recorded yet.</p>
+        </div>
+      </section>
+
       <section class="panel" aria-labelledby="audit-title">
         <div class="panel-head audit-head">
           <div>
-            <h2 id="audit-title">گزارش رویدادها</h2>
-            <p>رویدادهای محلی پالایش‌شده از `.evo/audit.jsonl`.</p>
+            <h2 id="audit-title" data-i18n="auditTrail">Audit trail</h2>
+            <p data-i18n="auditDescription">Redacted local events from `.evo/audit.jsonl`.</p>
           </div>
           <label class="search">
-            <span class="sr-only">جست‌وجو</span>
+            <span class="sr-only" data-i18n="search">Search</span>
             <input
               id="global-search"
               type="search"
-              placeholder="جست‌وجو در رویدادها، وضعیت و تنظیمات…"
+              data-i18n-placeholder="searchPlaceholder"
+              placeholder="Search audit, status, and settings…"
               autocomplete="off"
             />
           </label>
@@ -181,17 +249,17 @@
           <table>
             <thead>
               <tr>
-                <th scope="col">عملیات</th>
-                <th scope="col">زمان</th>
-                <th scope="col">رویداد</th>
-                <th scope="col">وضعیت</th>
-                <th scope="col">امتیاز</th>
-                <th scope="col">مدل</th>
+                <th scope="col" data-i18n="action">Action</th>
+                <th scope="col" data-i18n="when">When</th>
+                <th scope="col" data-i18n="event">Event</th>
+                <th scope="col" data-i18n="status">Status</th>
+                <th scope="col" data-i18n="score">Score</th>
+                <th scope="col" data-i18n="model">Model</th>
               </tr>
             </thead>
             <tbody id="audit-body">
               <tr>
-                <td colspan="6">هنوز رویدادی ثبت نشده است.</td>
+                <td colspan="6" data-i18n="noAuditEvents">No audit events yet.</td>
               </tr>
             </tbody>
           </table>

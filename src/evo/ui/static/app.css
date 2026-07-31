@@ -20,6 +20,7 @@
 
 html {
   scroll-behavior: smooth;
+  font-size: 14px;
 }
 
 body {
@@ -27,7 +28,6 @@ body {
   min-height: 100vh;
   color: var(--ink);
   font-family: var(--body);
-  direction: rtl;
   background:
     radial-gradient(circle at 12% 18%, rgba(63, 143, 107, 0.28), transparent 36%),
     radial-gradient(circle at 88% 8%, rgba(184, 137, 45, 0.18), transparent 28%),
@@ -54,22 +54,29 @@ body {
 }
 
 .hero {
-  min-height: 100vh;
+  min-height: clamp(34rem, 72vh, 52rem);
   display: grid;
   align-content: center;
   gap: 1rem;
-  padding: 4rem 0 3rem;
+  padding: 3rem 0 2.5rem;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
 }
 
 .brand {
   margin: 0;
   font-family: var(--display);
-  font-size: clamp(4.5rem, 14vw, 8rem);
+  font-size: clamp(3.4rem, 10vw, 6rem);
   line-height: 0.85;
   letter-spacing: -0.04em;
   color: var(--canopy);
   direction: ltr;
-  text-align: right;
+  text-align: start;
   animation: rise 900ms ease both;
 }
 
@@ -77,7 +84,7 @@ body {
   margin: 0;
   font-family: var(--display);
   font-weight: 700;
-  font-size: clamp(2rem, 5vw, 3.4rem);
+  font-size: clamp(1.7rem, 4vw, 2.8rem);
   color: var(--soil);
   animation: rise 900ms ease 80ms both;
 }
@@ -86,9 +93,35 @@ body {
   max-width: 34rem;
   margin: 0;
   color: var(--muted);
-  font-size: 1.05rem;
+  font-size: 0.96rem;
   line-height: 1.6;
   animation: rise 900ms ease 140ms both;
+}
+
+.language-switch {
+  display: inline-flex;
+  padding: 0.2rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.48);
+}
+
+.language-option {
+  min-width: 2.7rem;
+  border: 0;
+  border-radius: 999px;
+  padding: 0.45rem 0.7rem;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.language-option.active {
+  background: var(--canopy);
+  color: var(--glass);
 }
 
 .hero-actions,
@@ -103,7 +136,7 @@ body {
   appearance: none;
   border: 1px solid transparent;
   border-radius: 999px;
-  padding: 0.85rem 1.25rem;
+  padding: 0.68rem 1rem;
   font: inherit;
   font-weight: 600;
   cursor: pointer;
@@ -158,6 +191,11 @@ body {
   color: var(--canopy);
 }
 
+.button.danger {
+  border-color: rgba(155, 59, 47, 0.3);
+  color: var(--danger);
+}
+
 .workspace {
   display: grid;
   gap: 1.25rem;
@@ -169,7 +207,7 @@ body {
   background: var(--mist);
   border: 1px solid var(--line);
   border-radius: 28px;
-  padding: 1.4rem 1.5rem 1.5rem;
+  padding: 1.15rem 1.25rem 1.25rem;
   backdrop-filter: blur(10px);
   box-shadow: var(--shadow);
   animation: rise 700ms ease both;
@@ -183,7 +221,7 @@ body {
 .audit-head h2 {
   margin: 0 0 0.35rem;
   font-family: var(--display);
-  font-size: 1.7rem;
+  font-size: 1.45rem;
   font-weight: 500;
 }
 
@@ -261,7 +299,19 @@ input[name="model"],
 input[name="base_url"],
 input[name="api_key"],
 input[name="mutable_paths"],
+input[name="interval_seconds"],
+input[name="max_generations"],
 .result {
+  direction: ltr;
+  text-align: left;
+}
+
+[dir="rtl"] textarea {
+  direction: rtl;
+  text-align: right;
+}
+
+[dir="ltr"] textarea {
   direction: ltr;
   text-align: left;
 }
@@ -340,6 +390,91 @@ td:first-child {
 .badge.rejected {
   background: rgba(155, 59, 47, 0.14);
   color: var(--danger);
+}
+
+.autonomy-head {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.autonomy-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 0.65rem;
+  margin: 0 0 1rem;
+}
+
+.autonomy-stat {
+  padding: 0.7rem 0.8rem;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.42);
+}
+
+.autonomy-stat span {
+  display: block;
+  color: var(--muted);
+  font-size: 0.72rem;
+}
+
+.autonomy-stat strong {
+  display: block;
+  margin-top: 0.2rem;
+}
+
+.safety-note {
+  margin: 0;
+  padding: 0.7rem 0.8rem;
+  border-inline-start: 3px solid var(--amber);
+  border-radius: 10px;
+  background: rgba(184, 137, 45, 0.1);
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.55;
+}
+
+.timeline {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.timeline-entry {
+  position: relative;
+  padding: 0.85rem 1rem;
+  border-inline-start: 3px solid var(--leaf);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.48);
+}
+
+.timeline-entry.error {
+  border-inline-start-color: var(--danger);
+}
+
+.timeline-entry h3 {
+  margin: 0 0 0.3rem;
+  font-size: 0.96rem;
+}
+
+.timeline-entry p {
+  margin: 0.25rem 0 0;
+  color: var(--muted);
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
+.timeline-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  color: var(--muted);
+  font-size: 0.72rem;
+}
+
+.empty-state {
+  margin: 0;
+  color: var(--muted);
 }
 
 .toast {

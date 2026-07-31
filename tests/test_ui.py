@@ -89,7 +89,7 @@ class UIServerTests(unittest.TestCase):
         self.assertIn("@keyframes heartbeat", stylesheet)
         self.assertIn("white-space: pre-wrap", stylesheet)
         self.assertIn("overflow-wrap: anywhere", stylesheet)
-        self.assertIn("font-size: 14px", stylesheet)
+        self.assertIn("font-size: 12px", stylesheet)
         self.assertIn('[dir="rtl"] textarea', stylesheet)
         self.assertIn(".achievement-card", stylesheet)
         self.assertIn(".cell-core", stylesheet)

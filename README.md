@@ -1,6 +1,6 @@
 # EVO — Evolutionary Virtual Organism
 
-EVO Terrarium v0.2.1 is a bounded environment for experiments in evolutionary
+EVO Terrarium v0.2.2 is a bounded environment for experiments in evolutionary
 coding agents. It lets an organism propose a mutation, evaluates that mutation,
 and records whether it is eligible for selection. The immutable kernel owns
 credentials, budgets, policy decisions, audit events, and promotion gates.

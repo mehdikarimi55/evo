@@ -2,6 +2,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from threading import Thread
 from urllib.request import Request, urlopen
+from urllib.error import HTTPError
 import json
 import unittest
 from unittest.mock import patch
@@ -86,6 +87,8 @@ class UIServerTests(unittest.TestCase):
         self.assertIn('api("/api/autonomy")', javascript)
         self.assertIn("ACHIEVEMENT_CATALOG", javascript)
         self.assertIn("achievementUnlocked", javascript)
+        self.assertIn("response.text()", javascript)
+        self.assertIn("invalidServerResponse", javascript)
         self.assertIn("@keyframes heartbeat", stylesheet)
         self.assertIn("white-space: pre-wrap", stylesheet)
         self.assertIn("overflow-wrap: anywhere", stylesheet)
@@ -107,6 +110,43 @@ class UIServerTests(unittest.TestCase):
             status, payload = self._request("POST", "/api/probe", {})
         self.assertEqual(status, 200)
         self.assertEqual(payload["message"], "ok")
+
+    def test_doctor_endpoint_returns_json(self):
+        with patch.object(
+            self.runtime,
+            "doctor",
+            return_value={"provider": "groq", "model": "test-model"},
+        ):
+            status, payload = self._request("GET", "/api/doctor")
+        self.assertEqual(status, 200)
+        self.assertEqual(payload["provider"], "groq")
+
+    def test_unexpected_doctor_failure_is_json(self):
+        with patch.object(
+            self.runtime,
+            "doctor",
+            side_effect=RuntimeError("private internal detail"),
+        ):
+            with self.assertRaises(HTTPError) as context:
+                urlopen(f"{self.base}/api/doctor", timeout=5)
+        self.assertEqual(context.exception.code, 500)
+        self.assertEqual(
+            context.exception.headers.get_content_type(),
+            "application/json",
+        )
+        payload = json.loads(context.exception.read().decode())
+        self.assertEqual(payload["error"], "خطای پیش‌بینی‌نشده در EVO")
+        self.assertNotIn("private internal detail", json.dumps(payload))
+
+    def test_unknown_api_endpoint_returns_json(self):
+        with self.assertRaises(HTTPError) as context:
+            urlopen(f"{self.base}/api/not-found", timeout=5)
+        self.assertEqual(context.exception.code, 404)
+        self.assertEqual(
+            context.exception.headers.get_content_type(),
+            "application/json",
+        )
+        self.assertIn("error", json.loads(context.exception.read().decode()))
 
 
 if __name__ == "__main__":

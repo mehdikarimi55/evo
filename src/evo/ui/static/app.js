@@ -74,6 +74,7 @@ const I18N = {
     score: "Score",
     noAuditEvents: "No audit events yet.",
     requestFailed: "Request failed",
+    invalidServerResponse: "The server returned an invalid response",
     configured: "Configured",
     yes: "Yes",
     no: "No",
@@ -209,6 +210,7 @@ const I18N = {
     score: "امتیاز",
     noAuditEvents: "هنوز رویدادی ثبت نشده است.",
     requestFailed: "درخواست ناموفق بود",
+    invalidServerResponse: "پاسخ دریافت‌شده از سرور معتبر نیست",
     configured: "پیکربندی",
     yes: "انجام شده",
     no: "انجام نشده",
@@ -367,7 +369,15 @@ async function api(path, options = {}) {
     },
     ...options,
   });
-  const payload = await response.json();
+  const responseText = await response.text();
+  let payload = {};
+  if (responseText) {
+    try {
+      payload = JSON.parse(responseText);
+    } catch {
+      throw new Error(`${t("invalidServerResponse")} (${response.status})`);
+    }
+  }
   if (!response.ok) {
     throw new Error(payload.error || t("requestFailed"));
   }

@@ -84,7 +84,10 @@ class TerrariumRequestHandler(BaseHTTPRequestHandler):
             relative = parsed.path.removeprefix("/static/")
             target = (STATIC_DIR / relative).resolve()
             if not str(target).startswith(str(STATIC_DIR)) or not target.is_file():
-                self.send_error(HTTPStatus.NOT_FOUND)
+                self._send_json(
+                    {"error": "Static asset not found."},
+                    status=HTTPStatus.NOT_FOUND,
+                )
                 return
             content_type = (
                 "text/css; charset=utf-8"
@@ -95,7 +98,7 @@ class TerrariumRequestHandler(BaseHTTPRequestHandler):
             )
             self._send_file(target, content_type)
             return
-        self.send_error(HTTPStatus.NOT_FOUND)
+        self._send_json({"error": "API endpoint not found."}, status=HTTPStatus.NOT_FOUND)
 
     def do_POST(self) -> None:
         parsed = urlparse(self.path)
@@ -130,7 +133,7 @@ class TerrariumRequestHandler(BaseHTTPRequestHandler):
         if parsed.path == "/api/autonomy/stop":
             self._run_json(lambda: self.server.autonomy.stop())
             return
-        self.send_error(HTTPStatus.NOT_FOUND)
+        self._send_json({"error": "API endpoint not found."}, status=HTTPStatus.NOT_FOUND)
 
     def _read_json_body(self) -> dict[str, Any]:
         length = int(self.headers.get("Content-Length", "0"))
@@ -146,7 +149,7 @@ class TerrariumRequestHandler(BaseHTTPRequestHandler):
 
     def _run_json(self, action: Any) -> None:
         try:
-            self._send_json(action())
+            payload = action()
         except (
             ConfigurationError,
             AutonomyError,
@@ -156,6 +159,13 @@ class TerrariumRequestHandler(BaseHTTPRequestHandler):
             json.JSONDecodeError,
         ) as exc:
             self._send_json(serialize_error(exc), status=HTTPStatus.BAD_REQUEST)
+        except Exception as exc:
+            self._send_json(
+                serialize_error(exc),
+                status=HTTPStatus.INTERNAL_SERVER_ERROR,
+            )
+        else:
+            self._send_json(payload)
 
     def _send_json(
         self, payload: dict[str, Any] | list[Any], status: HTTPStatus = HTTPStatus.OK

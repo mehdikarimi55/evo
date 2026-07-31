@@ -40,6 +40,10 @@ class TerrariumUIServer(ThreadingHTTPServer):
         self.evidence_control = runtime.evidence_control(
             petri_dish=self.petri_dish
         )
+        self.trust_authority = runtime.trust_authority(
+            evidence_control=self.evidence_control,
+            petri_dish=self.petri_dish,
+        )
         super().__init__(server_address, TerrariumRequestHandler)
 
     def server_close(self) -> None:
@@ -93,6 +97,9 @@ class TerrariumRequestHandler(BaseHTTPRequestHandler):
             return
         if parsed.path == "/api/evidence-control":
             self._run_json(lambda: self.server.evidence_control.status())
+            return
+        if parsed.path == "/api/trust-authority":
+            self._run_json(lambda: self.server.trust_authority.status())
             return
         if parsed.path.startswith("/static/"):
             relative = parsed.path.removeprefix("/static/")
@@ -158,6 +165,14 @@ class TerrariumRequestHandler(BaseHTTPRequestHandler):
                     note=str(body.get("note", "")),
                 )
             )
+            return
+        if parsed.path == "/api/trust/attest":
+            self._run_json(
+                lambda: self.server.trust_authority.attest_latest_bundle()
+            )
+            return
+        if parsed.path == "/api/trust/authorize":
+            self._run_json(lambda: self.server.trust_authority.authorize_latest())
             return
         self._send_json({"error": "API endpoint not found."}, status=HTTPStatus.NOT_FOUND)
 

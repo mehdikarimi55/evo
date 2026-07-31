@@ -21,6 +21,14 @@ patch and the sandbox is enabled, the evidence observatory displays the
 baseline comparison classification, changed paths, and promotion eligibility.
 No UI action can merge or deploy the candidate.
 
+The v0.7 gate exposes deterministic replay, a host-authenticated bundle, and a
+local human assertion. The v0.8 public-trust observatory adds the Ed25519
+authority fingerprint, trusted reviewer count, public attestation, independent
+signed-review status, policy result, and manual-promotion authorization. The UI
+may attest or authorize, but reviewer registration, private-key signing, and
+revocation remain CLI-only operations. No browser request accepts private key
+material or performs Git/deployment actions.
+
 The local UI is a stdlib HTTP console for host-side operations.
 
 ## Start

@@ -207,6 +207,25 @@ const I18N = {
     denied: "Not authorized",
     bundleCreated: "Verified evidence bundle created",
     decisionRecorded: "Human decision recorded",
+    publicTrust: "PUBLIC TRUST · v0.8",
+    trustAuthority: "Independent trust authority",
+    trustAuthorityDescription: "Publish an Ed25519 evidence attestation, verify an independently signed reviewer decision, and evaluate the immutable promotion policy.",
+    attestEvidence: "Publish evidence attestation",
+    authorizePromotion: "Authorize manual promotion",
+    trustAuthoritySafety: "Reviewer keys are managed only through the CLI. Authorization creates a signed artifact; EVO still cannot modify Git, push, merge, or deploy.",
+    authorityIdentity: "Authority identity",
+    trustedReviewers: "Trusted reviewers",
+    publicAttestation: "Public attestation",
+    independentReview: "Independent review",
+    promotionPolicy: "Promotion policy",
+    manualAuthorization: "Manual authorization",
+    noAttestation: "No attestation yet",
+    noIndependentReview: "No independent review",
+    policySatisfied: "Policy satisfied",
+    policyBlocked: "Policy blocked",
+    noAuthorization: "No authorization",
+    attestationCreated: "Public evidence attestation created",
+    promotionAuthorized: "Manual promotion authorization created",
     journalStarted: "Autonomous exploration started",
     journalStopped: "Autonomous exploration stopped",
     journalCompleted: "Generation limit reached",
@@ -429,6 +448,25 @@ const I18N = {
     denied: "مجاز نیست",
     bundleCreated: "بسته شواهد تأییدشده ساخته شد",
     decisionRecorded: "تصمیم انسانی ثبت شد",
+    publicTrust: "اعتماد عمومی · نسخه ۰٫۸",
+    trustAuthority: "مرجع اعتماد مستقل",
+    trustAuthorityDescription: "گواهی عمومی Ed25519 برای شواهد منتشر کنید، تصمیم امضاشدهٔ بازبین مستقل را اعتبارسنجی کنید و سیاست تغییرناپذیر ارتقا را بسنجید.",
+    attestEvidence: "انتشار گواهی شواهد",
+    authorizePromotion: "صدور مجوز ارتقای دستی",
+    trustAuthoritySafety: "کلیدهای بازبین فقط از طریق خط فرمان مدیریت می‌شوند. مجوز، یک سند امضاشده می‌سازد؛ EVO همچنان نمی‌تواند Git را تغییر دهد، push یا merge کند یا چیزی را مستقر سازد.",
+    authorityIdentity: "هویت مرجع",
+    trustedReviewers: "بازبینان مورد اعتماد",
+    publicAttestation: "گواهی عمومی",
+    independentReview: "بازبینی مستقل",
+    promotionPolicy: "سیاست ارتقا",
+    manualAuthorization: "مجوز دستی",
+    noAttestation: "هنوز گواهی‌ای وجود ندارد",
+    noIndependentReview: "هنوز بازبینی مستقلی وجود ندارد",
+    policySatisfied: "سیاست برآورده شده است",
+    policyBlocked: "سیاست مسدود است",
+    noAuthorization: "هنوز مجوزی صادر نشده است",
+    attestationCreated: "گواهی عمومی شواهد ساخته شد",
+    promotionAuthorized: "مجوز امضاشدهٔ ارتقای دستی صادر شد",
     journalStarted: "کاوش خودکار آغاز شد",
     journalStopped: "کاوش خودکار متوقف شد",
     journalCompleted: "سقف نسل‌ها تکمیل شد",
@@ -479,6 +517,7 @@ let cachedAutonomy = null;
 let cachedJournal = [];
 let cachedPetri = null;
 let cachedEvidenceControl = null;
+let cachedTrustAuthority = null;
 
 const statusSummary = document.getElementById("status-summary");
 const statusGrid = document.getElementById("status-grid");
@@ -511,6 +550,9 @@ const teamObservatory = document.getElementById("team-observatory");
 const evidenceControlStatus = document.getElementById("evidence-control-status");
 const createEvidenceBundle = document.getElementById("create-evidence-bundle");
 const approvalForm = document.getElementById("approval-form");
+const trustAuthorityStatus = document.getElementById("trust-authority-status");
+const attestEvidence = document.getElementById("attest-evidence");
+const authorizePromotion = document.getElementById("authorize-promotion");
 
 function t(key) {
   return I18N[language][key] || I18N.en[key] || key;
@@ -547,6 +589,7 @@ function setLanguage(nextLanguage) {
   renderJournal(cachedJournal);
   renderPetriDish(cachedPetri);
   renderEvidenceControl(cachedEvidenceControl);
+  renderTrustAuthority(cachedTrustAuthority);
 }
 
 function renderEvidenceControl(status) {
@@ -572,6 +615,36 @@ function renderEvidenceControl(status) {
     </article>
   `).join("");
   approvalForm.querySelector("button[type='submit']").disabled = !bundleVerified;
+}
+
+function renderTrustAuthority(status) {
+  if (!status) return;
+  cachedTrustAuthority = status;
+  const authority = status.authority || {};
+  const attestation = status.latest_attestation;
+  const review = status.latest_review;
+  const policy = status.policy || {};
+  const authorization = status.latest_authorization;
+  const attestationValid = Boolean(attestation?.verified);
+  const reviewValid = Boolean(review?.verified);
+  const policySatisfied = Boolean(policy.satisfied);
+  const authorizationValid = Boolean(authorization?.verified && policySatisfied);
+  const cards = [
+    ["authorityIdentity", authority.fingerprint || t("unverified"), Boolean(authority.fingerprint)],
+    ["trustedReviewers", String(status.trusted_reviewer_count || 0), Number(status.trusted_reviewer_count || 0) > 0],
+    ["publicAttestation", attestationValid ? attestation.attestation_id : t("noAttestation"), attestationValid],
+    ["independentReview", reviewValid ? `${t(review.decision === "approve" ? "approve" : "rejectDecision")} · ${review.reviewer_id}` : t("noIndependentReview"), reviewValid],
+    ["promotionPolicy", policySatisfied ? t("policySatisfied") : t("policyBlocked"), policySatisfied],
+    ["manualAuthorization", authorizationValid ? authorization.authorization_id : t("noAuthorization"), authorizationValid],
+  ];
+  trustAuthorityStatus.innerHTML = cards.map(([label, value, valid]) => `
+    <article class="gate-status-card ${valid ? "verified" : "restricted"}">
+      <span>${escapeHtml(t(label))}</span>
+      <strong>${escapeHtml(value)}</strong>
+    </article>
+  `).join("");
+  attestEvidence.disabled = !cachedEvidenceControl?.latest_bundle?.verified;
+  authorizePromotion.disabled = !policySatisfied;
 }
 
 async function api(path, options = {}) {
@@ -1085,13 +1158,14 @@ function applySearch(query) {
 }
 
 async function refresh() {
-  const [settings, audit, autonomy, journal, petri, evidenceControl] = await Promise.all([
+  const [settings, audit, autonomy, journal, petri, evidenceControl, trustAuthority] = await Promise.all([
     api("/api/settings"),
     api("/api/audit?limit=50"),
     api("/api/autonomy"),
     api("/api/evolution-journal?limit=100"),
     api("/api/petri-dish"),
     api("/api/evidence-control"),
+    api("/api/trust-authority"),
   ]);
   fillSettings(settings);
   renderStatus(settings);
@@ -1100,22 +1174,25 @@ async function refresh() {
   renderJournal(journal.entries || []);
   renderPetriDish(petri);
   renderEvidenceControl(evidenceControl);
+  renderTrustAuthority(trustAuthority);
   applySearch(globalSearch.value);
 }
 
 async function refreshEvolution() {
-  const [autonomy, journal, audit, petri, evidenceControl] = await Promise.all([
+  const [autonomy, journal, audit, petri, evidenceControl, trustAuthority] = await Promise.all([
     api("/api/autonomy"),
     api("/api/evolution-journal?limit=100"),
     api("/api/audit?limit=50"),
     api("/api/petri-dish"),
     api("/api/evidence-control"),
+    api("/api/trust-authority"),
   ]);
   renderAutonomy(autonomy);
   renderJournal(journal.entries || []);
   renderAudit(audit.events || []);
   renderPetriDish(petri);
   renderEvidenceControl(evidenceControl);
+  renderTrustAuthority(trustAuthority);
 }
 
 document.querySelectorAll("[data-language]").forEach((button) => {
@@ -1238,6 +1315,7 @@ createEvidenceBundle.addEventListener("click", async () => {
   try {
     await api("/api/evidence/bundle", { method: "POST", body: "{}" });
     renderEvidenceControl(await api("/api/evidence-control"));
+    renderTrustAuthority(await api("/api/trust-authority"));
     showToast(t("bundleCreated"));
   } catch (error) {
     showToast(error.message);
@@ -1258,6 +1336,32 @@ approvalForm.addEventListener("submit", async (event) => {
     showToast(t("decisionRecorded"));
   } catch (error) {
     showToast(error.message);
+  }
+});
+
+attestEvidence.addEventListener("click", async () => {
+  attestEvidence.disabled = true;
+  try {
+    await api("/api/trust/attest", { method: "POST", body: "{}" });
+    renderTrustAuthority(await api("/api/trust-authority"));
+    showToast(t("attestationCreated"));
+  } catch (error) {
+    showToast(error.message);
+  } finally {
+    attestEvidence.disabled = !cachedEvidenceControl?.latest_bundle?.verified;
+  }
+});
+
+authorizePromotion.addEventListener("click", async () => {
+  authorizePromotion.disabled = true;
+  try {
+    await api("/api/trust/authorize", { method: "POST", body: "{}" });
+    renderTrustAuthority(await api("/api/trust-authority"));
+    showToast(t("promotionAuthorized"));
+  } catch (error) {
+    showToast(error.message);
+  } finally {
+    authorizePromotion.disabled = !cachedTrustAuthority?.policy?.satisfied;
   }
 });
 

@@ -99,6 +99,19 @@ complete offline suite passed before v0.4 began.
 - [x] No merge, push, deployment, or production authority
 - [ ] External identity verification and independent production approval
 
+## v0.8 — Public trust authority
+
+- [x] Ed25519 authority identity with mode-0600 private-key enforcement
+- [x] Publicly verifiable evidence attestations bound to bundle SHA-256
+- [x] Independent reviewer key generation outside the repository
+- [x] Explicit reviewer public-key registration and revocation
+- [x] Ed25519-signed approve/reject records bound to one attestation
+- [x] Fail-closed JSON policy requiring trusted independent approval
+- [x] Signed manual-promotion authorization artifacts
+- [x] Bilingual public-trust observatory and localhost API
+- [x] No Git mutation, commit, merge, push, deployment, or production authority
+- [ ] Independent production deployment controller and rollback authority
+
 ## Production gate
 
 No candidate may reach production until deterministic replay, security

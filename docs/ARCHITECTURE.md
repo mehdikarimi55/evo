@@ -167,6 +167,28 @@ does not authenticate a person, modify Git, or authorize deployment. The API
 does not accept arbitrary bundle paths, and all responses report deployment
 authorization as false.
 
+## v0.8 public trust and policy boundary
+
+The v0.8 trust authority wraps the latest verified v0.7 bundle in an Ed25519
+attestation bound to the exact bundle SHA-256. The authority key is a raw
+32-byte mode-0600 private key. Its public key and SHA-256 fingerprint can be
+distributed for verification without sharing signing authority.
+
+Independent reviewers use separate Ed25519 identities created at explicit
+paths outside the repository. EVO registers only their public keys. A review is
+bound to one attestation ID, bundle ID, bundle digest, decision, reviewer
+fingerprint, note, and timestamp. A revoked identity immediately stops
+qualifying for policy evaluation, including reviews signed before revocation.
+
+The host-owned JSON policy requires a valid public attestation, rejects revoked
+reviewers, and requires one to five distinct trusted approvals. Immutable
+fields prevent the policy from granting deployment or widening its scope beyond
+manual repository promotion. A passing policy can produce an Ed25519-signed
+authorization artifact, but the trust authority has no Git mutation, commit,
+merge, push, deployment, credential, or rollback capability. This keeps trust
+decisions outside the evolving population and execution remains a separate
+human-owned concern.
+
 ## Rootless sandbox boundary
 
 `evo sandbox` runs evaluator commands through Podman or Docker without a direct

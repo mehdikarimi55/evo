@@ -1,6 +1,6 @@
 # EVO — Evolutionary Virtual Organism
 
-EVO Terrarium v0.7.0 is a bounded environment for experiments in evolutionary
+EVO Terrarium v0.8.0 is a bounded environment for experiments in evolutionary
 coding agents. It lets an organism propose a mutation, evaluates that mutation,
 and records whether it is eligible for selection. The immutable kernel owns
 credentials, budgets, policy decisions, audit events, and promotion gates.
@@ -32,7 +32,10 @@ This repository starts with a deliberately narrow vertical slice:
 - deterministic replay of complete ecological epochs;
 - host-authenticated evidence bundles and signed local review records;
 - an explicit human-controlled promotion gate with no deployment authority;
-- an offline test suite based entirely on the Python standard library.
+- Ed25519 public evidence attestations and independent reviewer identities;
+- a revocable reviewer registry and immutable JSON promotion policy;
+- signed manual-promotion authorization artifacts with no Git or deployment authority;
+- an offline test suite with a narrowly pinned cryptographic dependency.
 
 It does **not** autonomously register accounts, accept legal terms, bypass
 identity checks, obtain credentials, merge code, spend money, or deploy changes.
@@ -285,6 +288,44 @@ An approval is a signed local human assertion. It never merges, pushes, or
 deploys, and `deployment_authorized` remains false. Production promotion still
 requires an independently authenticated external approval and deployment
 system.
+
+## v0.8 public trust authority
+
+v0.8 keeps the v0.7 HMAC record for local continuity and adds public Ed25519
+attestations. The authority private key remains mode 0600 under `.evo/trust/`;
+only its public key and SHA-256 fingerprint are exposed. Reviewer private keys
+are created at an explicit caller-selected path and are never accepted by the
+web API.
+
+Create a reviewer identity outside the repository, register its public key,
+attest the latest bundle, and record an independently signed review:
+
+```bash
+.venv/bin/evo trust init
+.venv/bin/evo trust reviewer-create --reviewer-id alice \
+  --private-key ../reviewer-keys/alice.key \
+  --public-key ../reviewer-keys/alice.pub
+.venv/bin/evo trust reviewer-register --reviewer-id alice \
+  --display-name "Alice Reviewer" \
+  --public-key ../reviewer-keys/alice.pub
+.venv/bin/evo trust attest
+.venv/bin/evo trust approve --reviewer-id alice \
+  --private-key ../reviewer-keys/alice.key \
+  --note "Replay, sandbox comparison, and evidence hashes inspected."
+.venv/bin/evo trust authorize
+.venv/bin/evo trust status
+```
+
+The policy at `.evo/trust/promotion-policy.json` requires a public attestation,
+rejects revoked reviewers, and requires one to five independent approvals. It
+cannot enable deployment or widen authorization beyond manual repository
+promotion. `authorize` writes a signed authorization artifact; it never changes
+Git, commits, merges, pushes, or deploys. Revoke a compromised identity with:
+
+```bash
+.venv/bin/evo trust reviewer-revoke --reviewer-id alice \
+  --reason "Reviewer key retired."
+```
 
 ## Security invariants
 

@@ -21,6 +21,7 @@ from evo.sandbox import (
     SandboxLimits,
 )
 from evo.ui import serve_ui
+from evo.trust_authority import create_reviewer_identity
 
 
 class PersianArgumentParser(argparse.ArgumentParser):
@@ -176,6 +177,30 @@ def build_parser() -> argparse.ArgumentParser:
     evidence.add_argument("--env-file", help="مسیر فایل محیطی")
     evidence.add_argument("--approver", help="نام بازبین محلی")
     evidence.add_argument("--note", default="", help="یادداشت بازبینی")
+    trust = subparsers.add_parser(
+        "trust", help="مرجع اعتماد عمومی و بازبینی مستقل نسخه ۰٫۸"
+    )
+    trust.add_argument(
+        "action",
+        choices=(
+            "status",
+            "init",
+            "attest",
+            "reviewer-create",
+            "reviewer-register",
+            "reviewer-revoke",
+            "approve",
+            "reject",
+            "authorize",
+        ),
+        help="عملیات مرجع اعتماد",
+    )
+    trust.add_argument("--reviewer-id", help="شناسه پایدار بازبین")
+    trust.add_argument("--display-name", default="", help="نام نمایشی بازبین")
+    trust.add_argument("--private-key", help="مسیر کلید خصوصی مستقل بازبین")
+    trust.add_argument("--public-key", help="مسیر کلید عمومی بازبین")
+    trust.add_argument("--reason", default="", help="دلیل لغو هویت")
+    trust.add_argument("--note", default="", help="یادداشت بازبینی امضاشده")
     return parser
 
 
@@ -219,6 +244,56 @@ def main(argv: list[str] | None = None) -> int:
                     decision=args.action,
                     note=args.note,
                 )
+            print(json.dumps(payload, indent=2, ensure_ascii=False))
+            return 0
+        if args.command == "trust":
+            control = runtime.trust_authority()
+            if args.action == "status":
+                payload = control.status()
+            elif args.action == "init":
+                payload = control.initialize()
+            elif args.action == "attest":
+                payload = control.attest_latest_bundle()
+            elif args.action == "reviewer-create":
+                if not args.reviewer_id or not args.private_key or not args.public_key:
+                    raise ValueError(
+                        "reviewer-create requires --reviewer-id, --private-key, and --public-key."
+                    )
+                payload = create_reviewer_identity(
+                    reviewer_id=args.reviewer_id,
+                    private_key_path=Path(args.private_key),
+                    public_key_path=Path(args.public_key),
+                )
+            elif args.action == "reviewer-register":
+                if not args.reviewer_id or not args.public_key:
+                    raise ValueError(
+                        "reviewer-register requires --reviewer-id and --public-key."
+                    )
+                payload = control.register_reviewer(
+                    reviewer_id=args.reviewer_id,
+                    public_key_path=Path(args.public_key),
+                    display_name=args.display_name,
+                )
+            elif args.action == "reviewer-revoke":
+                if not args.reviewer_id:
+                    raise ValueError("reviewer-revoke requires --reviewer-id.")
+                payload = control.revoke_reviewer(
+                    reviewer_id=args.reviewer_id,
+                    reason=args.reason,
+                )
+            elif args.action in {"approve", "reject"}:
+                if not args.reviewer_id or not args.private_key:
+                    raise ValueError(
+                        f"{args.action} requires --reviewer-id and --private-key."
+                    )
+                payload = control.record_review(
+                    reviewer_id=args.reviewer_id,
+                    private_key_path=Path(args.private_key),
+                    decision=args.action,
+                    note=args.note,
+                )
+            else:
+                payload = control.authorize_latest()
             print(json.dumps(payload, indent=2, ensure_ascii=False))
             return 0
         if args.command == "probe":

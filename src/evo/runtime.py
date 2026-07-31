@@ -13,6 +13,7 @@ from evo.candidate_lifecycle import CandidateLifecycle
 from evo.config import ConfigurationError, Settings, load_env_file
 from evo.domain import EvolutionTask, Genome
 from evo.evidence_control import EvidenceControl, EvidenceSigner, ReplayService
+from evo.trust_authority import Ed25519Identity, TrustAuthority
 from evo.evolution import EvolutionEngine
 from evo.kernel.audit import AuditLog
 from evo.kernel.budget import BudgetExceeded, RunBudget
@@ -170,6 +171,25 @@ class TerrariumRuntime:
                 self.workspace / ".evo/candidate-evidence.jsonl"
             ),
             approval_path=self.workspace / ".evo/promotion-approvals.jsonl",
+        )
+
+    def trust_authority(
+        self,
+        *,
+        evidence_control: EvidenceControl | None = None,
+        petri_dish: PetriDish | None = None,
+    ) -> TrustAuthority:
+        """Build the host-owned public trust boundary for v0.8."""
+
+        return TrustAuthority(
+            evidence_control=evidence_control
+            or self.evidence_control(petri_dish=petri_dish),
+            authority_identity=Ed25519Identity(
+                private_key_path=(
+                    self.workspace / ".evo/trust/authority-ed25519.key"
+                )
+            ),
+            trust_dir=self.workspace / ".evo/trust",
         )
 
     def evolve(

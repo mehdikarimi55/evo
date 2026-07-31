@@ -19,7 +19,7 @@
         <a class="brand-lockup" href="#workspace" aria-label="EVO">
           <span class="brand-mark" aria-hidden="true"></span>
           <span class="brand">EVO</span>
-          <span class="brand-version">v0.7.0</span>
+          <span class="brand-version">v0.8.0</span>
         </a>
         <div class="language-switch" aria-label="Language">
           <button class="language-option active" type="button" data-language="en">EN</button>
@@ -357,6 +357,27 @@
         <p class="safety-note gate-safety" data-i18n="promotionGateSafety">
           This is a signed local assertion—not verified identity, repository promotion, merge, or deployment authorization.
         </p>
+        <div class="trust-authority" aria-labelledby="trust-authority-title">
+          <div class="panel-head compact">
+            <p class="section-kicker" data-i18n="publicTrust">PUBLIC TRUST · v0.8</p>
+            <h3 id="trust-authority-title" data-i18n="trustAuthority">Independent trust authority</h3>
+            <p data-i18n="trustAuthorityDescription">
+              Publish an Ed25519 evidence attestation, verify an independently signed reviewer decision, and evaluate the immutable promotion policy.
+            </p>
+          </div>
+          <div class="gate-status-grid" id="trust-authority-status"></div>
+          <div class="trust-actions">
+            <button class="button ghost" type="button" id="attest-evidence" data-i18n="attestEvidence">
+              Publish evidence attestation
+            </button>
+            <button class="button primary" type="button" id="authorize-promotion" data-i18n="authorizePromotion">
+              Authorize manual promotion
+            </button>
+          </div>
+          <p class="safety-note" data-i18n="trustAuthoritySafety">
+            Reviewer keys are managed only through the CLI. Authorization creates a signed artifact; EVO still cannot modify Git, push, merge, or deploy.
+          </p>
+        </div>
       </section>
 
       <section class="panel journal-panel" aria-labelledby="journal-title">

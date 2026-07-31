@@ -1,6 +1,6 @@
 # EVO — Evolutionary Virtual Organism
 
-EVO Terrarium v0.2.3 is a bounded environment for experiments in evolutionary
+EVO Terrarium v0.4.0 is a bounded environment for experiments in evolutionary
 coding agents. It lets an organism propose a mutation, evaluates that mutation,
 and records whether it is eligible for selection. The immutable kernel owns
 credentials, budgets, policy decisions, audit events, and promotion gates.
@@ -18,6 +18,12 @@ This repository starts with a deliberately narrow vertical slice:
 - an English-first bilingual interface with persistent English/Persian switching;
 - a bounded autonomous generation loop and public-facing evolution journal;
 - persistent milestone achievements recorded against the evolving lineage;
+- a persistent Digital Petri Dish population with bounded energy and capacity;
+- heredity, reproduction, selection, extinction evidence, and lineage mapping;
+- multi-objective fitness for validity, safety, reasoning, novelty, and efficiency;
+- cycling environmental resources and measurable ecological pressures;
+- bounded cooperation signals and behaviour-derived emergent roles;
+- diversity-aware selection that resists premature niche monoculture;
 - an offline test suite based entirely on the Python standard library.
 
 It does **not** autonomously register accounts, accept legal terms, bypass
@@ -131,9 +137,10 @@ a different local port.
 ## Autonomous evolution
 
 Autonomous mode repeatedly asks the configured model provider for one bounded
-mutation proposal, evaluates it against the immutable policy, advances the
-selected generation when eligible, feeds the cumulative adaptation history
-into the next generation, and records the result. Its default
+mutation proposal on behalf of a selected population member, evaluates it
+against the immutable policy, updates that organism's energy and fitness, and
+records the result. Eligible organisms may reproduce after accumulating enough
+energy; offspring inherit bounded adaptations and mutated traits. Its default
 objective explores digital abiogenesis and artificial life through open-ended,
 self-organizing multi-agent systems.
 
@@ -161,6 +168,39 @@ quota. It has a configurable attempt limit (maximum 10,000), a minimum
 30-second interval, and never applies or promotes source changes. Applying
 tested mutations inside candidate worktrees can be added as a later promotion
 stage with a separate approval policy.
+
+## Digital Petri Dish
+
+The Petri Dish starts with six founder organisms and a carrying capacity of 24.
+Each autonomous attempt selects one living organism using measured fitness,
+available energy, and evaluation history. Evaluation consumes energy. Eligible,
+safe, novel adaptations restore energy and can trigger reproduction; rejected
+proposals reduce viability. When capacity is exceeded, the least viable
+organisms become extinct.
+
+Population state is stored atomically in `.evo/petri-dish.json`. The UI exposes
+energy, fitness, births, extinctions, founder/offspring status, and a scrollable
+parent-child lineage graph. This simulated substrate grants no additional host
+permissions and cannot promote its own mutations.
+
+## Niches and primitive self-organization
+
+The v0.4 ecology cycles deterministically through balanced, scarcity,
+novelty-surge, and stability phases. Compute, knowledge, novelty, and stability
+resources replenish and are consumed independently. Organism fitness therefore
+depends partly on how inherited traits fit the current environment.
+
+Before each generation, EVO may expose one bounded cooperation context from a
+complementary living organism. It contains only a public organism identifier,
+an observed role, and the latest verified adaptation summary. Successful
+cooperation rewards both participants with simulated energy and records a
+bounded interaction edge. It does not share credentials, tools, processes, or
+write access.
+
+Explorer, guardian, economizer, archivist, and generalist roles are inferred
+from observed fitness and inherited traits; they are not assigned as executable
+agent privileges. Carrying-capacity selection gives rare observed roles a
+preservation advantage to reduce premature monoculture.
 
 ## Security invariants
 

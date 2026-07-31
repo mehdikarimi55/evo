@@ -69,6 +69,13 @@ class UIServerTests(unittest.TestCase):
         self.assertIn('id="autonomy-form"', html)
         self.assertIn('id="evolution-journal"', html)
         self.assertIn('id="achievement-gallery"', html)
+        self.assertIn('id="lineage-map"', html)
+        self.assertIn('id="population-roster"', html)
+        self.assertIn('id="resource-pools"', html)
+        self.assertIn('id="niche-distribution"', html)
+        self.assertIn('id="cooperation-network"', html)
+        self.assertIn("Digital Petri Dish", html)
+        self.assertIn("v0.4.0", html)
         self.assertIn('class="organism-visual"', html)
         self.assertIn('id="evolve-thinking"', html)
         self.assertIn('aria-busy="false"', html)
@@ -85,6 +92,8 @@ class UIServerTests(unittest.TestCase):
         self.assertIn("در حال فکر کردن", javascript)
         self.assertIn('localStorage.getItem("evo-language") || "en"', javascript)
         self.assertIn('api("/api/autonomy")', javascript)
+        self.assertIn('api("/api/petri-dish")', javascript)
+        self.assertIn("renderPetriDish", javascript)
         self.assertIn("ACHIEVEMENT_CATALOG", javascript)
         self.assertIn("achievementUnlocked", javascript)
         self.assertIn("response.text()", javascript)
@@ -96,6 +105,11 @@ class UIServerTests(unittest.TestCase):
         self.assertIn('[dir="rtl"] textarea', stylesheet)
         self.assertIn(".achievement-card", stylesheet)
         self.assertIn(".cell-core", stylesheet)
+        self.assertIn(".lineage-map", stylesheet)
+        self.assertIn(".organism-card", stylesheet)
+        self.assertIn(".resource-track", stylesheet)
+        self.assertIn(".niche-chip", stylesheet)
+        self.assertIn(".cooperation-edge", stylesheet)
 
     def test_autonomy_status_and_journal_endpoints(self):
         status, payload = self._request("GET", "/api/autonomy")
@@ -104,6 +118,15 @@ class UIServerTests(unittest.TestCase):
         status, payload = self._request("GET", "/api/evolution-journal")
         self.assertEqual(status, 200)
         self.assertEqual(payload["entries"], [])
+
+    def test_petri_dish_endpoint_has_founder_population(self):
+        status, payload = self._request("GET", "/api/petri-dish")
+        self.assertEqual(status, 200)
+        self.assertEqual(payload["summary"]["living"], 6)
+        self.assertEqual(payload["summary"]["epoch"], 0)
+        self.assertEqual(len(payload["organisms"]), 6)
+        self.assertEqual(payload["environment"]["phase"], "balanced")
+        self.assertEqual(payload["summary"]["cooperation_links"], 0)
 
     def test_probe_endpoint_uses_runtime(self):
         with patch.object(self.runtime, "probe", return_value="ok"):

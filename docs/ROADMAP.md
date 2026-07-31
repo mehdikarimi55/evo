@@ -26,29 +26,39 @@ measurement → evidence archive → cleanup`
 - [x] Offline unit tests
 - [x] Localhost web UI for configuration and one-generation runs
 
-## v0.2 — Controlled reproduction
+## v0.2 — Autonomous lineage
 
-- Generate several bounded genome variants.
-- Execute candidates in isolated worktrees and containers.
-- Measure correctness, regression, runtime, token usage, and novelty.
-- Preserve Pareto-front candidates rather than a single winner.
-- Require signed kernel approval before archive admission.
+- [x] Persistent bounded autonomous generation loop
+- [x] Selected-adaptation memory
+- [x] Evolution journal and milestone achievements
+- [x] English/Persian observatory UI
 
-## v0.3 — Memory organs
+## v0.3 — Digital Petri Dish
 
-- Episodic execution records.
-- Semantic lessons derived only from verified outcomes.
-- Procedural recipes with provenance and expiry.
-- Negative memory for failed approaches.
-- Lineage memory for inherited mutations.
+- [x] Persistent bounded founder population
+- [x] Simulated energy costs and rewards
+- [x] Multi-objective fitness and parent selection
+- [x] Heredity with bounded deterministic trait mutation
+- [x] Reproduction, carrying capacity, and extinction
+- [x] Parent-child lineage evidence
+- [x] Bilingual population observatory and lineage visualization
+- [ ] Baseline/candidate execution fitness from the rootless sandbox
+- [ ] Deterministic replay package for complete ecological epochs
 
-## v0.4 — Resource ecology
+## v0.4 — Niches and primitive self-organization
 
-- Discover documented models, datasets, and free tiers.
-- Produce provider proposals and adapters in a sandbox.
-- Require owner approval for account creation, terms, identity, credentials,
-  payment instruments, or spend.
-- Introduce a simulated compute economy before any real financial budget.
+Reliability gate: v0.3 population invariants, persistence, UI API, and the
+complete offline suite passed before v0.4 began.
+
+- [x] Environmental resource pools and changing selection pressures
+- [x] Explicitly measurable ecological niches
+- [x] Bounded organism-to-organism cooperation signals
+- [x] Cooperation energy accounting and persistent interaction evidence
+- [x] Emergent role detection based on observed behaviour
+- [x] Diversity preservation and anti-monoculture selection
+- [x] No new host capabilities or production-promotion authority
+- [ ] Multi-organism task decomposition evaluated in the rootless sandbox
+- [ ] Quantitative open-endedness and ecological stability metrics
 
 ## Production gate
 

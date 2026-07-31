@@ -62,6 +62,51 @@ data only; they do not mutate the repository in v0.1.
 Eligibility in v0.1 means “may proceed to a future sandbox evaluator”; it never
 means “apply directly to the working repository.”
 
+## Digital Petri Dish population boundary
+
+The v0.3 population substrate wraps the existing bounded generation engine; it
+does not enter or replace the immutable kernel. Before an autonomous attempt,
+the Petri Dish selects a living organism using fitness, energy, and evaluation
+diversity. The organism contributes only public traits and inherited adaptation
+summaries to the generation request.
+
+After the kernel returns an eligible or rejected candidate, the Petri Dish:
+
+1. charges a fixed simulated evaluation cost;
+2. derives a bounded fitness vector from validity, policy safety, rationale,
+   novelty, and simulated efficiency;
+3. rewards eligible adaptations or penalizes rejection;
+4. reproduces sufficiently energetic organisms;
+5. passes bounded adaptation memory and mutated scalar traits to offspring;
+6. enforces carrying capacity through viability-based selection; and
+7. atomically records population, birth, extinction, and lineage evidence.
+
+Population energy is a simulation variable, not money or provider quota.
+Reproduction does not copy credentials, create processes, apply patches, or
+grant capabilities. The Petri Dish state is host-owned
+`.evo/petri-dish.json`; organisms cannot write it directly.
+
+## v0.4 ecology and cooperation boundary
+
+The host-owned environment has four simulated resource pools—compute,
+knowledge, novelty, and stability—and four deterministic phases: balanced,
+scarcity, novelty surge, and stability. These values influence simulated
+fitness and energy rewards only. They cannot alter provider budgets or host
+resource limits.
+
+Before a bounded generation, the population layer may select one complementary
+living organism. The request receives a cooperation context containing only
+its public identifier, observed role, and latest verified adaptation summary.
+No organism-to-organism channel can transfer secrets, invoke tools, or write
+state. After evaluation, cooperation results are recorded as bounded counters
+and simulated energy effects.
+
+Roles are derived from observed validity, safety, reasoning, novelty,
+efficiency, environmental fit, cooperation, and inherited traits. They are
+descriptive evidence—not permissions or fixed agent assignments. Capacity
+selection includes a rare-role preservation term so ecological diversity is
+less likely to collapse into a monoculture.
+
 ## Rootless sandbox boundary
 
 `evo sandbox` runs evaluator commands through Podman or Docker without a direct

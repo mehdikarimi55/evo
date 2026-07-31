@@ -13,6 +13,7 @@ import webbrowser
 from evo.autonomy import AutonomyController, AutonomyError
 from evo.config import ConfigurationError
 from evo.kernel.budget import BudgetExceeded
+from evo.petri import PetriDish, PetriDishError
 from evo.providers.groq import ProviderError
 from evo.runtime import TerrariumRuntime, serialize_error
 
@@ -27,10 +28,14 @@ class TerrariumUIServer(ThreadingHTTPServer):
         runtime: TerrariumRuntime,
     ) -> None:
         self.runtime = runtime
+        self.petri_dish = PetriDish(
+            state_path=runtime.workspace / ".evo/petri-dish.json",
+        )
         self.autonomy = AutonomyController(
             evolve=runtime.evolve,
             state_path=runtime.workspace / ".evo/autonomy-state.json",
             journal_path=runtime.workspace / ".evo/evolution-journal.jsonl",
+            petri_dish=self.petri_dish,
         )
         super().__init__(server_address, TerrariumRequestHandler)
 
@@ -70,6 +75,9 @@ class TerrariumRequestHandler(BaseHTTPRequestHandler):
             return
         if parsed.path == "/api/autonomy":
             self._send_json(self.server.autonomy.status())
+            return
+        if parsed.path == "/api/petri-dish":
+            self._send_json(self.server.petri_dish.status())
             return
         if parsed.path == "/api/evolution-journal":
             query = parse_qs(parsed.query)
@@ -153,6 +161,7 @@ class TerrariumRequestHandler(BaseHTTPRequestHandler):
         except (
             ConfigurationError,
             AutonomyError,
+            PetriDishError,
             ProviderError,
             BudgetExceeded,
             ValueError,

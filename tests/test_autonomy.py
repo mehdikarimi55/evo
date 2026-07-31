@@ -5,6 +5,7 @@ import time
 import unittest
 
 from evo.autonomy import AutonomyController, AutonomyError
+from evo.petri import PetriDish
 
 
 def eligible_candidate() -> dict[str, object]:
@@ -138,4 +139,54 @@ class AutonomyTests(unittest.TestCase):
                 controller.start({"max_generations": 0})
             with self.assertRaisesRegex(AutonomyError, "Language"):
                 controller.start({"language": "de"})
+            controller.shutdown()
+
+    def test_population_organism_is_evaluated_and_ecology_is_journaled(self):
+        with TemporaryDirectory() as directory:
+            root = Path(directory)
+            evolved = Event()
+            calls = []
+            dish = PetriDish(
+                state_path=root / "petri.json",
+                initial_population=2,
+                capacity=5,
+            )
+
+            def evolve(**kwargs):
+                calls.append(kwargs)
+                evolved.set()
+                return eligible_candidate()
+
+            controller = AutonomyController(
+                evolve=evolve,
+                state_path=root / "state.json",
+                journal_path=root / "journal.jsonl",
+                petri_dish=dish,
+            )
+            controller.start(
+                {
+                    "interval_seconds": 30,
+                    "max_generations": 1,
+                    "language": "en",
+                }
+            )
+            self.assertTrue(evolved.wait(2))
+            deadline = time.monotonic() + 2
+            while controller.status()["phase"] != "completed":
+                self.assertLess(time.monotonic(), deadline)
+                time.sleep(0.01)
+
+            self.assertEqual(calls[0]["organism_id"], "gnome-0002")
+            self.assertIn("mutation_rate", calls[0]["traits"])
+            self.assertIn("inherited_adaptations", calls[0]["traits"])
+            self.assertEqual(dish.status()["summary"]["epoch"], 1)
+            entry = next(
+                item
+                for item in controller.read_journal()
+                if item["event_type"] == "autonomy.generation"
+            )
+            self.assertEqual(
+                entry["payload"]["ecology"]["organism_id"],
+                calls[0]["organism_id"],
+            )
             controller.shutdown()

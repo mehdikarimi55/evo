@@ -19,7 +19,7 @@
         <a class="brand-lockup" href="#workspace" aria-label="EVO">
           <span class="brand-mark" aria-hidden="true"></span>
           <span class="brand">EVO</span>
-          <span class="brand-version">v0.2.3</span>
+          <span class="brand-version">v0.4.0</span>
         </a>
         <div class="language-switch" aria-label="Language">
           <button class="language-option active" type="button" data-language="en">EN</button>
@@ -241,6 +241,47 @@
             </button>
           </div>
         </form>
+      </section>
+
+      <section class="panel petri-panel" aria-labelledby="petri-title">
+        <div class="panel-head">
+          <p class="section-kicker" data-i18n="populationEcology">POPULATION ECOLOGY</p>
+          <h2 id="petri-title" data-i18n="digitalPetriDish">Digital Petri Dish</h2>
+          <p data-i18n="petriDescription">
+            A bounded population where energy, heredity, reproduction, and selection shape a visible digital lineage.
+          </p>
+        </div>
+        <div class="petri-stats" id="petri-stats"></div>
+        <div class="ecology-grid">
+          <section class="ecology-card" aria-labelledby="resources-title">
+            <h3 id="resources-title" data-i18n="resourcePools">Environmental resources</h3>
+            <div class="resource-pools" id="resource-pools"></div>
+          </section>
+          <section class="ecology-card" aria-labelledby="niches-title">
+            <h3 id="niches-title" data-i18n="emergentNiches">Emergent niches</h3>
+            <div class="niche-distribution" id="niche-distribution"></div>
+          </section>
+          <section class="ecology-card" aria-labelledby="cooperation-title">
+            <h3 id="cooperation-title" data-i18n="cooperationNetwork">Cooperation network</h3>
+            <div class="cooperation-network" id="cooperation-network"></div>
+          </section>
+        </div>
+        <div class="lineage-heading">
+          <h3 data-i18n="lineageMap">Lineage map</h3>
+          <div class="lineage-legend" aria-label="Lineage legend">
+            <span><i class="legend-dot alive"></i><span data-i18n="living">Living</span></span>
+            <span><i class="legend-dot extinct"></i><span data-i18n="extinct">Extinct</span></span>
+          </div>
+        </div>
+        <div class="lineage-viewport" id="lineage-viewport">
+          <svg
+            class="lineage-map"
+            id="lineage-map"
+            role="img"
+            aria-labelledby="petri-title"
+          ></svg>
+        </div>
+        <div class="population-roster" id="population-roster"></div>
       </section>
 
       <section class="panel journal-panel" aria-labelledby="journal-title">

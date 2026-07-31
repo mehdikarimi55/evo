@@ -22,6 +22,7 @@ const I18N = {
     environmentControls: "ENVIRONMENT CONTROLS",
     manualSelection: "MANUAL SELECTION",
     openEndedLoop: "OPEN-ENDED LOOP",
+    populationEcology: "POPULATION ECOLOGY",
     lineageRecord: "LINEAGE RECORD",
     immutableMemory: "IMMUTABLE MEMORY",
     hostStatus: "Host status",
@@ -121,6 +122,40 @@ const I18N = {
     enabled: "Running",
     autonomyStarted: "Autonomous evolution started",
     autonomyStopped: "Autonomous evolution stopped",
+    digitalPetriDish: "Digital Petri Dish",
+    petriDescription: "A bounded population where energy, heredity, reproduction, and selection shape a visible digital lineage.",
+    lineageMap: "Lineage map",
+    living: "Living",
+    extinct: "Extinct",
+    births: "Births",
+    meanEnergy: "Mean energy",
+    meanFitness: "Mean fitness",
+    epoch: "Ecological epoch",
+    capacity: "Carrying capacity",
+    energy: "Energy",
+    fitness: "Fitness",
+    founder: "Founder",
+    offspring: "Offspring",
+    noPopulation: "No population evidence is available.",
+    resourcePools: "Environmental resources",
+    emergentNiches: "Emergent niches",
+    cooperationNetwork: "Cooperation network",
+    noCooperation: "No cooperation signal has formed yet.",
+    environmentPhase: "Environment phase",
+    compute: "Compute",
+    knowledge: "Knowledge",
+    novelty: "Novelty",
+    stability: "Stability",
+    balanced: "Balanced",
+    scarcity: "Scarcity",
+    novelty_surge: "Novelty surge",
+    explorer: "Explorer",
+    guardian: "Guardian",
+    economizer: "Economizer",
+    archivist: "Archivist",
+    generalist: "Generalist",
+    undifferentiated: "Undifferentiated",
+    interactions: "interactions",
     journalStarted: "Autonomous exploration started",
     journalStopped: "Autonomous exploration stopped",
     journalCompleted: "Generation limit reached",
@@ -158,6 +193,7 @@ const I18N = {
     environmentControls: "کنترل‌های محیط",
     manualSelection: "گزینش دستی",
     openEndedLoop: "چرخه بی‌پایان",
+    populationEcology: "بوم‌شناسی جمعیت",
     lineageRecord: "روایت تبار",
     immutableMemory: "حافظه تغییرناپذیر",
     hostStatus: "وضعیت میزبان",
@@ -257,6 +293,40 @@ const I18N = {
     enabled: "در حال اجرا",
     autonomyStarted: "تکامل خودکار آغاز شد",
     autonomyStopped: "تکامل خودکار متوقف شد",
+    digitalPetriDish: "پتری‌دیش دیجیتال",
+    petriDescription: "جمعیتی کنترل‌شده که در آن انرژی، وراثت، تولیدمثل و گزینش، تباری دیجیتال و قابل مشاهده می‌سازند.",
+    lineageMap: "نقشه تبار",
+    living: "زنده",
+    extinct: "منقرض‌شده",
+    births: "تولدها",
+    meanEnergy: "میانگین انرژی",
+    meanFitness: "میانگین برازندگی",
+    epoch: "دوره بوم‌شناختی",
+    capacity: "ظرفیت زیست‌بوم",
+    energy: "انرژی",
+    fitness: "برازندگی",
+    founder: "بنیان‌گذار",
+    offspring: "فرزند",
+    noPopulation: "هنوز داده‌ای از جمعیت در دسترس نیست.",
+    resourcePools: "منابع محیطی",
+    emergentNiches: "آشیان‌های نوظهور",
+    cooperationNetwork: "شبکه همکاری",
+    noCooperation: "هنوز سیگنال همکاری شکل نگرفته است.",
+    environmentPhase: "وضعیت محیط",
+    compute: "توان محاسباتی",
+    knowledge: "دانش",
+    novelty: "نوآوری",
+    stability: "پایداری",
+    balanced: "متعادل",
+    scarcity: "کمبود منابع",
+    novelty_surge: "جهش نوآوری",
+    explorer: "کاوشگر",
+    guardian: "نگهبان",
+    economizer: "بهینه‌گر منابع",
+    archivist: "حافظ",
+    generalist: "همه‌فن‌حریف",
+    undifferentiated: "تمایزنیافته",
+    interactions: "تعامل",
     journalStarted: "کاوش خودکار آغاز شد",
     journalStopped: "کاوش خودکار متوقف شد",
     journalCompleted: "سقف نسل‌ها تکمیل شد",
@@ -305,6 +375,7 @@ let cachedSettings = null;
 let cachedAudit = [];
 let cachedAutonomy = null;
 let cachedJournal = [];
+let cachedPetri = null;
 
 const statusSummary = document.getElementById("status-summary");
 const statusGrid = document.getElementById("status-grid");
@@ -325,6 +396,12 @@ const autonomyObjective = document.getElementById("autonomy-objective");
 const journalContainer = document.getElementById("evolution-journal");
 const achievementGallery = document.getElementById("achievement-gallery");
 const achievementCount = document.getElementById("achievement-count");
+const petriStats = document.getElementById("petri-stats");
+const lineageMap = document.getElementById("lineage-map");
+const populationRoster = document.getElementById("population-roster");
+const resourcePools = document.getElementById("resource-pools");
+const nicheDistribution = document.getElementById("niche-distribution");
+const cooperationNetwork = document.getElementById("cooperation-network");
 
 function t(key) {
   return I18N[language][key] || I18N.en[key] || key;
@@ -359,6 +436,7 @@ function setLanguage(nextLanguage) {
   renderAudit(cachedAudit);
   renderAutonomy(cachedAutonomy);
   renderJournal(cachedJournal);
+  renderPetriDish(cachedPetri);
 }
 
 async function api(path, options = {}) {
@@ -431,7 +509,9 @@ function renderStatus(settings) {
     .join("");
   statusSummary.textContent = settings.configured
     ? `${settings.provider} · ${settings.model}`
-    : settings.error || t("configurationIncomplete");
+    : language === "fa"
+      ? settings.error || t("configurationIncomplete")
+      : t("configurationIncomplete");
 }
 
 function translateStatus(value) {
@@ -624,6 +704,168 @@ function renderJournal(entries) {
     .join("");
 }
 
+function renderPetriDish(state) {
+  if (!state) return;
+  cachedPetri = state;
+  const summary = state.summary || {};
+  petriStats.innerHTML = [
+    [t("epoch"), summary.epoch ?? 0],
+    [t("living"), `${summary.living ?? 0} / ${summary.capacity ?? 0}`],
+    [t("births"), summary.births ?? 0],
+    [t("extinct"), summary.extinct ?? 0],
+    [t("meanEnergy"), summary.mean_energy ?? 0],
+    [t("meanFitness"), summary.mean_fitness ?? 0],
+  ]
+    .map(
+      ([label, value]) => `
+        <div class="petri-stat">
+          <span>${escapeHtml(String(label))}</span>
+          <strong>${escapeHtml(String(value))}</strong>
+        </div>`
+    )
+    .join("");
+
+  const environment = state.environment || { phase: "balanced", resources: {} };
+  resourcePools.innerHTML = `
+    <p class="environment-phase">${escapeHtml(t("environmentPhase"))}: <strong>${escapeHtml(t(environment.phase || "balanced"))}</strong></p>
+    ${Object.entries(environment.resources || {})
+      .map(([name, value]) => {
+        const amount = Math.max(0, Math.min(120, Number(value || 0)));
+        return `
+          <div class="resource-row">
+            <span>${escapeHtml(t(name))}</span>
+            <div class="resource-track"><i style="width:${(amount / 120) * 100}%"></i></div>
+            <strong>${escapeHtml(amount.toFixed(1))}</strong>
+          </div>`;
+      })
+      .join("")}`;
+
+  const niches = summary.niche_distribution || {};
+  nicheDistribution.innerHTML = Object.entries(niches)
+    .map(
+      ([role, count]) => `
+        <span class="niche-chip">
+          ${escapeHtml(t(role))}<strong>${escapeHtml(String(count))}</strong>
+        </span>`
+    )
+    .join("");
+
+  const cooperation = (state.cooperation || []).slice(-8).reverse();
+  cooperationNetwork.innerHTML = cooperation.length
+    ? cooperation
+        .map(
+          (edge) => `
+            <div class="cooperation-edge">
+              <span>${escapeHtml(edge.organism_a)}</span>
+              <i aria-hidden="true">⇄</i>
+              <span>${escapeHtml(edge.organism_b)}</span>
+              <strong>${escapeHtml(`${edge.successful_interactions}/${edge.interactions}`)} ${escapeHtml(t("interactions"))}</strong>
+            </div>`
+        )
+        .join("")
+    : `<p class="empty-state">${escapeHtml(t("noCooperation"))}</p>`;
+
+  const organisms = (state.organisms || []).slice(-80);
+  if (!organisms.length) {
+    lineageMap.innerHTML = "";
+    populationRoster.innerHTML =
+      `<p class="empty-state">${escapeHtml(t("noPopulation"))}</p>`;
+    return;
+  }
+
+  const visibleIds = new Set(organisms.map((organism) => organism.organism_id));
+  const grouped = new Map();
+  organisms.forEach((organism) => {
+    const generation = Number(organism.generation || 0);
+    if (!grouped.has(generation)) grouped.set(generation, []);
+    grouped.get(generation).push(organism);
+  });
+  const generations = [...grouped.keys()].sort((a, b) => a - b);
+  const positions = new Map();
+  const columnWidth = 190;
+  const rowHeight = 84;
+  const marginX = 74;
+  const marginY = 58;
+  generations.forEach((generation, column) => {
+    grouped
+      .get(generation)
+      .sort((a, b) => a.organism_id.localeCompare(b.organism_id))
+      .forEach((organism, row) => {
+        positions.set(organism.organism_id, {
+          x: marginX + column * columnWidth,
+          y: marginY + row * rowHeight,
+        });
+      });
+  });
+  const maxRows = Math.max(...[...grouped.values()].map((items) => items.length));
+  const width = Math.max(540, marginX * 2 + generations.length * columnWidth);
+  const height = Math.max(260, marginY * 2 + maxRows * rowHeight);
+  lineageMap.setAttribute("viewBox", `0 0 ${width} ${height}`);
+  lineageMap.setAttribute("width", width);
+  lineageMap.setAttribute("height", height);
+
+  const edges = (state.lineage || [])
+    .filter(
+      (edge) =>
+        visibleIds.has(edge.parent_id) &&
+        visibleIds.has(edge.child_id) &&
+        positions.has(edge.parent_id) &&
+        positions.has(edge.child_id)
+    )
+    .map((edge) => {
+      const parent = positions.get(edge.parent_id);
+      const child = positions.get(edge.child_id);
+      return `<path class="lineage-edge" d="M ${parent.x + 22} ${parent.y} C ${parent.x + 82} ${parent.y}, ${child.x - 82} ${child.y}, ${child.x - 22} ${child.y}" />`;
+    })
+    .join("");
+
+  const generationLabels = generations
+    .map((generation, column) => {
+      const x = marginX + column * columnWidth;
+      return `<text class="generation-label" x="${x}" y="22" text-anchor="middle">${escapeHtml(`${t("generation")} ${generation}`)}</text>`;
+    })
+    .join("");
+
+  const nodes = organisms
+    .map((organism) => {
+      const position = positions.get(organism.organism_id);
+      const alive = organism.status === "alive";
+      const energy = Math.max(0, Math.min(100, Number(organism.energy || 0)));
+      return `
+        <g class="lineage-node ${alive ? "alive" : "extinct"}" transform="translate(${position.x} ${position.y})">
+          <circle class="node-halo" r="25"></circle>
+          <circle class="node-body" r="19"></circle>
+          <circle class="energy-ring" r="22" pathLength="100"
+            stroke-dasharray="${energy} ${100 - energy}" transform="rotate(-90)"></circle>
+          <text class="node-id" y="4" text-anchor="middle">${escapeHtml(organism.organism_id.replace("gnome-", ""))}</text>
+          <text class="node-metric" y="37" text-anchor="middle">${escapeHtml(`${t("fitness")} ${Number(organism.fitness || 0).toFixed(2)}`)}</text>
+        </g>`;
+    })
+    .join("");
+  lineageMap.innerHTML = `${generationLabels}${edges}${nodes}`;
+
+  populationRoster.innerHTML = organisms
+    .filter((organism) => organism.status === "alive")
+    .sort((a, b) => Number(b.fitness) - Number(a.fitness))
+    .slice(0, 12)
+    .map(
+      (organism) => `
+        <article class="organism-card">
+          <div>
+            <strong>${escapeHtml(organism.organism_id)}</strong>
+            <small>${escapeHtml(
+              organism.parent_ids?.length ? t("offspring") : t("founder")
+            )} · ${escapeHtml(`${t("generation")} ${organism.generation}`)} · ${escapeHtml(t(organism.emergent_role || "undifferentiated"))}</small>
+          </div>
+          <dl>
+            <div><dt>${escapeHtml(t("energy"))}</dt><dd>${escapeHtml(String(organism.energy))}</dd></div>
+            <div><dt>${escapeHtml(t("fitness"))}</dt><dd>${escapeHtml(Number(organism.fitness || 0).toFixed(3))}</dd></div>
+          </dl>
+        </article>`
+    )
+    .join("");
+}
+
 function formatTime(value) {
   if (!value) return "—";
   const date = new Date(value);
@@ -665,29 +907,33 @@ function applySearch(query) {
 }
 
 async function refresh() {
-  const [settings, audit, autonomy, journal] = await Promise.all([
+  const [settings, audit, autonomy, journal, petri] = await Promise.all([
     api("/api/settings"),
     api("/api/audit?limit=50"),
     api("/api/autonomy"),
     api("/api/evolution-journal?limit=100"),
+    api("/api/petri-dish"),
   ]);
   fillSettings(settings);
   renderStatus(settings);
   renderAudit(audit.events || []);
   renderAutonomy(autonomy);
   renderJournal(journal.entries || []);
+  renderPetriDish(petri);
   applySearch(globalSearch.value);
 }
 
 async function refreshEvolution() {
-  const [autonomy, journal, audit] = await Promise.all([
+  const [autonomy, journal, audit, petri] = await Promise.all([
     api("/api/autonomy"),
     api("/api/evolution-journal?limit=100"),
     api("/api/audit?limit=50"),
+    api("/api/petri-dish"),
   ]);
   renderAutonomy(autonomy);
   renderJournal(journal.entries || []);
   renderAudit(audit.events || []);
+  renderPetriDish(petri);
 }
 
 document.querySelectorAll("[data-language]").forEach((button) => {

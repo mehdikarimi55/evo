@@ -1,5 +1,15 @@
 # EVO Terrarium Local UI
 
+The v0.3 UI includes a Digital Petri Dish observatory. It displays ecological
+epoch, living population, births, extinctions, carrying capacity, mean energy,
+mean fitness, a scrollable SVG parent-child lineage map, and a ranked living
+organism roster. English remains the default language and every new label has a
+fluent Persian translation.
+
+The v0.4 observatory adds environmental resource meters, the current selection
+phase, behaviour-derived niche counts, and a bounded cooperation network. These
+views describe simulation state only and do not imply external agent activity.
+
 The local UI is a stdlib HTTP console for host-side operations.
 
 ## Start

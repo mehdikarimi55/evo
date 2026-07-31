@@ -238,6 +238,20 @@ class GitWorktreeManager:
         )
         return result.returncode == 0
 
+    def repository_is_clean(self) -> bool:
+        result = self._git(
+            "-C",
+            str(self.repository),
+            "status",
+            "--porcelain=v1",
+            "--untracked-files=all",
+        )
+        return not result.stdout.strip()
+
+    def cleanup(self) -> None:
+        """Remove an owned empty temporary root when no candidate was created."""
+        self._remove_owned_root_if_empty()
+
     def _git(self, *arguments: str) -> CompletedProcess[str]:
         result = self._git_result(*arguments)
         if result.returncode != 0:

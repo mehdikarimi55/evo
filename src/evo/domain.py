@@ -52,6 +52,7 @@ class MutationProposal:
     rationale: str
     expected_benefit: str
     risk: str
+    patch: str | None = None
 
     @classmethod
     def from_mapping(cls, data: dict[str, Any]) -> "MutationProposal":
@@ -67,7 +68,12 @@ class MutationProposal:
             raise ValueError(
                 f"فیلدهای ضروری پیشنهاد وارد نشده‌اند: {', '.join(missing)}"
             )
-        return cls(**{name: str(data[name]).strip() for name in required})
+        values = {name: str(data[name]).strip() for name in required}
+        patch = data.get("patch")
+        return cls(
+            **values,
+            patch=str(patch) if isinstance(patch, str) and patch.strip() else None,
+        )
 
 
 @dataclass(frozen=True, slots=True)

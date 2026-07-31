@@ -13,6 +13,7 @@ import webbrowser
 from evo.autonomy import AutonomyController, AutonomyError
 from evo.config import ConfigurationError
 from evo.kernel.budget import BudgetExceeded
+from evo.petri import PetriDish, PetriDishError
 from evo.providers.groq import ProviderError
 from evo.runtime import TerrariumRuntime, serialize_error
 
@@ -27,10 +28,21 @@ class TerrariumUIServer(ThreadingHTTPServer):
         runtime: TerrariumRuntime,
     ) -> None:
         self.runtime = runtime
+        self.petri_dish = PetriDish(
+            state_path=runtime.workspace / ".evo/petri-dish.json",
+        )
         self.autonomy = AutonomyController(
             evolve=runtime.evolve,
             state_path=runtime.workspace / ".evo/autonomy-state.json",
             journal_path=runtime.workspace / ".evo/evolution-journal.jsonl",
+            petri_dish=self.petri_dish,
+        )
+        self.evidence_control = runtime.evidence_control(
+            petri_dish=self.petri_dish
+        )
+        self.trust_authority = runtime.trust_authority(
+            evidence_control=self.evidence_control,
+            petri_dish=self.petri_dish,
         )
         super().__init__(server_address, TerrariumRequestHandler)
 
@@ -71,6 +83,9 @@ class TerrariumRequestHandler(BaseHTTPRequestHandler):
         if parsed.path == "/api/autonomy":
             self._send_json(self.server.autonomy.status())
             return
+        if parsed.path == "/api/petri-dish":
+            self._send_json(self.server.petri_dish.status())
+            return
         if parsed.path == "/api/evolution-journal":
             query = parse_qs(parsed.query)
             limit = int(query.get("limit", ["100"])[0])
@@ -79,6 +94,12 @@ class TerrariumRequestHandler(BaseHTTPRequestHandler):
                     "entries": self.server.autonomy.read_journal(limit=limit)
                 }
             )
+            return
+        if parsed.path == "/api/evidence-control":
+            self._run_json(lambda: self.server.evidence_control.status())
+            return
+        if parsed.path == "/api/trust-authority":
+            self._run_json(lambda: self.server.trust_authority.status())
             return
         if parsed.path.startswith("/static/"):
             relative = parsed.path.removeprefix("/static/")
@@ -133,6 +154,26 @@ class TerrariumRequestHandler(BaseHTTPRequestHandler):
         if parsed.path == "/api/autonomy/stop":
             self._run_json(lambda: self.server.autonomy.stop())
             return
+        if parsed.path == "/api/evidence/bundle":
+            self._run_json(lambda: self.server.evidence_control.create_bundle())
+            return
+        if parsed.path == "/api/evidence/approve":
+            self._run_json(
+                lambda: self.server.evidence_control.approve_latest(
+                    approver=str(body.get("approver", "")),
+                    decision=str(body.get("decision", "")),
+                    note=str(body.get("note", "")),
+                )
+            )
+            return
+        if parsed.path == "/api/trust/attest":
+            self._run_json(
+                lambda: self.server.trust_authority.attest_latest_bundle()
+            )
+            return
+        if parsed.path == "/api/trust/authorize":
+            self._run_json(lambda: self.server.trust_authority.authorize_latest())
+            return
         self._send_json({"error": "API endpoint not found."}, status=HTTPStatus.NOT_FOUND)
 
     def _read_json_body(self) -> dict[str, Any]:
@@ -153,6 +194,7 @@ class TerrariumRequestHandler(BaseHTTPRequestHandler):
         except (
             ConfigurationError,
             AutonomyError,
+            PetriDishError,
             ProviderError,
             BudgetExceeded,
             ValueError,

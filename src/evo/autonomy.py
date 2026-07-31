@@ -8,6 +8,9 @@ from threading import Event, Lock, Thread
 from typing import Callable
 import json
 
+from evo.evaluation import proposal_only_evidence
+from evo.petri import PetriDish
+
 
 DEFAULT_OBJECTIVE = (
     "Explore digital abiogenesis and artificial life through open-ended, "
@@ -41,8 +44,10 @@ class AutonomyController:
         evolve: Callable[..., dict[str, object]],
         state_path: Path,
         journal_path: Path,
+        petri_dish: PetriDish | None = None,
     ) -> None:
         self._evolve = evolve
+        self._petri_dish = petri_dish
         self.state_path = state_path
         self.journal_path = journal_path
         self._lock = Lock()
@@ -191,20 +196,62 @@ class AutonomyController:
                 return
 
             try:
+                selected_organism = (
+                    self._petri_dish.select_for_evaluation()
+                    if self._petri_dish is not None
+                    else {
+                        "organism_id": "gnome-0001",
+                        "generation": state["generation"],
+                        "traits": {},
+                        "selected_adaptations": [],
+                    }
+                )
+                organism_traits = dict(selected_organism.get("traits", {}))
+                if self._petri_dish is not None:
+                    organism_traits["inherited_adaptations"] = list(
+                        selected_organism.get("selected_adaptations", [])
+                    )[-10:]
+                    organism_traits["cooperation_context"] = (
+                        selected_organism.get("cooperation_context")
+                    )
+                    organism_traits["emergent_role"] = selected_organism.get(
+                        "emergent_role", "undifferentiated"
+                    )
+                    organism_traits["team_plan"] = selected_organism.get("team_plan")
+                organism_traits["selected_adaptations"] = list(
+                    state["selected_adaptations"]
+                )[-20:]
                 candidate = self._evolve(
                     task=str(state["objective"]),
                     mutable_paths=list(state["mutable_paths"]),
-                    organism_id="gnome-0001",
+                    organism_id=str(selected_organism["organism_id"]),
                     task_id=f"autonomous-{int(state['attempts']) + 1}",
-                    generation=int(state["generation"]),
+                    generation=int(selected_organism["generation"]),
                     language=str(state["language"]),
-                    traits={
-                        "selected_adaptations": list(
-                            state["selected_adaptations"]
-                        )[-20:]
-                    },
+                    traits=organism_traits,
                 )
-                eligible = candidate.get("status") == "eligible"
+                candidate.setdefault(
+                    "evaluation_evidence",
+                    proposal_only_evidence(candidate.get("candidate_id")),
+                )
+                ecology_event = (
+                    self._petri_dish.record_outcome(
+                        organism_id=str(selected_organism["organism_id"]),
+                        candidate=candidate,
+                    )
+                    if self._petri_dish is not None
+                    else None
+                )
+                evidence = candidate.get("evaluation_evidence")
+                evidence_status = (
+                    evidence.get("status")
+                    if isinstance(evidence, dict)
+                    else "proposal_only"
+                )
+                eligible = (
+                    candidate.get("status") == "eligible"
+                    and evidence_status not in {"invalid", "sandbox_failed"}
+                )
                 proposal = candidate.get("proposal")
                 unlocked_now: list[dict[str, object]] = []
                 with self._lock:
@@ -300,6 +347,9 @@ class AutonomyController:
                         ),
                         "rejection_reason": candidate.get("rejection_reason"),
                         "achievements": unlocked_now,
+                        "ecology": ecology_event,
+                        "team_plan": selected_organism.get("team_plan"),
+                        "evaluation_evidence": candidate.get("evaluation_evidence"),
                     },
                 )
                 if reached_limit:

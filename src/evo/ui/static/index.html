@@ -19,7 +19,7 @@
         <a class="brand-lockup" href="#workspace" aria-label="EVO">
           <span class="brand-mark" aria-hidden="true"></span>
           <span class="brand">EVO</span>
-          <span class="brand-version">v0.2.3</span>
+          <span class="brand-version">v0.8.0</span>
         </a>
         <div class="language-switch" aria-label="Language">
           <button class="language-option active" type="button" data-language="en">EN</button>
@@ -124,6 +124,25 @@
               min="1"
               required
             />
+          </label>
+          <label>
+            <span data-i18n="sandboxImage">Rootless sandbox image</span>
+            <input name="sandbox_image" id="sandbox_image" autocomplete="off" placeholder="python:3.13-alpine" />
+          </label>
+          <label>
+            <span data-i18n="sandboxEngine">Sandbox engine</span>
+            <select name="sandbox_engine" id="sandbox_engine">
+              <option value="podman">Podman</option>
+              <option value="docker">Docker</option>
+            </select>
+          </label>
+          <label class="wide">
+            <span data-i18n="evaluationCommand">Evaluation command</span>
+            <input name="evaluation_command" id="evaluation_command" autocomplete="off" />
+          </label>
+          <label>
+            <span data-i18n="sandboxTimeout">Sandbox timeout (seconds)</span>
+            <input name="sandbox_timeout_seconds" id="sandbox_timeout_seconds" type="number" min="1" max="600" required />
           </label>
           <div class="form-actions wide">
             <button class="button primary" type="submit" data-i18n="saveSettings">Save settings</button>
@@ -241,6 +260,124 @@
             </button>
           </div>
         </form>
+      </section>
+
+      <section class="panel petri-panel" aria-labelledby="petri-title">
+        <div class="panel-head">
+          <p class="section-kicker" data-i18n="populationEcology">POPULATION ECOLOGY</p>
+          <h2 id="petri-title" data-i18n="digitalPetriDish">Digital Petri Dish</h2>
+          <p data-i18n="petriDescription">
+            A bounded population where energy, heredity, reproduction, and selection shape a visible digital lineage.
+          </p>
+        </div>
+        <div class="petri-stats" id="petri-stats"></div>
+        <section class="evidence-observatory" aria-labelledby="evidence-title">
+          <div class="evidence-heading">
+            <div>
+              <p class="section-kicker" data-i18n="researchEvidence">RESEARCH EVIDENCE</p>
+              <h3 id="evidence-title" data-i18n="ecologySignals">Ecology signals</h3>
+            </div>
+            <span class="evidence-state" id="evaluation-evidence"></span>
+          </div>
+          <div class="metric-grid" id="ecology-metrics"></div>
+          <p class="metric-caveat" data-i18n="openEndednessCaveat">
+            Open-endedness is an operational proxy, not proof of unbounded evolution.
+          </p>
+          <div class="team-observatory" id="team-observatory"></div>
+        </section>
+        <div class="ecology-grid">
+          <section class="ecology-card" aria-labelledby="resources-title">
+            <h3 id="resources-title" data-i18n="resourcePools">Environmental resources</h3>
+            <div class="resource-pools" id="resource-pools"></div>
+          </section>
+          <section class="ecology-card" aria-labelledby="niches-title">
+            <h3 id="niches-title" data-i18n="emergentNiches">Emergent niches</h3>
+            <div class="niche-distribution" id="niche-distribution"></div>
+          </section>
+          <section class="ecology-card" aria-labelledby="cooperation-title">
+            <h3 id="cooperation-title" data-i18n="cooperationNetwork">Cooperation network</h3>
+            <div class="cooperation-network" id="cooperation-network"></div>
+          </section>
+        </div>
+        <div class="lineage-heading">
+          <h3 data-i18n="lineageMap">Lineage map</h3>
+          <div class="lineage-legend" aria-label="Lineage legend">
+            <span><i class="legend-dot alive"></i><span data-i18n="living">Living</span></span>
+            <span><i class="legend-dot extinct"></i><span data-i18n="extinct">Extinct</span></span>
+          </div>
+        </div>
+        <div class="lineage-viewport" id="lineage-viewport">
+          <svg
+            class="lineage-map"
+            id="lineage-map"
+            role="img"
+            aria-labelledby="petri-title"
+          ></svg>
+        </div>
+        <div class="population-roster" id="population-roster"></div>
+      </section>
+
+      <section class="panel evidence-gate-panel" aria-labelledby="promotion-gate-title">
+        <div class="panel-head">
+          <p class="section-kicker" data-i18n="evidenceIntegrity">EVIDENCE INTEGRITY</p>
+          <h2 id="promotion-gate-title" data-i18n="promotionGate">Human-controlled promotion gate</h2>
+          <p data-i18n="promotionGateDescription">
+            Replay every ecological epoch, authenticate the evidence bundle, and record an explicit human decision.
+          </p>
+        </div>
+        <div class="gate-status-grid" id="evidence-control-status"></div>
+        <div class="gate-workbench">
+          <div class="bundle-action">
+            <p data-i18n="bundleInstructions">Create a host-authenticated snapshot only after deterministic replay succeeds.</p>
+            <button class="button primary" type="button" id="create-evidence-bundle" data-i18n="createEvidenceBundle">
+              Create evidence bundle
+            </button>
+          </div>
+          <form class="approval-form" id="approval-form">
+            <label>
+              <span data-i18n="approver">Reviewer</span>
+              <input name="approver" maxlength="120" required data-i18n-placeholder="approverPlaceholder" placeholder="Your name or local reviewer label" />
+            </label>
+            <label>
+              <span data-i18n="decision">Decision</span>
+              <select name="decision" required>
+                <option value="approve" data-i18n="approve">Approve</option>
+                <option value="reject" data-i18n="rejectDecision">Reject</option>
+              </select>
+            </label>
+            <label class="wide">
+              <span data-i18n="reviewNote">Review note</span>
+              <textarea name="note" maxlength="2000" rows="3" data-i18n-placeholder="reviewNotePlaceholder" placeholder="What evidence did you inspect?"></textarea>
+            </label>
+            <button class="button ghost wide" type="submit" id="record-promotion-decision" data-i18n="recordDecision">
+              Record human decision
+            </button>
+          </form>
+        </div>
+        <p class="safety-note gate-safety" data-i18n="promotionGateSafety">
+          This is a signed local assertion—not verified identity, repository promotion, merge, or deployment authorization.
+        </p>
+        <div class="trust-authority" aria-labelledby="trust-authority-title">
+          <div class="panel-head compact">
+            <p class="section-kicker" data-i18n="publicTrust">PUBLIC TRUST · v0.8</p>
+            <h3 id="trust-authority-title" data-i18n="trustAuthority">Independent trust authority</h3>
+            <p data-i18n="trustAuthorityDescription">
+              Publish an Ed25519 evidence attestation, verify an independently signed reviewer decision, and evaluate the immutable promotion policy.
+            </p>
+          </div>
+          <div class="gate-status-grid" id="trust-authority-status"></div>
+          <div class="trust-actions">
+            <button class="button ghost" type="button" id="attest-evidence" data-i18n="attestEvidence">
+              Publish evidence attestation
+            </button>
+            <button class="button primary" type="button" id="authorize-promotion" data-i18n="authorizePromotion">
+              Authorize manual promotion
+            </button>
+          </div>
+          <p class="safety-note" data-i18n="trustAuthoritySafety">
+            Reviewer keys are managed only through the CLI. Authorization creates a signed artifact; EVO still cannot modify Git, push, merge, or deploy.
+          </p>
+        </div>
       </section>
 
       <section class="panel journal-panel" aria-labelledby="journal-title">

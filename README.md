@@ -1,6 +1,6 @@
 # EVO — Evolutionary Virtual Organism
 
-EVO Terrarium v0.2.3 is a bounded environment for experiments in evolutionary
+EVO Terrarium v0.8.0 is a bounded environment for experiments in evolutionary
 coding agents. It lets an organism propose a mutation, evaluates that mutation,
 and records whether it is eligible for selection. The immutable kernel owns
 credentials, budgets, policy decisions, audit events, and promotion gates.
@@ -18,7 +18,24 @@ This repository starts with a deliberately narrow vertical slice:
 - an English-first bilingual interface with persistent English/Persian switching;
 - a bounded autonomous generation loop and public-facing evolution journal;
 - persistent milestone achievements recorded against the evolving lineage;
-- an offline test suite based entirely on the Python standard library.
+- a persistent Digital Petri Dish population with bounded energy and capacity;
+- heredity, reproduction, selection, extinction evidence, and lineage mapping;
+- multi-objective fitness for validity, safety, reasoning, novelty, and efficiency;
+- cycling environmental resources and measurable ecological pressures;
+- bounded cooperation signals and behaviour-derived emergent roles;
+- diversity-aware selection that resists premature niche monoculture;
+- bounded three-organism teams with role-derived task decomposition;
+- tamper-evident rootless sandbox evaluation records;
+- ecological stability, population diversity, and open-endedness proxy metrics;
+- bounded model-generated unified diffs using limited source context;
+- ephemeral candidate worktrees and automatic baseline comparisons;
+- deterministic replay of complete ecological epochs;
+- host-authenticated evidence bundles and signed local review records;
+- an explicit human-controlled promotion gate with no deployment authority;
+- Ed25519 public evidence attestations and independent reviewer identities;
+- a revocable reviewer registry and immutable JSON promotion policy;
+- signed manual-promotion authorization artifacts with no Git or deployment authority;
+- an offline test suite with a narrowly pinned cryptographic dependency.
 
 It does **not** autonomously register accounts, accept legal terms, bypass
 identity checks, obtain credentials, merge code, spend money, or deploy changes.
@@ -67,8 +84,8 @@ To run a single, bounded generation:
   --task "Improve input validation without changing public behavior."
 ```
 
-The result is written to `.evo/audit.jsonl`. A proposal is not applied to the
-repository in v0.1; it is evaluated as data.
+The result is written to `.evo/audit.jsonl`. Without a configured rootless
+sandbox, the result remains a proposal and is never applied to the repository.
 
 ## Rootless sandbox
 
@@ -131,9 +148,10 @@ a different local port.
 ## Autonomous evolution
 
 Autonomous mode repeatedly asks the configured model provider for one bounded
-mutation proposal, evaluates it against the immutable policy, advances the
-selected generation when eligible, feeds the cumulative adaptation history
-into the next generation, and records the result. Its default
+mutation proposal on behalf of a selected population member, evaluates it
+against the immutable policy, updates that organism's energy and fitness, and
+records the result. Eligible organisms may reproduce after accumulating enough
+energy; offspring inherit bounded adaptations and mutated traits. Its default
 objective explores digital abiogenesis and artificial life through open-ended,
 self-organizing multi-agent systems.
 
@@ -161,6 +179,153 @@ quota. It has a configurable attempt limit (maximum 10,000), a minimum
 30-second interval, and never applies or promotes source changes. Applying
 tested mutations inside candidate worktrees can be added as a later promotion
 stage with a separate approval policy.
+
+## Digital Petri Dish
+
+The Petri Dish starts with six founder organisms and a carrying capacity of 24.
+Each autonomous attempt selects one living organism using measured fitness,
+available energy, and evaluation history. Evaluation consumes energy. Eligible,
+safe, novel adaptations restore energy and can trigger reproduction; rejected
+proposals reduce viability. When capacity is exceeded, the least viable
+organisms become extinct.
+
+Population state is stored atomically in `.evo/petri-dish.json`. The UI exposes
+energy, fitness, births, extinctions, founder/offspring status, and a scrollable
+parent-child lineage graph. This simulated substrate grants no additional host
+permissions and cannot promote its own mutations.
+
+## Niches and primitive self-organization
+
+The v0.4 ecology cycles deterministically through balanced, scarcity,
+novelty-surge, and stability phases. Compute, knowledge, novelty, and stability
+resources replenish and are consumed independently. Organism fitness therefore
+depends partly on how inherited traits fit the current environment.
+
+Before each generation, EVO may expose one bounded cooperation context from a
+complementary living organism. It contains only a public organism identifier,
+an observed role, and the latest verified adaptation summary. Successful
+cooperation rewards both participants with simulated energy and records a
+bounded interaction edge. It does not share credentials, tools, processes, or
+write access.
+
+Explorer, guardian, economizer, archivist, and generalist roles are inferred
+from observed fitness and inherited traits; they are not assigned as executable
+agent privileges. Carrying-capacity selection gives rare observed roles a
+preservation advantage to reduce premature monoculture.
+
+## Cooperative evidence and research metrics
+
+In v0.5, EVO forms a deterministic team of at most three complementary living
+organisms. The lead integrates bounded advice from role-derived
+responsibilities. These responsibilities are prompt context only: they do not
+grant tools, credentials, network access, or permission to promote code.
+
+Ordinary model output remains labelled `proposal_only`. When an executable
+candidate artifact exists, the host can run an explicit evaluator and record
+hash-only evidence:
+
+```bash
+.venv/bin/evo evaluate \
+  --workspace . \
+  --image python:3.13-alpine \
+  --candidate-id candidate-0001 \
+  --team-id gnome-0001 \
+  --team-id gnome-0002 \
+  -- python -m unittest
+```
+
+The ledger stores command, outcome, duration, output hashes, timeout, and
+truncation state in `.evo/evaluation-evidence.jsonl`; it does not persist raw
+test output. The Petri Dish also reports ecological stability, population
+diversity, and an open-endedness proxy based on novelty, adaptation diversity,
+and lineage branching. This is an operational signal, not proof of truly
+unbounded evolution.
+
+## Ephemeral candidate lifecycle
+
+v0.6 can turn an eligible proposal into a bounded unified diff. The model sees
+at most 32 KiB from one policy-authorized target file. EVO validates the diff,
+creates a temporary Git branch and worktree outside the trusted repository,
+runs the configured evaluator against both the clean baseline and candidate,
+records hash-only comparison evidence, and destroys the temporary branch.
+
+Enable the lifecycle in `.env.local` or the bilingual Settings panel:
+
+```dotenv
+EVO_SANDBOX_IMAGE=python:3.13-alpine
+EVO_SANDBOX_ENGINE=podman
+EVO_EVALUATION_COMMAND=python -m unittest discover -s tests
+EVO_SANDBOX_TIMEOUT_SECONDS=60
+```
+
+The engine must be rootless. Containers receive no network, credentials, host
+write access, elevated capabilities, or promotion authority. A dirty repository
+fails closed because baseline and candidate evidence would not be comparable.
+Passing evidence sets `promotion_eligible` only; it does not merge, commit,
+push, deploy, or modify the original worktree.
+
+## Deterministic replay and human promotion gate
+
+v0.7 records the bounded candidate input required to replay every ecological
+epoch. Before an evidence bundle is created, EVO reconstructs a fresh Petri
+Dish, repeats deterministic organism selection and every recorded outcome, and
+compares a canonical timestamp-free SHA-256 state digest. The complete replay
+history is bounded to 10,000 epochs.
+
+Evidence bundles include the replay manifest and candidate-evaluation ledger.
+They are authenticated with HMAC-SHA256 using a 32-byte, mode-0600 host key at
+`.evo/evidence-signing.key`. This proves integrity to the same host; it is not a
+publicly verifiable identity signature. Use the UI promotion gate or CLI:
+
+```bash
+.venv/bin/evo evidence bundle
+.venv/bin/evo evidence approve --approver "Local reviewer" \
+  --note "Replay and sandbox evidence inspected."
+.venv/bin/evo evidence status
+```
+
+An approval is a signed local human assertion. It never merges, pushes, or
+deploys, and `deployment_authorized` remains false. Production promotion still
+requires an independently authenticated external approval and deployment
+system.
+
+## v0.8 public trust authority
+
+v0.8 keeps the v0.7 HMAC record for local continuity and adds public Ed25519
+attestations. The authority private key remains mode 0600 under `.evo/trust/`;
+only its public key and SHA-256 fingerprint are exposed. Reviewer private keys
+are created at an explicit caller-selected path and are never accepted by the
+web API.
+
+Create a reviewer identity outside the repository, register its public key,
+attest the latest bundle, and record an independently signed review:
+
+```bash
+.venv/bin/evo trust init
+.venv/bin/evo trust reviewer-create --reviewer-id alice \
+  --private-key ../reviewer-keys/alice.key \
+  --public-key ../reviewer-keys/alice.pub
+.venv/bin/evo trust reviewer-register --reviewer-id alice \
+  --display-name "Alice Reviewer" \
+  --public-key ../reviewer-keys/alice.pub
+.venv/bin/evo trust attest
+.venv/bin/evo trust approve --reviewer-id alice \
+  --private-key ../reviewer-keys/alice.key \
+  --note "Replay, sandbox comparison, and evidence hashes inspected."
+.venv/bin/evo trust authorize
+.venv/bin/evo trust status
+```
+
+The policy at `.evo/trust/promotion-policy.json` requires a public attestation,
+rejects revoked reviewers, and requires one to five independent approvals. It
+cannot enable deployment or widen authorization beyond manual repository
+promotion. `authorize` writes a signed authorization artifact; it never changes
+Git, commits, merges, pushes, or deploys. Revoke a compromised identity with:
+
+```bash
+.venv/bin/evo trust reviewer-revoke --reviewer-id alice \
+  --reason "Reviewer key retired."
+```
 
 ## Security invariants
 

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from dataclasses import asdict
 from pathlib import Path
 import argparse
 import json
@@ -9,6 +10,7 @@ import sys
 
 from evo import __version__
 from evo.config import ConfigurationError
+from evo.evaluation import EvidenceRecorder
 from evo.kernel.budget import BudgetExceeded
 from evo.providers.groq import ProviderError
 from evo.runtime import TerrariumRuntime
@@ -19,6 +21,7 @@ from evo.sandbox import (
     SandboxLimits,
 )
 from evo.ui import serve_ui
+from evo.trust_authority import create_reviewer_identity
 
 
 class PersianArgumentParser(argparse.ArgumentParser):
@@ -117,6 +120,43 @@ def build_parser() -> argparse.ArgumentParser:
         nargs=argparse.REMAINDER,
         help="دستور موردنظر برای اجرا",
     )
+    evaluate = subparsers.add_parser(
+        "evaluate",
+        help="اجرای ارزیابی قابل‌ردیابی در محیط ایزوله",
+    )
+    evaluate.add_argument("--workspace", default=".", help="مسیر محیط کار")
+    evaluate.add_argument("--image", required=True, help="نام image کانتینر")
+    evaluate.add_argument(
+        "--engine",
+        choices=("podman", "docker"),
+        help="موتور کانتینر",
+    )
+    evaluate.add_argument(
+        "--timeout", type=int, default=30, help="مهلت اجرا برحسب ثانیه"
+    )
+    evaluate.add_argument("--candidate-id", required=True, help="شناسه نامزد")
+    evaluate.add_argument(
+        "--team-id",
+        action="append",
+        required=True,
+        help="شناسه عضو تیم؛ حداکثر سه بار",
+    )
+    evaluate.add_argument(
+        "--evidence-path",
+        default=".evo/evaluation-evidence.jsonl",
+        help="مسیر دفتر شواهد",
+    )
+    evaluate.add_argument(
+        "--allow-command",
+        action="append",
+        dest="allowed_commands",
+        help="نام فایل اجرایی مجاز؛ امکان تکرار دارد",
+    )
+    evaluate.add_argument(
+        "evaluation_command",
+        nargs=argparse.REMAINDER,
+        help="دستور ارزیابی",
+    )
     ui = subparsers.add_parser("ui", help="اجرای رابط کاربری محلی")
     ui.add_argument("--env-file", help="مسیر فایل محیطی")
     ui.add_argument("--host", default="127.0.0.1", help="نشانی میزبان")
@@ -126,6 +166,41 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="مرورگر را به‌صورت خودکار باز نکن",
     )
+    evidence = subparsers.add_parser(
+        "evidence", help="بازپخش، امضا و بررسی انسانی شواهد"
+    )
+    evidence.add_argument(
+        "action",
+        choices=("status", "bundle", "approve", "reject"),
+        help="عملیات شواهد",
+    )
+    evidence.add_argument("--env-file", help="مسیر فایل محیطی")
+    evidence.add_argument("--approver", help="نام بازبین محلی")
+    evidence.add_argument("--note", default="", help="یادداشت بازبینی")
+    trust = subparsers.add_parser(
+        "trust", help="مرجع اعتماد عمومی و بازبینی مستقل نسخه ۰٫۸"
+    )
+    trust.add_argument(
+        "action",
+        choices=(
+            "status",
+            "init",
+            "attest",
+            "reviewer-create",
+            "reviewer-register",
+            "reviewer-revoke",
+            "approve",
+            "reject",
+            "authorize",
+        ),
+        help="عملیات مرجع اعتماد",
+    )
+    trust.add_argument("--reviewer-id", help="شناسه پایدار بازبین")
+    trust.add_argument("--display-name", default="", help="نام نمایشی بازبین")
+    trust.add_argument("--private-key", help="مسیر کلید خصوصی مستقل بازبین")
+    trust.add_argument("--public-key", help="مسیر کلید عمومی بازبین")
+    trust.add_argument("--reason", default="", help="دلیل لغو هویت")
+    trust.add_argument("--note", default="", help="یادداشت بازبینی امضاشده")
     return parser
 
 
@@ -157,6 +232,70 @@ def main(argv: list[str] | None = None) -> int:
                 )
             )
             return 0
+        if args.command == "evidence":
+            control = runtime.evidence_control()
+            if args.action == "status":
+                payload = control.status()
+            elif args.action == "bundle":
+                payload = control.create_bundle()
+            else:
+                payload = control.approve_latest(
+                    approver=args.approver or "",
+                    decision=args.action,
+                    note=args.note,
+                )
+            print(json.dumps(payload, indent=2, ensure_ascii=False))
+            return 0
+        if args.command == "trust":
+            control = runtime.trust_authority()
+            if args.action == "status":
+                payload = control.status()
+            elif args.action == "init":
+                payload = control.initialize()
+            elif args.action == "attest":
+                payload = control.attest_latest_bundle()
+            elif args.action == "reviewer-create":
+                if not args.reviewer_id or not args.private_key or not args.public_key:
+                    raise ValueError(
+                        "reviewer-create requires --reviewer-id, --private-key, and --public-key."
+                    )
+                payload = create_reviewer_identity(
+                    reviewer_id=args.reviewer_id,
+                    private_key_path=Path(args.private_key),
+                    public_key_path=Path(args.public_key),
+                )
+            elif args.action == "reviewer-register":
+                if not args.reviewer_id or not args.public_key:
+                    raise ValueError(
+                        "reviewer-register requires --reviewer-id and --public-key."
+                    )
+                payload = control.register_reviewer(
+                    reviewer_id=args.reviewer_id,
+                    public_key_path=Path(args.public_key),
+                    display_name=args.display_name,
+                )
+            elif args.action == "reviewer-revoke":
+                if not args.reviewer_id:
+                    raise ValueError("reviewer-revoke requires --reviewer-id.")
+                payload = control.revoke_reviewer(
+                    reviewer_id=args.reviewer_id,
+                    reason=args.reason,
+                )
+            elif args.action in {"approve", "reject"}:
+                if not args.reviewer_id or not args.private_key:
+                    raise ValueError(
+                        f"{args.action} requires --reviewer-id and --private-key."
+                    )
+                payload = control.record_review(
+                    reviewer_id=args.reviewer_id,
+                    private_key_path=Path(args.private_key),
+                    decision=args.action,
+                    note=args.note,
+                )
+            else:
+                payload = control.authorize_latest()
+            print(json.dumps(payload, indent=2, ensure_ascii=False))
+            return 0
         if args.command == "probe":
             print(runtime.probe())
             return 0
@@ -180,6 +319,39 @@ def main(argv: list[str] | None = None) -> int:
                     end="" if result.stderr.endswith("\n") else "\n",
                 )
             return result.exit_code
+        if args.command == "evaluate":
+            command = list(args.evaluation_command)
+            if command[:1] == ["--"]:
+                command = command[1:]
+            workspace = Path(args.workspace).resolve()
+            evidence_path = Path(args.evidence_path)
+            if not evidence_path.is_absolute():
+                evidence_path = workspace / evidence_path
+            recorder = EvidenceRecorder(
+                sandbox=RootlessSandbox(
+                    workspace=workspace,
+                    image=args.image,
+                    engine=args.engine,
+                    limits=SandboxLimits(timeout_seconds=args.timeout),
+                    allowed_commands=(
+                        args.allowed_commands or DEFAULT_ALLOWED_COMMANDS
+                    ),
+                ),
+                evidence_path=evidence_path,
+            )
+            evidence = recorder.evaluate(
+                candidate_id=args.candidate_id,
+                team_ids=args.team_id,
+                command=command,
+            )
+            print(
+                json.dumps(
+                    {**asdict(evidence), "verified": evidence.verified},
+                    indent=2,
+                    ensure_ascii=False,
+                )
+            )
+            return 0 if evidence.verified else 2
 
         candidate = runtime.evolve(
             task=args.task,
@@ -193,7 +365,16 @@ def main(argv: list[str] | None = None) -> int:
                 ensure_ascii=False,
             )
         )
-        return 0 if candidate.get("rejection_reason") is None else 2
+        evidence = candidate.get("evaluation_evidence")
+        evidence_status = (
+            evidence.get("status") if isinstance(evidence, dict) else "proposal_only"
+        )
+        return (
+            0
+            if candidate.get("rejection_reason") is None
+            and evidence_status not in {"invalid", "sandbox_failed"}
+            else 2
+        )
     except (
         ConfigurationError,
         ProviderError,
@@ -241,6 +422,8 @@ def _localize_candidate(candidate: dict[str, object]) -> dict[str, object]:
         "امتیاز": localized_score,
         "وضعیت": status_labels.get(status, status),
         "دلیل رد": candidate.get("rejection_reason"),
+        "شواهد ارزیابی": candidate.get("evaluation_evidence"),
+        "واجد شرایط ارتقا": candidate.get("promotion_eligible", False),
     }
 
 

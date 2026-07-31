@@ -9,6 +9,7 @@ from unittest.mock import patch
 
 from evo.runtime import TerrariumRuntime
 from evo.ui.server import TerrariumUIServer
+from evo.trust_authority import create_reviewer_identity
 
 
 class UIServerTests(unittest.TestCase):
@@ -69,6 +70,24 @@ class UIServerTests(unittest.TestCase):
         self.assertIn('id="autonomy-form"', html)
         self.assertIn('id="evolution-journal"', html)
         self.assertIn('id="achievement-gallery"', html)
+        self.assertIn('id="lineage-map"', html)
+        self.assertIn('id="population-roster"', html)
+        self.assertIn('id="resource-pools"', html)
+        self.assertIn('id="niche-distribution"', html)
+        self.assertIn('id="cooperation-network"', html)
+        self.assertIn('id="ecology-metrics"', html)
+        self.assertIn('id="evaluation-evidence"', html)
+        self.assertIn('id="team-observatory"', html)
+        self.assertIn('id="evidence-control-status"', html)
+        self.assertIn('id="create-evidence-bundle"', html)
+        self.assertIn('id="approval-form"', html)
+        self.assertIn('id="trust-authority-status"', html)
+        self.assertIn('id="attest-evidence"', html)
+        self.assertIn('id="authorize-promotion"', html)
+        self.assertIn("Digital Petri Dish", html)
+        self.assertIn("v0.8.0", html)
+        self.assertIn('id="sandbox_image"', html)
+        self.assertIn('id="evaluation_command"', html)
         self.assertIn('class="organism-visual"', html)
         self.assertIn('id="evolve-thinking"', html)
         self.assertIn('aria-busy="false"', html)
@@ -85,6 +104,14 @@ class UIServerTests(unittest.TestCase):
         self.assertIn("در حال فکر کردن", javascript)
         self.assertIn('localStorage.getItem("evo-language") || "en"', javascript)
         self.assertIn('api("/api/autonomy")', javascript)
+        self.assertIn('api("/api/petri-dish")', javascript)
+        self.assertIn('api("/api/evidence-control")', javascript)
+        self.assertIn('api("/api/evidence/bundle"', javascript)
+        self.assertIn('api("/api/evidence/approve"', javascript)
+        self.assertIn('api("/api/trust-authority")', javascript)
+        self.assertIn('api("/api/trust/attest"', javascript)
+        self.assertIn('api("/api/trust/authorize"', javascript)
+        self.assertIn("renderPetriDish", javascript)
         self.assertIn("ACHIEVEMENT_CATALOG", javascript)
         self.assertIn("achievementUnlocked", javascript)
         self.assertIn("response.text()", javascript)
@@ -96,6 +123,15 @@ class UIServerTests(unittest.TestCase):
         self.assertIn('[dir="rtl"] textarea', stylesheet)
         self.assertIn(".achievement-card", stylesheet)
         self.assertIn(".cell-core", stylesheet)
+        self.assertIn(".lineage-map", stylesheet)
+        self.assertIn(".organism-card", stylesheet)
+        self.assertIn(".resource-track", stylesheet)
+        self.assertIn(".niche-chip", stylesheet)
+        self.assertIn(".cooperation-edge", stylesheet)
+        self.assertIn(".metric-card", stylesheet)
+        self.assertIn(".evidence-state", stylesheet)
+        self.assertIn(".gate-status-grid", stylesheet)
+        self.assertIn(".trust-authority", stylesheet)
 
     def test_autonomy_status_and_journal_endpoints(self):
         status, payload = self._request("GET", "/api/autonomy")
@@ -104,6 +140,78 @@ class UIServerTests(unittest.TestCase):
         status, payload = self._request("GET", "/api/evolution-journal")
         self.assertEqual(status, 200)
         self.assertEqual(payload["entries"], [])
+
+    def test_petri_dish_endpoint_has_founder_population(self):
+        status, payload = self._request("GET", "/api/petri-dish")
+        self.assertEqual(status, 200)
+        self.assertEqual(payload["summary"]["living"], 6)
+        self.assertEqual(payload["summary"]["epoch"], 0)
+        self.assertEqual(len(payload["organisms"]), 6)
+        self.assertEqual(payload["environment"]["phase"], "balanced")
+        self.assertEqual(payload["summary"]["cooperation_links"], 0)
+        self.assertIn("open_endedness_proxy", payload["metrics"])
+
+    def test_evidence_bundle_and_human_gate_endpoints(self):
+        status, payload = self._request("GET", "/api/evidence-control")
+        self.assertEqual(status, 200)
+        self.assertIsNone(payload["latest_bundle"])
+        self.assertFalse(payload["deployment_authorized"])
+
+        status, bundle = self._request("POST", "/api/evidence/bundle", {})
+        self.assertEqual(status, 200)
+        self.assertTrue(bundle["verified"])
+        self.assertTrue(bundle["replay_verified"])
+
+        status, approval = self._request(
+            "POST",
+            "/api/evidence/approve",
+            {
+                "approver": "Local reviewer",
+                "decision": "approve",
+                "note": "Replay and host signature inspected.",
+            },
+        )
+        self.assertEqual(status, 200)
+        self.assertEqual(approval["decision"], "approve")
+        self.assertFalse(approval["deploy_authorized"])
+
+        _, gate = self._request("GET", "/api/evidence-control")
+        self.assertTrue(gate["approval_signature_valid"])
+        self.assertFalse(gate["deployment_authorized"])
+
+    def test_v08_public_trust_endpoints_fail_closed_until_signed_review(self):
+        _, initial = self._request("GET", "/api/trust-authority")
+        self.assertEqual(initial["authority"]["algorithm"], "Ed25519")
+        self.assertFalse(initial["policy"]["satisfied"])
+        self.assertFalse(initial["deployment_authorized"])
+
+        self._request("POST", "/api/evidence/bundle", {})
+        _, attestation = self._request("POST", "/api/trust/attest", {})
+        self.assertTrue(attestation["verified"])
+
+        root = Path(self._directory.name)
+        private_key = root / "external-reviewer.key"
+        public_key = root / "external-reviewer.pub"
+        create_reviewer_identity(
+            reviewer_id="ui-reviewer",
+            private_key_path=private_key,
+            public_key_path=public_key,
+        )
+        self.server.trust_authority.register_reviewer(
+            reviewer_id="ui-reviewer",
+            public_key_path=public_key,
+            display_name="UI Reviewer",
+        )
+        self.server.trust_authority.record_review(
+            reviewer_id="ui-reviewer",
+            private_key_path=private_key,
+            decision="approve",
+            note="Independent evidence review.",
+        )
+        _, authorization = self._request("POST", "/api/trust/authorize", {})
+        self.assertTrue(authorization["verified"])
+        self.assertFalse(authorization["repository_mutation_performed"])
+        self.assertFalse(authorization["deployment_authorized"])
 
     def test_probe_endpoint_uses_runtime(self):
         with patch.object(self.runtime, "probe", return_value="ok"):

@@ -29,6 +29,16 @@ class FakeProvider:
         return "ok"
 
 
+class SequenceProvider(FakeProvider):
+    def __init__(self, responses: list[dict]):
+        super().__init__(responses[0])
+        self.responses = list(responses)
+
+    def generate_json(self, *, system: str, user: str) -> ModelReply:
+        self.response = self.responses.pop(0)
+        return super().generate_json(system=system, user=user)
+
+
 class EngineTests(unittest.TestCase):
     def _engine(self, path: Path, response: dict) -> EvolutionEngine:
         return EvolutionEngine(
@@ -100,6 +110,40 @@ class EngineTests(unittest.TestCase):
                 language="Persian",
             )
         self.assertIn("fluent Persian", provider.last_system)
+
+    def test_generates_bounded_patch_when_source_reader_is_available(self):
+        proposal = {
+            "target_path": "organisms/prompt.md",
+            "summary": "Clarify one instruction.",
+            "rationale": " ".join(["bounded"] * 20),
+            "expected_benefit": "More reliable behavior.",
+            "risk": "Wording may be too strict.",
+        }
+        patch = """diff --git a/organisms/prompt.md b/organisms/prompt.md
+--- a/organisms/prompt.md
++++ b/organisms/prompt.md
+@@ -1 +1 @@
+-baseline
++improved
+"""
+        with TemporaryDirectory() as directory:
+            provider = SequenceProvider([proposal, {"patch": patch}])
+            candidate = EvolutionEngine(
+                provider=provider,
+                policy=KernelPolicy(),
+                budget=RunBudget(
+                    max_calls=2,
+                    max_input_tokens=100,
+                    max_output_tokens=100,
+                ),
+                audit=AuditLog(Path(directory) / "audit.jsonl"),
+                source_reader=lambda path: "baseline\n",
+            ).run_generation(
+                Genome("cell-1"),
+                EvolutionTask("task-1", "Improve prompt"),
+            )
+        self.assertEqual(candidate.proposal.patch, patch)
+        self.assertEqual(provider.responses, [])
 
 
 if __name__ == "__main__":

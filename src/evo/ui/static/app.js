@@ -22,6 +22,7 @@ const I18N = {
     environmentControls: "ENVIRONMENT CONTROLS",
     manualSelection: "MANUAL SELECTION",
     openEndedLoop: "OPEN-ENDED LOOP",
+    populationEcology: "POPULATION ECOLOGY",
     lineageRecord: "LINEAGE RECORD",
     immutableMemory: "IMMUTABLE MEMORY",
     hostStatus: "Host status",
@@ -38,6 +39,10 @@ const I18N = {
     maxOutputTokens: "Maximum output tokens",
     maxCalls: "Maximum calls per run",
     requestTimeout: "Request timeout (seconds)",
+    sandboxImage: "Rootless sandbox image",
+    sandboxEngine: "Sandbox engine",
+    evaluationCommand: "Evaluation command",
+    sandboxTimeout: "Sandbox timeout (seconds)",
     saveSettings: "Save settings",
     probeProvider: "Probe provider",
     runGeneration: "Run one generation",
@@ -121,6 +126,106 @@ const I18N = {
     enabled: "Running",
     autonomyStarted: "Autonomous evolution started",
     autonomyStopped: "Autonomous evolution stopped",
+    digitalPetriDish: "Digital Petri Dish",
+    petriDescription: "A bounded population where energy, heredity, reproduction, and selection shape a visible digital lineage.",
+    lineageMap: "Lineage map",
+    living: "Living",
+    extinct: "Extinct",
+    births: "Births",
+    meanEnergy: "Mean energy",
+    meanFitness: "Mean fitness",
+    epoch: "Ecological epoch",
+    capacity: "Carrying capacity",
+    energy: "Energy",
+    fitness: "Fitness",
+    founder: "Founder",
+    offspring: "Offspring",
+    noPopulation: "No population evidence is available.",
+    resourcePools: "Environmental resources",
+    emergentNiches: "Emergent niches",
+    cooperationNetwork: "Cooperation network",
+    noCooperation: "No cooperation signal has formed yet.",
+    environmentPhase: "Environment phase",
+    compute: "Compute",
+    knowledge: "Knowledge",
+    novelty: "Novelty",
+    stability: "Stability",
+    balanced: "Balanced",
+    scarcity: "Scarcity",
+    novelty_surge: "Novelty surge",
+    explorer: "Explorer",
+    guardian: "Guardian",
+    economizer: "Economizer",
+    archivist: "Archivist",
+    generalist: "Generalist",
+    undifferentiated: "Undifferentiated",
+    interactions: "interactions",
+    researchEvidence: "RESEARCH EVIDENCE",
+    ecologySignals: "Ecology signals",
+    ecologicalStability: "Ecological stability",
+    populationDiversity: "Population diversity",
+    openEndednessProxy: "Open-endedness proxy",
+    openEndednessCaveat: "Open-endedness is an operational proxy for novelty, adaptation diversity, and lineage branching—not proof of unbounded evolution.",
+    cooperativeTeam: "Latest cooperative team",
+    noTeamEvidence: "No team evaluation has been recorded yet.",
+    lead: "Lead",
+    collaborator: "Collaborator",
+    proposal_only: "Proposal only",
+    sandbox_verified: "Sandbox verified",
+    sandbox_failed: "Sandbox failed",
+    invalid: "Invalid evidence",
+    preserved_baseline: "Baseline preserved",
+    repaired_baseline: "Baseline repaired",
+    regression: "Regression detected",
+    still_failing: "Still failing",
+    patch_rejected: "Patch rejected",
+    incomplete: "Incomplete evaluation",
+    promotionEligible: "Promotion eligible",
+    changedPaths: "Changed paths",
+    evidenceIntegrity: "EVIDENCE INTEGRITY",
+    promotionGate: "Human-controlled promotion gate",
+    promotionGateDescription: "Replay every ecological epoch, authenticate the evidence bundle, and record an explicit human decision.",
+    bundleInstructions: "Create a host-authenticated snapshot only after deterministic replay succeeds.",
+    createEvidenceBundle: "Create evidence bundle",
+    approver: "Reviewer",
+    approverPlaceholder: "Your name or local reviewer label",
+    decision: "Decision",
+    approve: "Approve",
+    rejectDecision: "Reject",
+    reviewNote: "Review note",
+    reviewNotePlaceholder: "What evidence did you inspect?",
+    recordDecision: "Record human decision",
+    promotionGateSafety: "This is a signed local assertion—not verified identity, repository promotion, merge, or deployment authorization.",
+    evidenceBundle: "Evidence bundle",
+    deterministicReplay: "Deterministic replay",
+    humanDecision: "Human decision",
+    deploymentAuthority: "Deployment authority",
+    noBundle: "No bundle yet",
+    noDecision: "No decision yet",
+    verified: "Verified",
+    unverified: "Unverified",
+    denied: "Not authorized",
+    bundleCreated: "Verified evidence bundle created",
+    decisionRecorded: "Human decision recorded",
+    publicTrust: "PUBLIC TRUST · v0.8",
+    trustAuthority: "Independent trust authority",
+    trustAuthorityDescription: "Publish an Ed25519 evidence attestation, verify an independently signed reviewer decision, and evaluate the immutable promotion policy.",
+    attestEvidence: "Publish evidence attestation",
+    authorizePromotion: "Authorize manual promotion",
+    trustAuthoritySafety: "Reviewer keys are managed only through the CLI. Authorization creates a signed artifact; EVO still cannot modify Git, push, merge, or deploy.",
+    authorityIdentity: "Authority identity",
+    trustedReviewers: "Trusted reviewers",
+    publicAttestation: "Public attestation",
+    independentReview: "Independent review",
+    promotionPolicy: "Promotion policy",
+    manualAuthorization: "Manual authorization",
+    noAttestation: "No attestation yet",
+    noIndependentReview: "No independent review",
+    policySatisfied: "Policy satisfied",
+    policyBlocked: "Policy blocked",
+    noAuthorization: "No authorization",
+    attestationCreated: "Public evidence attestation created",
+    promotionAuthorized: "Manual promotion authorization created",
     journalStarted: "Autonomous exploration started",
     journalStopped: "Autonomous exploration stopped",
     journalCompleted: "Generation limit reached",
@@ -158,6 +263,7 @@ const I18N = {
     environmentControls: "کنترل‌های محیط",
     manualSelection: "گزینش دستی",
     openEndedLoop: "چرخه بی‌پایان",
+    populationEcology: "بوم‌شناسی جمعیت",
     lineageRecord: "روایت تبار",
     immutableMemory: "حافظه تغییرناپذیر",
     hostStatus: "وضعیت میزبان",
@@ -174,6 +280,10 @@ const I18N = {
     maxOutputTokens: "حداکثر توکن خروجی",
     maxCalls: "حداکثر درخواست در هر اجرا",
     requestTimeout: "مهلت پاسخ‌گویی (ثانیه)",
+    sandboxImage: "تصویر محیط ایزوله بدون ریشه",
+    sandboxEngine: "موتور محیط ایزوله",
+    evaluationCommand: "دستور ارزیابی",
+    sandboxTimeout: "مهلت محیط ایزوله (ثانیه)",
     saveSettings: "ذخیره تنظیمات",
     probeProvider: "آزمون اتصال ارائه‌دهنده",
     runGeneration: "اجرای یک نسل",
@@ -257,6 +367,106 @@ const I18N = {
     enabled: "در حال اجرا",
     autonomyStarted: "تکامل خودکار آغاز شد",
     autonomyStopped: "تکامل خودکار متوقف شد",
+    digitalPetriDish: "پتری‌دیش دیجیتال",
+    petriDescription: "جمعیتی کنترل‌شده که در آن انرژی، وراثت، تولیدمثل و گزینش، تباری دیجیتال و قابل مشاهده می‌سازند.",
+    lineageMap: "نقشه تبار",
+    living: "زنده",
+    extinct: "منقرض‌شده",
+    births: "تولدها",
+    meanEnergy: "میانگین انرژی",
+    meanFitness: "میانگین برازندگی",
+    epoch: "دوره بوم‌شناختی",
+    capacity: "ظرفیت زیست‌بوم",
+    energy: "انرژی",
+    fitness: "برازندگی",
+    founder: "بنیان‌گذار",
+    offspring: "فرزند",
+    noPopulation: "هنوز داده‌ای از جمعیت در دسترس نیست.",
+    resourcePools: "منابع محیطی",
+    emergentNiches: "آشیان‌های نوظهور",
+    cooperationNetwork: "شبکه همکاری",
+    noCooperation: "هنوز سیگنال همکاری شکل نگرفته است.",
+    environmentPhase: "وضعیت محیط",
+    compute: "توان محاسباتی",
+    knowledge: "دانش",
+    novelty: "نوآوری",
+    stability: "پایداری",
+    balanced: "متعادل",
+    scarcity: "کمبود منابع",
+    novelty_surge: "جهش نوآوری",
+    explorer: "کاوشگر",
+    guardian: "نگهبان",
+    economizer: "بهینه‌گر منابع",
+    archivist: "حافظ",
+    generalist: "همه‌فن‌حریف",
+    undifferentiated: "تمایزنیافته",
+    interactions: "تعامل",
+    researchEvidence: "شواهد پژوهشی",
+    ecologySignals: "سیگنال‌های بوم‌شناختی",
+    ecologicalStability: "پایداری بوم‌شناختی",
+    populationDiversity: "تنوع جمعیت",
+    openEndednessProxy: "شاخص تقریبی تکامل بازپایان",
+    openEndednessCaveat: "تکامل بازپایان در اینجا شاخصی عملیاتی بر پایه نوآوری، تنوع سازگاری و شاخه‌زایی تبار است؛ نه اثبات تکامل نامحدود.",
+    cooperativeTeam: "آخرین تیم همکار",
+    noTeamEvidence: "هنوز ارزیابی تیمی ثبت نشده است.",
+    lead: "راهبر",
+    collaborator: "همکار",
+    proposal_only: "فقط پیشنهاد",
+    sandbox_verified: "تأییدشده در محیط ایزوله",
+    sandbox_failed: "ناموفق در محیط ایزوله",
+    invalid: "شواهد نامعتبر",
+    preserved_baseline: "خط مبنا حفظ شد",
+    repaired_baseline: "خط مبنا اصلاح شد",
+    regression: "پس‌رفت شناسایی شد",
+    still_failing: "همچنان ناموفق",
+    patch_rejected: "وصله رد شد",
+    incomplete: "ارزیابی ناقص",
+    promotionEligible: "واجد شرایط ارتقا",
+    changedPaths: "مسیرهای تغییرکرده",
+    evidenceIntegrity: "یکپارچگی شواهد",
+    promotionGate: "دروازه ارتقا با کنترل انسانی",
+    promotionGateDescription: "تمام دوره‌های بوم‌شناختی را بازپخش کنید، اصالت بسته شواهد را بسنجید و تصمیم صریح انسان را ثبت کنید.",
+    bundleInstructions: "تنها پس از موفقیت بازپخش قطعی، یک نمای لحظه‌ای احرازاصالت‌شده توسط میزبان بسازید.",
+    createEvidenceBundle: "ساخت بسته شواهد",
+    approver: "بازبین",
+    approverPlaceholder: "نام شما یا عنوان بازبین محلی",
+    decision: "تصمیم",
+    approve: "تأیید",
+    rejectDecision: "رد",
+    reviewNote: "یادداشت بازبینی",
+    reviewNotePlaceholder: "کدام شواهد را بررسی کردید؟",
+    recordDecision: "ثبت تصمیم انسانی",
+    promotionGateSafety: "این فقط یک اظهار محلی امضاشده است؛ نه هویت تأییدشده، ارتقای مخزن، ادغام یا مجوز استقرار.",
+    evidenceBundle: "بسته شواهد",
+    deterministicReplay: "بازپخش قطعی",
+    humanDecision: "تصمیم انسانی",
+    deploymentAuthority: "اختیار استقرار",
+    noBundle: "هنوز بسته‌ای ساخته نشده",
+    noDecision: "هنوز تصمیمی ثبت نشده",
+    verified: "تأییدشده",
+    unverified: "تأییدنشده",
+    denied: "مجاز نیست",
+    bundleCreated: "بسته شواهد تأییدشده ساخته شد",
+    decisionRecorded: "تصمیم انسانی ثبت شد",
+    publicTrust: "اعتماد عمومی · نسخه ۰٫۸",
+    trustAuthority: "مرجع اعتماد مستقل",
+    trustAuthorityDescription: "گواهی عمومی Ed25519 برای شواهد منتشر کنید، تصمیم امضاشدهٔ بازبین مستقل را اعتبارسنجی کنید و سیاست تغییرناپذیر ارتقا را بسنجید.",
+    attestEvidence: "انتشار گواهی شواهد",
+    authorizePromotion: "صدور مجوز ارتقای دستی",
+    trustAuthoritySafety: "کلیدهای بازبین فقط از طریق خط فرمان مدیریت می‌شوند. مجوز، یک سند امضاشده می‌سازد؛ EVO همچنان نمی‌تواند Git را تغییر دهد، push یا merge کند یا چیزی را مستقر سازد.",
+    authorityIdentity: "هویت مرجع",
+    trustedReviewers: "بازبینان مورد اعتماد",
+    publicAttestation: "گواهی عمومی",
+    independentReview: "بازبینی مستقل",
+    promotionPolicy: "سیاست ارتقا",
+    manualAuthorization: "مجوز دستی",
+    noAttestation: "هنوز گواهی‌ای وجود ندارد",
+    noIndependentReview: "هنوز بازبینی مستقلی وجود ندارد",
+    policySatisfied: "سیاست برآورده شده است",
+    policyBlocked: "سیاست مسدود است",
+    noAuthorization: "هنوز مجوزی صادر نشده است",
+    attestationCreated: "گواهی عمومی شواهد ساخته شد",
+    promotionAuthorized: "مجوز امضاشدهٔ ارتقای دستی صادر شد",
     journalStarted: "کاوش خودکار آغاز شد",
     journalStopped: "کاوش خودکار متوقف شد",
     journalCompleted: "سقف نسل‌ها تکمیل شد",
@@ -305,6 +515,9 @@ let cachedSettings = null;
 let cachedAudit = [];
 let cachedAutonomy = null;
 let cachedJournal = [];
+let cachedPetri = null;
+let cachedEvidenceControl = null;
+let cachedTrustAuthority = null;
 
 const statusSummary = document.getElementById("status-summary");
 const statusGrid = document.getElementById("status-grid");
@@ -325,6 +538,21 @@ const autonomyObjective = document.getElementById("autonomy-objective");
 const journalContainer = document.getElementById("evolution-journal");
 const achievementGallery = document.getElementById("achievement-gallery");
 const achievementCount = document.getElementById("achievement-count");
+const petriStats = document.getElementById("petri-stats");
+const lineageMap = document.getElementById("lineage-map");
+const populationRoster = document.getElementById("population-roster");
+const resourcePools = document.getElementById("resource-pools");
+const nicheDistribution = document.getElementById("niche-distribution");
+const cooperationNetwork = document.getElementById("cooperation-network");
+const ecologyMetrics = document.getElementById("ecology-metrics");
+const evaluationEvidence = document.getElementById("evaluation-evidence");
+const teamObservatory = document.getElementById("team-observatory");
+const evidenceControlStatus = document.getElementById("evidence-control-status");
+const createEvidenceBundle = document.getElementById("create-evidence-bundle");
+const approvalForm = document.getElementById("approval-form");
+const trustAuthorityStatus = document.getElementById("trust-authority-status");
+const attestEvidence = document.getElementById("attest-evidence");
+const authorizePromotion = document.getElementById("authorize-promotion");
 
 function t(key) {
   return I18N[language][key] || I18N.en[key] || key;
@@ -359,6 +587,64 @@ function setLanguage(nextLanguage) {
   renderAudit(cachedAudit);
   renderAutonomy(cachedAutonomy);
   renderJournal(cachedJournal);
+  renderPetriDish(cachedPetri);
+  renderEvidenceControl(cachedEvidenceControl);
+  renderTrustAuthority(cachedTrustAuthority);
+}
+
+function renderEvidenceControl(status) {
+  if (!status) return;
+  cachedEvidenceControl = status;
+  const bundle = status.latest_bundle;
+  const approval = status.latest_approval;
+  const replayVerified = Boolean(bundle?.replay_verified);
+  const bundleVerified = Boolean(bundle?.verified);
+  const approvalValid = Boolean(
+    approval && status.approval_signature_valid && bundleVerified
+  );
+  const cards = [
+    ["evidenceBundle", bundle?.bundle_id || t("noBundle"), bundleVerified],
+    ["deterministicReplay", bundle ? (replayVerified ? t("verified") : t("unverified")) : t("noBundle"), replayVerified],
+    ["humanDecision", approvalValid ? `${t(approval.decision === "approve" ? "approve" : "rejectDecision")} · ${approval.approver}` : t("noDecision"), approvalValid],
+    ["deploymentAuthority", t("denied"), false],
+  ];
+  evidenceControlStatus.innerHTML = cards.map(([label, value, valid]) => `
+    <article class="gate-status-card ${valid ? "verified" : "restricted"}">
+      <span>${escapeHtml(t(label))}</span>
+      <strong>${escapeHtml(value)}</strong>
+    </article>
+  `).join("");
+  approvalForm.querySelector("button[type='submit']").disabled = !bundleVerified;
+}
+
+function renderTrustAuthority(status) {
+  if (!status) return;
+  cachedTrustAuthority = status;
+  const authority = status.authority || {};
+  const attestation = status.latest_attestation;
+  const review = status.latest_review;
+  const policy = status.policy || {};
+  const authorization = status.latest_authorization;
+  const attestationValid = Boolean(attestation?.verified);
+  const reviewValid = Boolean(review?.verified);
+  const policySatisfied = Boolean(policy.satisfied);
+  const authorizationValid = Boolean(authorization?.verified && policySatisfied);
+  const cards = [
+    ["authorityIdentity", authority.fingerprint || t("unverified"), Boolean(authority.fingerprint)],
+    ["trustedReviewers", String(status.trusted_reviewer_count || 0), Number(status.trusted_reviewer_count || 0) > 0],
+    ["publicAttestation", attestationValid ? attestation.attestation_id : t("noAttestation"), attestationValid],
+    ["independentReview", reviewValid ? `${t(review.decision === "approve" ? "approve" : "rejectDecision")} · ${review.reviewer_id}` : t("noIndependentReview"), reviewValid],
+    ["promotionPolicy", policySatisfied ? t("policySatisfied") : t("policyBlocked"), policySatisfied],
+    ["manualAuthorization", authorizationValid ? authorization.authorization_id : t("noAuthorization"), authorizationValid],
+  ];
+  trustAuthorityStatus.innerHTML = cards.map(([label, value, valid]) => `
+    <article class="gate-status-card ${valid ? "verified" : "restricted"}">
+      <span>${escapeHtml(t(label))}</span>
+      <strong>${escapeHtml(value)}</strong>
+    </article>
+  `).join("");
+  attestEvidence.disabled = !cachedEvidenceControl?.latest_bundle?.verified;
+  authorizePromotion.disabled = !policySatisfied;
 }
 
 async function api(path, options = {}) {
@@ -405,6 +691,12 @@ function fillSettings(settings) {
   document.getElementById("max_calls_per_run").value = settings.max_calls_per_run || 4;
   document.getElementById("request_timeout_seconds").value =
     settings.request_timeout_seconds || 45;
+  document.getElementById("sandbox_image").value = settings.sandbox_image || "";
+  document.getElementById("sandbox_engine").value = settings.sandbox_engine || "podman";
+  document.getElementById("evaluation_command").value =
+    settings.evaluation_command || "python -m unittest discover -s tests";
+  document.getElementById("sandbox_timeout_seconds").value =
+    settings.sandbox_timeout_seconds || 60;
   document.getElementById("api_key").value = "";
   document.getElementById("api_key").placeholder = settings.configured
     ? t("keepSavedKey")
@@ -431,7 +723,9 @@ function renderStatus(settings) {
     .join("");
   statusSummary.textContent = settings.configured
     ? `${settings.provider} · ${settings.model}`
-    : settings.error || t("configurationIncomplete");
+    : language === "fa"
+      ? settings.error || t("configurationIncomplete")
+      : t("configurationIncomplete");
 }
 
 function translateStatus(value) {
@@ -624,6 +918,205 @@ function renderJournal(entries) {
     .join("");
 }
 
+function renderPetriDish(state) {
+  if (!state) return;
+  cachedPetri = state;
+  const summary = state.summary || {};
+  const metrics = state.metrics || {};
+  ecologyMetrics.innerHTML = [
+    ["ecologicalStability", metrics.ecological_stability],
+    ["populationDiversity", metrics.population_diversity],
+    ["openEndednessProxy", metrics.open_endedness_proxy],
+  ]
+    .map(([label, rawValue]) => {
+      const value = Math.max(0, Math.min(1, Number(rawValue || 0)));
+      return `<article class="metric-card">
+        <span>${escapeHtml(t(label))}</span>
+        <strong>${escapeHtml(`${Math.round(value * 100)}%`)}</strong>
+        <div class="metric-track"><i style="width:${value * 100}%"></i></div>
+      </article>`;
+    })
+    .join("");
+
+  const latestEvent = (state.events || []).at(-1) || {};
+  const evidence = latestEvent.evaluation_evidence || { status: "proposal_only" };
+  evaluationEvidence.className = `evidence-state ${escapeAttr(evidence.status || "proposal_only")}`;
+  evaluationEvidence.textContent = t(evidence.status || "proposal_only");
+  const team = latestEvent.team || [];
+  const comparisonDetails = evidence.source === "rootless_sandbox_comparison"
+    ? `<div class="comparison-evidence">
+        <span><strong>${escapeHtml(t(evidence.classification || "incomplete"))}</strong>${escapeHtml(t("promotionEligible"))}: ${escapeHtml(evidence.promotion_eligible ? t("yes") : t("no"))}</span>
+        <span><strong>${escapeHtml(t("changedPaths"))}</strong>${escapeHtml((evidence.changed_paths || []).join(", ") || "—")}</span>
+      </div>`
+    : "";
+  teamObservatory.innerHTML = team.length
+    ? `${comparisonDetails}<h4>${escapeHtml(t("cooperativeTeam"))}</h4><div class="team-members">${team
+        .map(
+          (member, index) => `<span class="team-member">
+            <strong>${escapeHtml(member.organism_id)}</strong>
+            ${escapeHtml(t(member.emergent_role || "undifferentiated"))} · ${escapeHtml(t(index === 0 ? "lead" : "collaborator"))}
+          </span>`
+        )
+        .join("")}</div>`
+    : `${comparisonDetails}<p class="empty-state">${escapeHtml(t("noTeamEvidence"))}</p>`;
+  petriStats.innerHTML = [
+    [t("epoch"), summary.epoch ?? 0],
+    [t("living"), `${summary.living ?? 0} / ${summary.capacity ?? 0}`],
+    [t("births"), summary.births ?? 0],
+    [t("extinct"), summary.extinct ?? 0],
+    [t("meanEnergy"), summary.mean_energy ?? 0],
+    [t("meanFitness"), summary.mean_fitness ?? 0],
+  ]
+    .map(
+      ([label, value]) => `
+        <div class="petri-stat">
+          <span>${escapeHtml(String(label))}</span>
+          <strong>${escapeHtml(String(value))}</strong>
+        </div>`
+    )
+    .join("");
+
+  const environment = state.environment || { phase: "balanced", resources: {} };
+  resourcePools.innerHTML = `
+    <p class="environment-phase">${escapeHtml(t("environmentPhase"))}: <strong>${escapeHtml(t(environment.phase || "balanced"))}</strong></p>
+    ${Object.entries(environment.resources || {})
+      .map(([name, value]) => {
+        const amount = Math.max(0, Math.min(120, Number(value || 0)));
+        return `
+          <div class="resource-row">
+            <span>${escapeHtml(t(name))}</span>
+            <div class="resource-track"><i style="width:${(amount / 120) * 100}%"></i></div>
+            <strong>${escapeHtml(amount.toFixed(1))}</strong>
+          </div>`;
+      })
+      .join("")}`;
+
+  const niches = summary.niche_distribution || {};
+  nicheDistribution.innerHTML = Object.entries(niches)
+    .map(
+      ([role, count]) => `
+        <span class="niche-chip">
+          ${escapeHtml(t(role))}<strong>${escapeHtml(String(count))}</strong>
+        </span>`
+    )
+    .join("");
+
+  const cooperation = (state.cooperation || []).slice(-8).reverse();
+  cooperationNetwork.innerHTML = cooperation.length
+    ? cooperation
+        .map(
+          (edge) => `
+            <div class="cooperation-edge">
+              <span>${escapeHtml(edge.organism_a)}</span>
+              <i aria-hidden="true">⇄</i>
+              <span>${escapeHtml(edge.organism_b)}</span>
+              <strong>${escapeHtml(`${edge.successful_interactions}/${edge.interactions}`)} ${escapeHtml(t("interactions"))}</strong>
+            </div>`
+        )
+        .join("")
+    : `<p class="empty-state">${escapeHtml(t("noCooperation"))}</p>`;
+
+  const organisms = (state.organisms || []).slice(-80);
+  if (!organisms.length) {
+    lineageMap.innerHTML = "";
+    populationRoster.innerHTML =
+      `<p class="empty-state">${escapeHtml(t("noPopulation"))}</p>`;
+    return;
+  }
+
+  const visibleIds = new Set(organisms.map((organism) => organism.organism_id));
+  const grouped = new Map();
+  organisms.forEach((organism) => {
+    const generation = Number(organism.generation || 0);
+    if (!grouped.has(generation)) grouped.set(generation, []);
+    grouped.get(generation).push(organism);
+  });
+  const generations = [...grouped.keys()].sort((a, b) => a - b);
+  const positions = new Map();
+  const columnWidth = 190;
+  const rowHeight = 84;
+  const marginX = 74;
+  const marginY = 58;
+  generations.forEach((generation, column) => {
+    grouped
+      .get(generation)
+      .sort((a, b) => a.organism_id.localeCompare(b.organism_id))
+      .forEach((organism, row) => {
+        positions.set(organism.organism_id, {
+          x: marginX + column * columnWidth,
+          y: marginY + row * rowHeight,
+        });
+      });
+  });
+  const maxRows = Math.max(...[...grouped.values()].map((items) => items.length));
+  const width = Math.max(540, marginX * 2 + generations.length * columnWidth);
+  const height = Math.max(260, marginY * 2 + maxRows * rowHeight);
+  lineageMap.setAttribute("viewBox", `0 0 ${width} ${height}`);
+  lineageMap.setAttribute("width", width);
+  lineageMap.setAttribute("height", height);
+
+  const edges = (state.lineage || [])
+    .filter(
+      (edge) =>
+        visibleIds.has(edge.parent_id) &&
+        visibleIds.has(edge.child_id) &&
+        positions.has(edge.parent_id) &&
+        positions.has(edge.child_id)
+    )
+    .map((edge) => {
+      const parent = positions.get(edge.parent_id);
+      const child = positions.get(edge.child_id);
+      return `<path class="lineage-edge" d="M ${parent.x + 22} ${parent.y} C ${parent.x + 82} ${parent.y}, ${child.x - 82} ${child.y}, ${child.x - 22} ${child.y}" />`;
+    })
+    .join("");
+
+  const generationLabels = generations
+    .map((generation, column) => {
+      const x = marginX + column * columnWidth;
+      return `<text class="generation-label" x="${x}" y="22" text-anchor="middle">${escapeHtml(`${t("generation")} ${generation}`)}</text>`;
+    })
+    .join("");
+
+  const nodes = organisms
+    .map((organism) => {
+      const position = positions.get(organism.organism_id);
+      const alive = organism.status === "alive";
+      const energy = Math.max(0, Math.min(100, Number(organism.energy || 0)));
+      return `
+        <g class="lineage-node ${alive ? "alive" : "extinct"}" transform="translate(${position.x} ${position.y})">
+          <circle class="node-halo" r="25"></circle>
+          <circle class="node-body" r="19"></circle>
+          <circle class="energy-ring" r="22" pathLength="100"
+            stroke-dasharray="${energy} ${100 - energy}" transform="rotate(-90)"></circle>
+          <text class="node-id" y="4" text-anchor="middle">${escapeHtml(organism.organism_id.replace("gnome-", ""))}</text>
+          <text class="node-metric" y="37" text-anchor="middle">${escapeHtml(`${t("fitness")} ${Number(organism.fitness || 0).toFixed(2)}`)}</text>
+        </g>`;
+    })
+    .join("");
+  lineageMap.innerHTML = `${generationLabels}${edges}${nodes}`;
+
+  populationRoster.innerHTML = organisms
+    .filter((organism) => organism.status === "alive")
+    .sort((a, b) => Number(b.fitness) - Number(a.fitness))
+    .slice(0, 12)
+    .map(
+      (organism) => `
+        <article class="organism-card">
+          <div>
+            <strong>${escapeHtml(organism.organism_id)}</strong>
+            <small>${escapeHtml(
+              organism.parent_ids?.length ? t("offspring") : t("founder")
+            )} · ${escapeHtml(`${t("generation")} ${organism.generation}`)} · ${escapeHtml(t(organism.emergent_role || "undifferentiated"))}</small>
+          </div>
+          <dl>
+            <div><dt>${escapeHtml(t("energy"))}</dt><dd>${escapeHtml(String(organism.energy))}</dd></div>
+            <div><dt>${escapeHtml(t("fitness"))}</dt><dd>${escapeHtml(Number(organism.fitness || 0).toFixed(3))}</dd></div>
+          </dl>
+        </article>`
+    )
+    .join("");
+}
+
 function formatTime(value) {
   if (!value) return "—";
   const date = new Date(value);
@@ -665,29 +1158,41 @@ function applySearch(query) {
 }
 
 async function refresh() {
-  const [settings, audit, autonomy, journal] = await Promise.all([
+  const [settings, audit, autonomy, journal, petri, evidenceControl, trustAuthority] = await Promise.all([
     api("/api/settings"),
     api("/api/audit?limit=50"),
     api("/api/autonomy"),
     api("/api/evolution-journal?limit=100"),
+    api("/api/petri-dish"),
+    api("/api/evidence-control"),
+    api("/api/trust-authority"),
   ]);
   fillSettings(settings);
   renderStatus(settings);
   renderAudit(audit.events || []);
   renderAutonomy(autonomy);
   renderJournal(journal.entries || []);
+  renderPetriDish(petri);
+  renderEvidenceControl(evidenceControl);
+  renderTrustAuthority(trustAuthority);
   applySearch(globalSearch.value);
 }
 
 async function refreshEvolution() {
-  const [autonomy, journal, audit] = await Promise.all([
+  const [autonomy, journal, audit, petri, evidenceControl, trustAuthority] = await Promise.all([
     api("/api/autonomy"),
     api("/api/evolution-journal?limit=100"),
     api("/api/audit?limit=50"),
+    api("/api/petri-dish"),
+    api("/api/evidence-control"),
+    api("/api/trust-authority"),
   ]);
   renderAutonomy(autonomy);
   renderJournal(journal.entries || []);
   renderAudit(audit.events || []);
+  renderPetriDish(petri);
+  renderEvidenceControl(evidenceControl);
+  renderTrustAuthority(trustAuthority);
 }
 
 document.querySelectorAll("[data-language]").forEach((button) => {
@@ -712,6 +1217,7 @@ settingsForm.addEventListener("submit", async (event) => {
         max_output_tokens: Number(payload.max_output_tokens),
         max_calls_per_run: Number(payload.max_calls_per_run),
         request_timeout_seconds: Number(payload.request_timeout_seconds),
+        sandbox_timeout_seconds: Number(payload.sandbox_timeout_seconds),
       }),
     });
     fillSettings(settings);
@@ -801,6 +1307,61 @@ document.getElementById("stop-autonomy").addEventListener("click", async () => {
     await refreshEvolution();
   } catch (error) {
     showToast(error.message);
+  }
+});
+
+createEvidenceBundle.addEventListener("click", async () => {
+  createEvidenceBundle.disabled = true;
+  try {
+    await api("/api/evidence/bundle", { method: "POST", body: "{}" });
+    renderEvidenceControl(await api("/api/evidence-control"));
+    renderTrustAuthority(await api("/api/trust-authority"));
+    showToast(t("bundleCreated"));
+  } catch (error) {
+    showToast(error.message);
+  } finally {
+    createEvidenceBundle.disabled = false;
+  }
+});
+
+approvalForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  try {
+    const payload = formObject(approvalForm);
+    await api("/api/evidence/approve", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+    renderEvidenceControl(await api("/api/evidence-control"));
+    showToast(t("decisionRecorded"));
+  } catch (error) {
+    showToast(error.message);
+  }
+});
+
+attestEvidence.addEventListener("click", async () => {
+  attestEvidence.disabled = true;
+  try {
+    await api("/api/trust/attest", { method: "POST", body: "{}" });
+    renderTrustAuthority(await api("/api/trust-authority"));
+    showToast(t("attestationCreated"));
+  } catch (error) {
+    showToast(error.message);
+  } finally {
+    attestEvidence.disabled = !cachedEvidenceControl?.latest_bundle?.verified;
+  }
+});
+
+authorizePromotion.addEventListener("click", async () => {
+  authorizePromotion.disabled = true;
+  try {
+    await api("/api/trust/authorize", { method: "POST", body: "{}" });
+    renderTrustAuthority(await api("/api/trust-authority"));
+    showToast(t("promotionAuthorized"));
+  } catch (error) {
+    showToast(error.message);
+  } finally {
+    authorizePromotion.disabled = !cachedTrustAuthority?.policy?.satisfied;
   }
 });
 

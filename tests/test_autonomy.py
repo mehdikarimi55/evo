@@ -179,6 +179,7 @@ class AutonomyTests(unittest.TestCase):
             self.assertEqual(calls[0]["organism_id"], "gnome-0002")
             self.assertIn("mutation_rate", calls[0]["traits"])
             self.assertIn("inherited_adaptations", calls[0]["traits"])
+            self.assertIn("team_plan", calls[0]["traits"])
             self.assertEqual(dish.status()["summary"]["epoch"], 1)
             entry = next(
                 item
@@ -188,5 +189,9 @@ class AutonomyTests(unittest.TestCase):
             self.assertEqual(
                 entry["payload"]["ecology"]["organism_id"],
                 calls[0]["organism_id"],
+            )
+            self.assertEqual(
+                entry["payload"]["evaluation_evidence"]["status"],
+                "proposal_only",
             )
             controller.shutdown()

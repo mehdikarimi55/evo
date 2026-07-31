@@ -179,10 +179,71 @@ class PetriDishTests(unittest.TestCase):
                 if organism["organism_id"] == collaborator_id
             )
             self.assertEqual(event["collaborator_id"], collaborator_id)
-            self.assertEqual(status["summary"]["cooperation_links"], 1)
+            self.assertEqual(
+                status["summary"]["cooperation_links"],
+                len(event["team"]) - 1,
+            )
             self.assertEqual(collaborator["collaborations"], 1)
             self.assertEqual(collaborator["successful_collaborations"], 1)
             self.assertGreater(collaborator["energy"], 100.0)
+
+    def test_team_plan_is_bounded_and_assigns_explicit_responsibilities(self):
+        with TemporaryDirectory() as directory:
+            dish = PetriDish(
+                state_path=Path(directory) / "petri.json",
+                initial_population=6,
+                capacity=8,
+            )
+            selected = dish.select_for_evaluation()
+            plan = selected["team_plan"]
+            self.assertTrue(plan["bounded"])
+            self.assertLessEqual(len(plan["members"]), 3)
+            self.assertTrue(plan["members"][0]["lead"])
+            self.assertTrue(
+                all(member["responsibility"] for member in plan["members"])
+            )
+
+    def test_metrics_and_proposal_only_evidence_are_recorded_honestly(self):
+        with TemporaryDirectory() as directory:
+            dish = PetriDish(
+                state_path=Path(directory) / "petri.json",
+                initial_population=4,
+                capacity=8,
+            )
+            selected = dish.select_for_evaluation()
+            event = dish.record_outcome(
+                organism_id=selected["organism_id"],
+                candidate=candidate(),
+            )
+            status = dish.status()
+            self.assertEqual(event["evaluation_evidence"]["status"], "proposal_only")
+            self.assertFalse(event["evaluation_evidence"]["verified"])
+            self.assertEqual(len(status["metric_history"]), 1)
+            for metric in (
+                "ecological_stability",
+                "population_diversity",
+                "open_endedness_proxy",
+            ):
+                self.assertGreaterEqual(status["metrics"][metric], 0.0)
+                self.assertLessEqual(status["metrics"][metric], 1.0)
+            self.assertIn("not proof", status["metrics"]["interpretation"])
+
+    def test_unsubstantiated_verified_claim_is_rejected(self):
+        with TemporaryDirectory() as directory:
+            dish = PetriDish(
+                state_path=Path(directory) / "petri.json",
+                initial_population=2,
+                capacity=4,
+            )
+            selected = dish.select_for_evaluation()
+            proposed = candidate()
+            proposed["evaluation_evidence"] = {"status": "sandbox_verified"}
+            event = dish.record_outcome(
+                organism_id=selected["organism_id"],
+                candidate=proposed,
+            )
+            self.assertEqual(event["evaluation_evidence"]["status"], "invalid")
+            self.assertFalse(event["evaluation_evidence"]["verified"])
 
     def test_observed_behavior_produces_niche_role_and_distribution(self):
         with TemporaryDirectory() as directory:
@@ -247,6 +308,7 @@ class PetriDishTests(unittest.TestCase):
                 )
             )
             self.assertLessEqual(len(status["cooperation"]), 300)
+            self.assertLessEqual(len(status["metric_history"]), 500)
             self.assertTrue(
                 all(
                     edge["parent_id"] in organism_ids

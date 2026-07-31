@@ -57,8 +57,20 @@ complete offline suite passed before v0.4 began.
 - [x] Emergent role detection based on observed behaviour
 - [x] Diversity preservation and anti-monoculture selection
 - [x] No new host capabilities or production-promotion authority
-- [ ] Multi-organism task decomposition evaluated in the rootless sandbox
-- [ ] Quantitative open-endedness and ecological stability metrics
+- [x] Multi-organism task decomposition with explicit bounded responsibilities
+- [x] Quantitative open-endedness-proxy and ecological stability metrics
+
+## v0.5 — Cooperative evidence
+
+- [x] Complementary teams of at most three living organisms
+- [x] Role-derived task decomposition with a single integration rule
+- [x] Explicit proposal-only versus sandbox-verified evidence states
+- [x] Hash-only persistent evaluator evidence from the rootless sandbox
+- [x] Ecological stability and population-diversity metrics
+- [x] Honest open-endedness proxy with bounded history
+- [ ] Candidate patch generation wired to the mutation/worktree pipeline
+- [ ] Automatic baseline-versus-candidate sandbox comparison
+- [ ] Deterministic replay package for complete ecological epochs
 
 ## Production gate
 

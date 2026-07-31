@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from dataclasses import asdict
 from pathlib import Path
 import argparse
 import json
@@ -9,6 +10,7 @@ import sys
 
 from evo import __version__
 from evo.config import ConfigurationError
+from evo.evaluation import EvidenceRecorder
 from evo.kernel.budget import BudgetExceeded
 from evo.providers.groq import ProviderError
 from evo.runtime import TerrariumRuntime
@@ -117,6 +119,43 @@ def build_parser() -> argparse.ArgumentParser:
         nargs=argparse.REMAINDER,
         help="دستور موردنظر برای اجرا",
     )
+    evaluate = subparsers.add_parser(
+        "evaluate",
+        help="اجرای ارزیابی قابل‌ردیابی در محیط ایزوله",
+    )
+    evaluate.add_argument("--workspace", default=".", help="مسیر محیط کار")
+    evaluate.add_argument("--image", required=True, help="نام image کانتینر")
+    evaluate.add_argument(
+        "--engine",
+        choices=("podman", "docker"),
+        help="موتور کانتینر",
+    )
+    evaluate.add_argument(
+        "--timeout", type=int, default=30, help="مهلت اجرا برحسب ثانیه"
+    )
+    evaluate.add_argument("--candidate-id", required=True, help="شناسه نامزد")
+    evaluate.add_argument(
+        "--team-id",
+        action="append",
+        required=True,
+        help="شناسه عضو تیم؛ حداکثر سه بار",
+    )
+    evaluate.add_argument(
+        "--evidence-path",
+        default=".evo/evaluation-evidence.jsonl",
+        help="مسیر دفتر شواهد",
+    )
+    evaluate.add_argument(
+        "--allow-command",
+        action="append",
+        dest="allowed_commands",
+        help="نام فایل اجرایی مجاز؛ امکان تکرار دارد",
+    )
+    evaluate.add_argument(
+        "evaluation_command",
+        nargs=argparse.REMAINDER,
+        help="دستور ارزیابی",
+    )
     ui = subparsers.add_parser("ui", help="اجرای رابط کاربری محلی")
     ui.add_argument("--env-file", help="مسیر فایل محیطی")
     ui.add_argument("--host", default="127.0.0.1", help="نشانی میزبان")
@@ -180,6 +219,39 @@ def main(argv: list[str] | None = None) -> int:
                     end="" if result.stderr.endswith("\n") else "\n",
                 )
             return result.exit_code
+        if args.command == "evaluate":
+            command = list(args.evaluation_command)
+            if command[:1] == ["--"]:
+                command = command[1:]
+            workspace = Path(args.workspace).resolve()
+            evidence_path = Path(args.evidence_path)
+            if not evidence_path.is_absolute():
+                evidence_path = workspace / evidence_path
+            recorder = EvidenceRecorder(
+                sandbox=RootlessSandbox(
+                    workspace=workspace,
+                    image=args.image,
+                    engine=args.engine,
+                    limits=SandboxLimits(timeout_seconds=args.timeout),
+                    allowed_commands=(
+                        args.allowed_commands or DEFAULT_ALLOWED_COMMANDS
+                    ),
+                ),
+                evidence_path=evidence_path,
+            )
+            evidence = recorder.evaluate(
+                candidate_id=args.candidate_id,
+                team_ids=args.team_id,
+                command=command,
+            )
+            print(
+                json.dumps(
+                    {**asdict(evidence), "verified": evidence.verified},
+                    indent=2,
+                    ensure_ascii=False,
+                )
+            )
+            return 0 if evidence.verified else 2
 
         candidate = runtime.evolve(
             task=args.task,

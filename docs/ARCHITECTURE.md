@@ -107,6 +107,28 @@ descriptive evidence—not permissions or fixed agent assignments. Capacity
 selection includes a rare-role preservation term so ecological diversity is
 less likely to collapse into a monoculture.
 
+## v0.5 cooperative evidence boundary
+
+The population layer deterministically selects a lead and up to two
+complementary collaborators. A team plan gives each organism one descriptive
+responsibility and a single integration rule. Team size is capped at three and
+the plan cannot create processes, communicate outside the request, or override
+kernel policy.
+
+Provider proposals are labelled `proposal_only` unless the host supplies
+concrete evaluation evidence. `evo evaluate` executes an allowlisted command
+through the existing rootless sandbox and appends command metadata, outcome,
+duration, and SHA-256 output digests to a host-owned JSONL ledger. Failed tests
+are retained as evidence but are never labelled verified. Raw evaluator output
+is intentionally excluded from the ledger.
+
+Ecological stability combines population survival, energy/fitness variation,
+and resource balance. Population diversity combines normalized role entropy
+and inherited trait dispersion. The open-endedness proxy combines recent
+novelty, unique adaptation rate, and lineage branching. All values are bounded
+between zero and one and retain a 500-epoch history. They are observability
+signals, not a scientific demonstration of unlimited open-ended evolution.
+
 ## Rootless sandbox boundary
 
 `evo sandbox` runs evaluator commands through Podman or Docker without a direct

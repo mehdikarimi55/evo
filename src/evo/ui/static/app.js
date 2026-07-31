@@ -156,6 +156,20 @@ const I18N = {
     generalist: "Generalist",
     undifferentiated: "Undifferentiated",
     interactions: "interactions",
+    researchEvidence: "RESEARCH EVIDENCE",
+    ecologySignals: "Ecology signals",
+    ecologicalStability: "Ecological stability",
+    populationDiversity: "Population diversity",
+    openEndednessProxy: "Open-endedness proxy",
+    openEndednessCaveat: "Open-endedness is an operational proxy for novelty, adaptation diversity, and lineage branching—not proof of unbounded evolution.",
+    cooperativeTeam: "Latest cooperative team",
+    noTeamEvidence: "No team evaluation has been recorded yet.",
+    lead: "Lead",
+    collaborator: "Collaborator",
+    proposal_only: "Proposal only",
+    sandbox_verified: "Sandbox verified",
+    sandbox_failed: "Sandbox failed",
+    invalid: "Invalid evidence",
     journalStarted: "Autonomous exploration started",
     journalStopped: "Autonomous exploration stopped",
     journalCompleted: "Generation limit reached",
@@ -327,6 +341,20 @@ const I18N = {
     generalist: "همه‌فن‌حریف",
     undifferentiated: "تمایزنیافته",
     interactions: "تعامل",
+    researchEvidence: "شواهد پژوهشی",
+    ecologySignals: "سیگنال‌های بوم‌شناختی",
+    ecologicalStability: "پایداری بوم‌شناختی",
+    populationDiversity: "تنوع جمعیت",
+    openEndednessProxy: "شاخص تقریبی تکامل بازپایان",
+    openEndednessCaveat: "تکامل بازپایان در اینجا شاخصی عملیاتی بر پایه نوآوری، تنوع سازگاری و شاخه‌زایی تبار است؛ نه اثبات تکامل نامحدود.",
+    cooperativeTeam: "آخرین تیم همکار",
+    noTeamEvidence: "هنوز ارزیابی تیمی ثبت نشده است.",
+    lead: "راهبر",
+    collaborator: "همکار",
+    proposal_only: "فقط پیشنهاد",
+    sandbox_verified: "تأییدشده در محیط ایزوله",
+    sandbox_failed: "ناموفق در محیط ایزوله",
+    invalid: "شواهد نامعتبر",
     journalStarted: "کاوش خودکار آغاز شد",
     journalStopped: "کاوش خودکار متوقف شد",
     journalCompleted: "سقف نسل‌ها تکمیل شد",
@@ -402,6 +430,9 @@ const populationRoster = document.getElementById("population-roster");
 const resourcePools = document.getElementById("resource-pools");
 const nicheDistribution = document.getElementById("niche-distribution");
 const cooperationNetwork = document.getElementById("cooperation-network");
+const ecologyMetrics = document.getElementById("ecology-metrics");
+const evaluationEvidence = document.getElementById("evaluation-evidence");
+const teamObservatory = document.getElementById("team-observatory");
 
 function t(key) {
   return I18N[language][key] || I18N.en[key] || key;
@@ -708,6 +739,37 @@ function renderPetriDish(state) {
   if (!state) return;
   cachedPetri = state;
   const summary = state.summary || {};
+  const metrics = state.metrics || {};
+  ecologyMetrics.innerHTML = [
+    ["ecologicalStability", metrics.ecological_stability],
+    ["populationDiversity", metrics.population_diversity],
+    ["openEndednessProxy", metrics.open_endedness_proxy],
+  ]
+    .map(([label, rawValue]) => {
+      const value = Math.max(0, Math.min(1, Number(rawValue || 0)));
+      return `<article class="metric-card">
+        <span>${escapeHtml(t(label))}</span>
+        <strong>${escapeHtml(`${Math.round(value * 100)}%`)}</strong>
+        <div class="metric-track"><i style="width:${value * 100}%"></i></div>
+      </article>`;
+    })
+    .join("");
+
+  const latestEvent = (state.events || []).at(-1) || {};
+  const evidence = latestEvent.evaluation_evidence || { status: "proposal_only" };
+  evaluationEvidence.className = `evidence-state ${escapeAttr(evidence.status || "proposal_only")}`;
+  evaluationEvidence.textContent = t(evidence.status || "proposal_only");
+  const team = latestEvent.team || [];
+  teamObservatory.innerHTML = team.length
+    ? `<h4>${escapeHtml(t("cooperativeTeam"))}</h4><div class="team-members">${team
+        .map(
+          (member, index) => `<span class="team-member">
+            <strong>${escapeHtml(member.organism_id)}</strong>
+            ${escapeHtml(t(member.emergent_role || "undifferentiated"))} · ${escapeHtml(t(index === 0 ? "lead" : "collaborator"))}
+          </span>`
+        )
+        .join("")}</div>`
+    : `<p class="empty-state">${escapeHtml(t("noTeamEvidence"))}</p>`;
   petriStats.innerHTML = [
     [t("epoch"), summary.epoch ?? 0],
     [t("living"), `${summary.living ?? 0} / ${summary.capacity ?? 0}`],

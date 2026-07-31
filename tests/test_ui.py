@@ -74,8 +74,11 @@ class UIServerTests(unittest.TestCase):
         self.assertIn('id="resource-pools"', html)
         self.assertIn('id="niche-distribution"', html)
         self.assertIn('id="cooperation-network"', html)
+        self.assertIn('id="ecology-metrics"', html)
+        self.assertIn('id="evaluation-evidence"', html)
+        self.assertIn('id="team-observatory"', html)
         self.assertIn("Digital Petri Dish", html)
-        self.assertIn("v0.4.0", html)
+        self.assertIn("v0.5.0", html)
         self.assertIn('class="organism-visual"', html)
         self.assertIn('id="evolve-thinking"', html)
         self.assertIn('aria-busy="false"', html)
@@ -110,6 +113,8 @@ class UIServerTests(unittest.TestCase):
         self.assertIn(".resource-track", stylesheet)
         self.assertIn(".niche-chip", stylesheet)
         self.assertIn(".cooperation-edge", stylesheet)
+        self.assertIn(".metric-card", stylesheet)
+        self.assertIn(".evidence-state", stylesheet)
 
     def test_autonomy_status_and_journal_endpoints(self):
         status, payload = self._request("GET", "/api/autonomy")
@@ -127,6 +132,7 @@ class UIServerTests(unittest.TestCase):
         self.assertEqual(len(payload["organisms"]), 6)
         self.assertEqual(payload["environment"]["phase"], "balanced")
         self.assertEqual(payload["summary"]["cooperation_links"], 0)
+        self.assertIn("open_endedness_proxy", payload["metrics"])
 
     def test_probe_endpoint_uses_runtime(self):
         with patch.object(self.runtime, "probe", return_value="ok"):

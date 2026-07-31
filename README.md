@@ -1,6 +1,6 @@
 # EVO — Evolutionary Virtual Organism
 
-EVO Terrarium v0.4.0 is a bounded environment for experiments in evolutionary
+EVO Terrarium v0.5.0 is a bounded environment for experiments in evolutionary
 coding agents. It lets an organism propose a mutation, evaluates that mutation,
 and records whether it is eligible for selection. The immutable kernel owns
 credentials, budgets, policy decisions, audit events, and promotion gates.
@@ -24,6 +24,9 @@ This repository starts with a deliberately narrow vertical slice:
 - cycling environmental resources and measurable ecological pressures;
 - bounded cooperation signals and behaviour-derived emergent roles;
 - diversity-aware selection that resists premature niche monoculture;
+- bounded three-organism teams with role-derived task decomposition;
+- tamper-evident rootless sandbox evaluation records;
+- ecological stability, population diversity, and open-endedness proxy metrics;
 - an offline test suite based entirely on the Python standard library.
 
 It does **not** autonomously register accounts, accept legal terms, bypass
@@ -201,6 +204,34 @@ Explorer, guardian, economizer, archivist, and generalist roles are inferred
 from observed fitness and inherited traits; they are not assigned as executable
 agent privileges. Carrying-capacity selection gives rare observed roles a
 preservation advantage to reduce premature monoculture.
+
+## Cooperative evidence and research metrics
+
+In v0.5, EVO forms a deterministic team of at most three complementary living
+organisms. The lead integrates bounded advice from role-derived
+responsibilities. These responsibilities are prompt context only: they do not
+grant tools, credentials, network access, or permission to promote code.
+
+Ordinary model output remains labelled `proposal_only`. When an executable
+candidate artifact exists, the host can run an explicit evaluator and record
+hash-only evidence:
+
+```bash
+.venv/bin/evo evaluate \
+  --workspace . \
+  --image python:3.13-alpine \
+  --candidate-id candidate-0001 \
+  --team-id gnome-0001 \
+  --team-id gnome-0002 \
+  -- python -m unittest
+```
+
+The ledger stores command, outcome, duration, output hashes, timeout, and
+truncation state in `.evo/evaluation-evidence.jsonl`; it does not persist raw
+test output. The Petri Dish also reports ecological stability, population
+diversity, and an open-endedness proxy based on novelty, adaptation diversity,
+and lineage branching. This is an operational signal, not proof of truly
+unbounded evolution.
 
 ## Security invariants
 

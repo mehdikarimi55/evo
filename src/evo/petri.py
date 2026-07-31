@@ -11,7 +11,7 @@ import json
 import math
 
 
-STATE_VERSION = 1
+STATE_VERSION = 2
 DEFAULT_POPULATION_SIZE = 6
 DEFAULT_CAPACITY = 24
 INITIAL_ENERGY = 100.0
@@ -63,8 +63,10 @@ class PetriDish:
             energies = [float(organism["energy"]) for organism in living]
             fitnesses = [float(organism["fitness"]) for organism in living]
             niche_distribution = _niche_distribution(living)
+            metrics = _ecology_metrics(state)
             return {
                 **deepcopy(state),
+                "metrics": metrics,
                 "summary": {
                     "epoch": int(state["epoch"]),
                     "living": len(living),
@@ -82,6 +84,9 @@ class PetriDish:
                     "environment_phase": state["environment"]["phase"],
                     "cooperation_links": len(state["cooperation"]),
                     "niche_distribution": niche_distribution,
+                    "ecological_stability": metrics["ecological_stability"],
+                    "population_diversity": metrics["population_diversity"],
+                    "open_endedness_proxy": metrics["open_endedness_proxy"],
                 },
             }
 
@@ -123,17 +128,11 @@ class PetriDish:
 
             selected = max(living, key=selection_score)
             result = deepcopy(selected)
-            collaborator = _select_collaborator(living, selected)
+            team = _select_team(living, selected)
+            result["team_plan"] = _team_plan(team)
+            collaborator = team[1] if len(team) > 1 else None
             result["cooperation_context"] = (
-                {
-                    "collaborator_id": collaborator["organism_id"],
-                    "emergent_role": collaborator.get(
-                        "emergent_role", "undifferentiated"
-                    ),
-                    "verified_adaptation": _latest_adaptation_summary(collaborator),
-                }
-                if collaborator is not None
-                else None
+                _team_member_context(collaborator) if collaborator is not None else None
             )
             return result
 
@@ -180,12 +179,14 @@ class PetriDish:
                 2,
             )
             eligible = candidate.get("status") == "eligible"
-            collaborator = _select_collaborator(organisms, organism)
+            team = _select_team(organisms, organism)
+            collaborators = team[1:]
+            lead_collaborator = collaborators[0] if collaborators else None
             fitness_vector = _fitness_vector(
                 candidate,
                 state,
                 organism=organism,
-                collaborator=collaborator,
+                collaborators=collaborators,
             )
             measured_fitness = _aggregate_fitness(fitness_vector)
             if not eligible:
@@ -232,7 +233,7 @@ class PetriDish:
                     ),
                     2,
                 )
-                if collaborator is not None:
+                for collaborator in collaborators:
                     _record_cooperation(
                         state,
                         organism=organism,
@@ -241,7 +242,7 @@ class PetriDish:
                     )
             else:
                 organism["rejections"] = int(organism["rejections"]) + 1
-                if collaborator is not None:
+                for collaborator in collaborators:
                     _record_cooperation(
                         state,
                         organism=organism,
@@ -264,8 +265,21 @@ class PetriDish:
                 "emergent_role": organism["emergent_role"],
                 "environment_phase": state["environment"]["phase"],
                 "collaborator_id": (
-                    collaborator["organism_id"] if collaborator is not None else None
+                    lead_collaborator["organism_id"]
+                    if lead_collaborator is not None
+                    else None
                 ),
+                "team": [
+                    {
+                        "organism_id": member["organism_id"],
+                        "emergent_role": member.get(
+                            "emergent_role", "undifferentiated"
+                        ),
+                    }
+                    for member in team
+                ],
+                "evaluation_evidence": _evaluation_evidence(candidate),
+                "novelty": fitness_vector["novelty"],
                 "offspring_id": (
                     offspring["organism_id"] if offspring is not None else None
                 ),
@@ -273,6 +287,13 @@ class PetriDish:
                 "timestamp": _now(),
             }
             state["events"] = [*list(state["events"]), event][-500:]
+            metrics = _ecology_metrics(state)
+            event["metrics"] = metrics
+            state["events"][-1] = event
+            state["metric_history"] = [
+                *list(state.get("metric_history", [])),
+                {"epoch": state["epoch"], **metrics},
+            ][-500:]
             state["updated_at"] = _now()
             self._write_state(state)
             return deepcopy(event)
@@ -391,6 +412,7 @@ class PetriDish:
                 },
             },
             "cooperation": [],
+            "metric_history": [],
             "created_at": _now(),
             "updated_at": _now(),
         }
@@ -400,7 +422,7 @@ class PetriDish:
             stored = json.loads(self.state_path.read_text(encoding="utf-8"))
         except (OSError, json.JSONDecodeError) as exc:
             raise PetriDishError("The Petri Dish state is unreadable.") from exc
-        if stored.get("state_version") != STATE_VERSION:
+        if stored.get("state_version") not in {1, STATE_VERSION}:
             raise PetriDishError("Unsupported Petri Dish state version.")
         if not isinstance(stored.get("organisms"), list):
             raise PetriDishError("The Petri Dish population is invalid.")
@@ -417,6 +439,8 @@ class PetriDish:
             },
         )
         stored.setdefault("cooperation", [])
+        stored.setdefault("metric_history", [])
+        stored["state_version"] = STATE_VERSION
         for organism in stored["organisms"]:
             organism.setdefault("emergent_role", "undifferentiated")
             organism.setdefault("behavioral_observations", 0)
@@ -504,7 +528,7 @@ def _fitness_vector(
     state: dict[str, Any],
     *,
     organism: dict[str, Any],
-    collaborator: dict[str, Any] | None,
+    collaborators: list[dict[str, Any]],
 ) -> dict[str, float]:
     score = candidate.get("score")
     score_map = score if isinstance(score, dict) else {}
@@ -527,8 +551,9 @@ def _fitness_vector(
         phase=str(state["environment"]["phase"]),
     )
     cooperation = (
-        _complementarity(organism, collaborator)
-        if collaborator is not None
+        sum(_complementarity(organism, member) for member in collaborators)
+        / len(collaborators)
+        if collaborators
         else 0.25
     )
     return {
@@ -659,10 +684,12 @@ def _resource_factor(resources: dict[str, Any]) -> float:
     return max(0.45, min(1.1, mean / 100.0))
 
 
-def _select_collaborator(
+def _select_team(
     organisms: list[dict[str, Any]],
     selected: dict[str, Any],
-) -> dict[str, Any] | None:
+    *,
+    limit: int = 3,
+) -> list[dict[str, Any]]:
     candidates = [
         organism
         for organism in organisms
@@ -671,15 +698,70 @@ def _select_collaborator(
         and float(organism["energy"]) >= 15.0
     ]
     if not candidates:
-        return None
-    return max(
+        return [selected]
+    ranked = sorted(
         candidates,
         key=lambda organism: (
             _complementarity(selected, organism),
+            1
+            if organism.get("emergent_role")
+            != selected.get("emergent_role")
+            else 0,
             float(organism["fitness"]),
             str(organism["organism_id"]),
         ),
+        reverse=True,
     )
+    team = [selected]
+    for candidate in ranked:
+        if len(team) >= limit:
+            break
+        if all(
+            _complementarity(member, candidate) >= 0.45
+            for member in team
+        ):
+            team.append(candidate)
+    return team
+
+
+def _team_member_context(organism: dict[str, Any]) -> dict[str, object]:
+    return {
+        "collaborator_id": organism["organism_id"],
+        "emergent_role": organism.get("emergent_role", "undifferentiated"),
+        "verified_adaptation": _latest_adaptation_summary(organism),
+    }
+
+
+def _team_plan(team: list[dict[str, Any]]) -> dict[str, object]:
+    role_objectives = {
+        "explorer": "Propose a meaningfully novel bounded alternative.",
+        "guardian": "Check policy, safety, invariants, and failure modes.",
+        "economizer": "Reduce compute, state growth, and resource cost.",
+        "archivist": "Retrieve relevant inherited, verified adaptations.",
+        "generalist": "Integrate the team findings into one coherent proposal.",
+        "undifferentiated": "Integrate evidence and identify the smallest safe step.",
+    }
+    members = []
+    for index, organism in enumerate(team):
+        role = str(organism.get("emergent_role", "undifferentiated"))
+        members.append(
+            {
+                "organism_id": organism["organism_id"],
+                "role": role,
+                "responsibility": role_objectives[role],
+                "lead": index == 0,
+                "verified_adaptation": _latest_adaptation_summary(organism),
+            }
+        )
+    return {
+        "bounded": True,
+        "max_team_size": 3,
+        "members": members,
+        "integration_rule": (
+            "The lead may synthesize advice, but immutable policy and sandbox "
+            "verification remain authoritative."
+        ),
+    }
 
 
 def _complementarity(
@@ -807,6 +889,173 @@ def _niche_distribution(organisms: list[dict[str, Any]]) -> dict[str, int]:
         role = str(organism.get("emergent_role", "undifferentiated"))
         distribution[role] = distribution.get(role, 0) + 1
     return dict(sorted(distribution.items()))
+
+
+def _ecology_metrics(state: dict[str, Any]) -> dict[str, object]:
+    living = [
+        organism
+        for organism in state["organisms"]
+        if organism["status"] == "alive"
+    ]
+    all_organisms = list(state["organisms"])
+    survival_ratio = len(living) / max(len(all_organisms), 1)
+    energy_stability = 1.0 - _coefficient_of_variation(
+        [float(item["energy"]) for item in living],
+        ceiling=1.0,
+    )
+    fitness_stability = 1.0 - _coefficient_of_variation(
+        [float(item["fitness"]) for item in living],
+        ceiling=1.0,
+    )
+    resource_values = [
+        float(value)
+        for value in state["environment"].get("resources", {}).values()
+    ]
+    resource_balance = 1.0 - _coefficient_of_variation(
+        resource_values,
+        ceiling=1.0,
+    )
+    ecological_stability = _clamp(
+        0.35 * survival_ratio
+        + 0.25 * energy_stability
+        + 0.20 * fitness_stability
+        + 0.20 * resource_balance
+    )
+
+    roles = _niche_distribution(living)
+    role_entropy = _normalized_entropy(list(roles.values()))
+    trait_dispersion = _trait_dispersion(living)
+    population_diversity = _clamp(0.55 * role_entropy + 0.45 * trait_dispersion)
+
+    adaptations = [
+        adaptation
+        for organism in all_organisms
+        for adaptation in organism.get("selected_adaptations", [])
+        if isinstance(adaptation, dict) and adaptation.get("summary")
+    ]
+    unique_adaptations = len(
+        {str(adaptation["summary"]).strip().lower() for adaptation in adaptations}
+    )
+    adaptation_diversity = (
+        unique_adaptations / len(adaptations) if adaptations else 0.0
+    )
+    recent_events = list(state.get("events", []))[-20:]
+    recent_novelty = [float(event.get("novelty", 0.0)) for event in recent_events]
+    novelty_signal = (
+        sum(recent_novelty) / len(recent_novelty) if recent_novelty else 0.0
+    )
+    parent_ids = {
+        edge["parent_id"]
+        for edge in state.get("lineage", [])
+        if edge.get("parent_id")
+    }
+    branching = min(1.0, len(parent_ids) / max(len(living), 1))
+    open_endedness_proxy = _clamp(
+        0.40 * novelty_signal
+        + 0.35 * adaptation_diversity
+        + 0.25 * branching
+    )
+    return {
+        "ecological_stability": round(ecological_stability, 4),
+        "population_diversity": round(population_diversity, 4),
+        "open_endedness_proxy": round(open_endedness_proxy, 4),
+        "components": {
+            "survival_ratio": round(survival_ratio, 4),
+            "energy_stability": round(energy_stability, 4),
+            "fitness_stability": round(fitness_stability, 4),
+            "resource_balance": round(resource_balance, 4),
+            "role_entropy": round(role_entropy, 4),
+            "trait_dispersion": round(trait_dispersion, 4),
+            "novelty_signal": round(novelty_signal, 4),
+            "adaptation_diversity": round(adaptation_diversity, 4),
+            "lineage_branching": round(branching, 4),
+        },
+        "interpretation": (
+            "The open-endedness value is an operational proxy for novelty, "
+            "adaptation diversity, and lineage branching—not proof of "
+            "unbounded or truly open-ended evolution."
+        ),
+    }
+
+
+def _evaluation_evidence(candidate: dict[str, object]) -> dict[str, object]:
+    supplied = candidate.get("evaluation_evidence")
+    if isinstance(supplied, dict):
+        status = str(supplied.get("status", "proposal_only"))
+        verified = (
+            status == "sandbox_verified"
+            and supplied.get("source") == "rootless_sandbox"
+            and supplied.get("exit_code") == 0
+            and _is_sha256(supplied.get("stdout_sha256"))
+            and _is_sha256(supplied.get("stderr_sha256"))
+        )
+        return {
+            **deepcopy(supplied),
+            "status": status if verified or status != "sandbox_verified" else "invalid",
+            "verified": verified,
+        }
+    return {
+        "candidate_id": candidate.get("candidate_id"),
+        "status": "proposal_only",
+        "verified": False,
+        "reason": "No executable candidate patch or sandbox result was supplied.",
+    }
+
+
+def _is_sha256(value: object) -> bool:
+    return (
+        isinstance(value, str)
+        and len(value) == 64
+        and all(character in "0123456789abcdef" for character in value.lower())
+    )
+
+
+def _coefficient_of_variation(
+    values: list[float],
+    *,
+    ceiling: float,
+) -> float:
+    if len(values) < 2:
+        return 0.0
+    mean = sum(values) / len(values)
+    if mean <= 0:
+        return ceiling
+    variance = sum((value - mean) ** 2 for value in values) / len(values)
+    return min(ceiling, math.sqrt(variance) / mean)
+
+
+def _normalized_entropy(counts: list[int]) -> float:
+    total = sum(counts)
+    if total <= 0 or len(counts) <= 1:
+        return 0.0
+    entropy = -sum(
+        (count / total) * math.log(count / total)
+        for count in counts
+        if count > 0
+    )
+    return _clamp(entropy / math.log(len(counts)))
+
+
+def _trait_dispersion(organisms: list[dict[str, Any]]) -> float:
+    if len(organisms) < 2:
+        return 0.0
+    trait_names = sorted(
+        {
+            name
+            for organism in organisms
+            for name in organism.get("traits", {})
+        }
+    )
+    if not trait_names:
+        return 0.0
+    ranges = []
+    for name in trait_names:
+        values = [
+            float(organism.get("traits", {}).get(name, 0.0))
+            for organism in organisms
+        ]
+        ranges.append(max(values) - min(values))
+    return _clamp(sum(ranges) / len(ranges) * 4.0)
 
 
 def _viability(organism: dict[str, Any]) -> float:

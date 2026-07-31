@@ -8,6 +8,7 @@ from threading import Event, Lock, Thread
 from typing import Callable
 import json
 
+from evo.evaluation import proposal_only_evidence
 from evo.petri import PetriDish
 
 
@@ -216,6 +217,7 @@ class AutonomyController:
                     organism_traits["emergent_role"] = selected_organism.get(
                         "emergent_role", "undifferentiated"
                     )
+                    organism_traits["team_plan"] = selected_organism.get("team_plan")
                 organism_traits["selected_adaptations"] = list(
                     state["selected_adaptations"]
                 )[-20:]
@@ -227,6 +229,10 @@ class AutonomyController:
                     generation=int(selected_organism["generation"]),
                     language=str(state["language"]),
                     traits=organism_traits,
+                )
+                candidate.setdefault(
+                    "evaluation_evidence",
+                    proposal_only_evidence(candidate.get("candidate_id")),
                 )
                 ecology_event = (
                     self._petri_dish.record_outcome(
@@ -333,6 +339,8 @@ class AutonomyController:
                         "rejection_reason": candidate.get("rejection_reason"),
                         "achievements": unlocked_now,
                         "ecology": ecology_event,
+                        "team_plan": selected_organism.get("team_plan"),
+                        "evaluation_evidence": candidate.get("evaluation_evidence"),
                     },
                 )
                 if reached_limit:

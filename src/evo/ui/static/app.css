@@ -710,6 +710,56 @@ td:first-child {
   font-size: 1rem;
 }
 
+.evidence-observatory {
+  margin-top: 0.75rem;
+  padding: 0.85rem;
+  border: 1px solid rgba(76, 229, 166, 0.2);
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(76, 229, 166, 0.055), rgba(2, 14, 10, 0.3));
+}
+
+.evidence-heading,
+.evidence-heading > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.7rem;
+}
+
+.evidence-heading > div { align-items: baseline; }
+.evidence-heading h3,
+.team-observatory h4 { margin: 0; color: var(--glass); font-family: var(--display); font-size: 0.78rem; }
+
+.evidence-state {
+  padding: 0.28rem 0.55rem;
+  border: 1px solid rgba(255, 191, 105, 0.28);
+  border-radius: 999px;
+  color: var(--amber);
+  font-size: 0.61rem;
+}
+
+.evidence-state.sandbox_verified { border-color: rgba(76, 229, 166, 0.35); color: var(--leaf); }
+.evidence-state.sandbox_failed,
+.evidence-state.invalid { border-color: rgba(255, 112, 112, 0.35); color: #ff9090; }
+
+.metric-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.55rem;
+  margin-top: 0.7rem;
+}
+
+.metric-card { min-width: 0; padding: 0.6rem; border: 1px solid var(--line); border-radius: 12px; }
+.metric-card span { display: block; min-height: 1.8em; color: var(--muted); font-size: 0.62rem; }
+.metric-card strong { color: var(--glass); font-family: var(--mono); font-size: 0.8rem; }
+.metric-track { height: 0.25rem; margin-top: 0.35rem; overflow: hidden; border-radius: 999px; background: rgba(230, 255, 243, 0.08); }
+.metric-track i { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--leaf), var(--amber)); }
+.metric-caveat { margin: 0.55rem 0 0; color: rgba(195, 220, 208, 0.65); font-size: 0.59rem; line-height: 1.55; }
+.team-observatory { margin-top: 0.65rem; }
+.team-members { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.45rem; }
+.team-member { padding: 0.35rem 0.5rem; border-radius: 10px; background: rgba(255, 255, 255, 0.035); color: var(--muted); font-size: 0.59rem; }
+.team-member strong { display: block; color: var(--leaf); font-family: var(--mono); font-size: 0.6rem; }
+
 .ecology-grid {
   display: grid;
   grid-template-columns: 1.15fr 0.85fr 1fr;
@@ -1114,8 +1164,15 @@ td:first-child {
 @media (max-width: 720px) {
   .form-grid,
   .hero-grid,
-  .ecology-grid {
+  .ecology-grid,
+  .metric-grid {
     grid-template-columns: 1fr;
+  }
+
+  .evidence-heading,
+  .evidence-heading > div {
+    align-items: flex-start;
+    flex-direction: column;
   }
 
   .hero {

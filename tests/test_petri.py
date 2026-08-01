@@ -152,9 +152,39 @@ class PetriDishTests(unittest.TestCase):
             status = dish.status()
             self.assertEqual(status["summary"]["epoch"], 4)
             self.assertEqual(status["environment"]["phase"], "scarcity")
-            self.assertLess(
+            # Balanced epochs net +2 compute; the scarcity step then nets -3.
+            self.assertAlmostEqual(
                 status["environment"]["resources"]["compute"],
-                100.0,
+                103.0,
+                places=2,
+            )
+
+    def test_drained_compute_recovers_during_balanced_phase(self):
+        with TemporaryDirectory() as directory:
+            dish = PetriDish(
+                state_path=Path(directory) / "petri.json",
+                initial_population=4,
+                capacity=8,
+            )
+            state = dish._read_state()
+            state["epoch"] = 0  # next evaluation enters balanced (epochs 1-3)
+            state["environment"]["phase"] = "balanced"
+            state["environment"]["resources"]["compute"] = 0.0
+            dish._write_state(state)
+
+            selected = dish.select_for_evaluation()
+            dish.record_outcome(
+                organism_id=selected["organism_id"],
+                candidate=candidate(candidate_id="recover-1", status="rejected"),
+            )
+            status = dish.status()
+            self.assertEqual(status["environment"]["phase"], "balanced")
+            # Regen 6.0 minus evaluation spend 4.0 leaves a net recovery.
+            self.assertGreater(status["environment"]["resources"]["compute"], 0.0)
+            self.assertAlmostEqual(
+                status["environment"]["resources"]["compute"],
+                2.0,
+                places=2,
             )
 
     def test_cooperation_is_bounded_observable_and_rewards_partner(self):

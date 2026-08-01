@@ -269,6 +269,12 @@ class PetriDish:
                 "fitness": measured_fitness,
                 "energy": organism["energy"],
                 "emergent_role": organism["emergent_role"],
+                "fitness_vector": dict(fitness_vector),
+                "traits": {
+                    str(name): round(float(value), 4)
+                    for name, value in dict(organism.get("traits") or {}).items()
+                    if isinstance(value, (int, float))
+                },
                 "environment_phase": state["environment"]["phase"],
                 "collaborator_id": (
                     lead_collaborator["organism_id"]
@@ -640,7 +646,8 @@ def _advance_environment(state: dict[str, Any]) -> None:
     resources = environment["resources"]
     regeneration = {
         "balanced": {
-            "compute": 4.0,
+            # Exceeds the fixed evaluation spend of 4.0 so drained compute can recover.
+            "compute": 6.0,
             "knowledge": 3.0,
             "novelty": 3.0,
             "stability": 3.0,
@@ -658,7 +665,8 @@ def _advance_environment(state: dict[str, Any]) -> None:
             "stability": 1.0,
         },
         "stability": {
-            "compute": 3.0,
+            # Slightly above evaluation spend so long stability stretches refill compute.
+            "compute": 5.0,
             "knowledge": 4.0,
             "novelty": 1.0,
             "stability": 7.0,

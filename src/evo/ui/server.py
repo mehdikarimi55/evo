@@ -10,8 +10,15 @@ from urllib.parse import parse_qs, urlparse
 import json
 import webbrowser
 
+from evo.achievements import public_catalog_payload
 from evo.autonomy import AutonomyController, AutonomyError
 from evo.config import ConfigurationError
+from evo.journal_story import (
+    JournalStoryError,
+    build_journey_story,
+    normalize_language,
+    normalize_timestamp,
+)
 from evo.kernel.budget import BudgetExceeded
 from evo.petri import PetriDish, PetriDishError
 from evo.providers.groq import ProviderError
@@ -69,16 +76,22 @@ class TerrariumRequestHandler(BaseHTTPRequestHandler):
 
     def do_GET(self) -> None:
         parsed = urlparse(self.path)
-        if parsed.path in {"/", "/index.html"}:
+        path = parsed.path.rstrip("/") or "/"
+        if path in {"/", "/index.html"}:
             self._send_file(INDEX_FILE, "text/html; charset=utf-8")
             return
-        if parsed.path == "/api/settings":
+        if path == "/api/settings":
             self._send_json(self.server.runtime.public_settings())
             return
-        if parsed.path == "/api/doctor":
+        if path == "/api/models":
+            query = parse_qs(parsed.query)
+            provider = query.get("provider", [None])[0]
+            self._run_json(lambda: self.server.runtime.list_models(provider))
+            return
+        if path == "/api/doctor":
             self._run_json(lambda: self.server.runtime.doctor())
             return
-        if parsed.path == "/api/audit":
+        if path == "/api/audit":
             query = parse_qs(parsed.query)
             limit = int(query.get("limit", ["50"])[0])
             search = query.get("q", [""])[0]
@@ -90,31 +103,55 @@ class TerrariumRequestHandler(BaseHTTPRequestHandler):
                 }
             )
             return
-        if parsed.path == "/api/autonomy":
+        if path == "/api/autonomy":
             self._send_json(self.server.autonomy.status())
             return
-        if parsed.path == "/api/petri-dish":
-            self._send_json(self.server.petri_dish.status())
-            return
-        if parsed.path == "/api/evolution-journal":
-            query = parse_qs(parsed.query)
-            limit = int(query.get("limit", ["100"])[0])
+        if path == "/api/achievements":
             self._run_json(
-                lambda: {
-                    "entries": self.server.autonomy.read_journal(limit=limit)
-                }
+                lambda: public_catalog_payload(
+                    unlocked=self.server.autonomy.status().get("achievements") or []
+                )
             )
             return
-        if parsed.path == "/api/evidence-control":
+        if path == "/api/petri-dish":
+            self._send_json(self.server.petri_dish.status())
+            return
+        if path == "/api/evolution-journal":
+            query = parse_qs(parsed.query)
+            limit = int(query.get("limit", ["100"])[0])
+            language = normalize_language(query.get("language", ["en"])[0])
+
+            def _journal() -> dict[str, object]:
+                entries = self.server.autonomy.read_journal(limit=limit)
+                if language == "fa":
+                    entries = self.server.runtime.localize_journal_entries(
+                        entries,
+                        allow_provider=False,
+                    )
+                return {"entries": entries}
+
+            self._run_json(_journal)
+            return
+        if path == "/api/evolution-journey":
+            query = parse_qs(parsed.query)
+            until = query.get("until", [""])[0]
+            language = query.get("language", ["en"])[0]
+            self._run_json(
+                lambda: self._evolution_journey(
+                    until=until, language=normalize_language(language)
+                )
+            )
+            return
+        if path == "/api/evidence-control":
             self._run_json(lambda: self.server.evidence_control.status())
             return
-        if parsed.path == "/api/trust-authority":
+        if path == "/api/trust-authority":
             self._run_json(lambda: self.server.trust_authority.status())
             return
-        if parsed.path == "/api/promotion-control":
+        if path == "/api/promotion-control":
             self._run_json(lambda: self.server.promotion_controller.status())
             return
-        if parsed.path == "/api/deployment-control":
+        if path == "/api/deployment-control":
             self._run_json(lambda: self.server.deployment_handoff.status())
             return
         if parsed.path.startswith("/static/"):
@@ -139,18 +176,19 @@ class TerrariumRequestHandler(BaseHTTPRequestHandler):
 
     def do_POST(self) -> None:
         parsed = urlparse(self.path)
+        path = parsed.path.rstrip("/") or "/"
         try:
             body = self._read_json_body()
         except (ValueError, json.JSONDecodeError) as exc:
             self._send_json(serialize_error(exc), status=HTTPStatus.BAD_REQUEST)
             return
-        if parsed.path == "/api/settings":
+        if path == "/api/settings":
             self._run_json(lambda: self.server.runtime.save_settings(body))
             return
-        if parsed.path == "/api/probe":
+        if path == "/api/probe":
             self._run_json(lambda: {"message": self.server.runtime.probe()})
             return
-        if parsed.path == "/api/evolve":
+        if path == "/api/evolve":
             mutable_paths = body.get("mutable_paths") or ["organisms/"]
             if isinstance(mutable_paths, str):
                 mutable_paths = [
@@ -164,16 +202,24 @@ class TerrariumRequestHandler(BaseHTTPRequestHandler):
                 )
             )
             return
-        if parsed.path == "/api/autonomy/start":
+        if path == "/api/autonomy/start":
             self._run_json(lambda: self.server.autonomy.start(body))
             return
-        if parsed.path == "/api/autonomy/stop":
+        if path == "/api/autonomy/stop":
             self._run_json(lambda: self.server.autonomy.stop())
             return
-        if parsed.path == "/api/evidence/bundle":
+        if path == "/api/evolution-journey":
+            self._run_json(
+                lambda: self._evolution_journey(
+                    until=str(body.get("until", "")),
+                    language=normalize_language(body.get("language", "en")),
+                )
+            )
+            return
+        if path == "/api/evidence/bundle":
             self._run_json(lambda: self.server.evidence_control.create_bundle())
             return
-        if parsed.path == "/api/evidence/approve":
+        if path == "/api/evidence/approve":
             self._run_json(
                 lambda: self.server.evidence_control.approve_latest(
                     approver=str(body.get("approver", "")),
@@ -182,15 +228,32 @@ class TerrariumRequestHandler(BaseHTTPRequestHandler):
                 )
             )
             return
-        if parsed.path == "/api/trust/attest":
+        if path == "/api/trust/attest":
             self._run_json(
                 lambda: self.server.trust_authority.attest_latest_bundle()
             )
             return
-        if parsed.path == "/api/trust/authorize":
+        if path == "/api/trust/authorize":
             self._run_json(lambda: self.server.trust_authority.authorize_latest())
             return
         self._send_json({"error": "API endpoint not found."}, status=HTTPStatus.NOT_FOUND)
+
+    def _evolution_journey(
+        self, *, until: str, language: str
+    ) -> dict[str, object]:
+        stamp = normalize_timestamp(until)
+        lang = normalize_language(language)
+        entries = self.server.autonomy.read_journal_through(until_timestamp=stamp)
+        if lang == "fa":
+            entries = self.server.runtime.localize_journal_entries(
+                entries,
+                allow_provider=True,
+            )
+        return build_journey_story(
+            entries,
+            until_timestamp=stamp,
+            language=lang,
+        )
 
     def _read_json_body(self) -> dict[str, Any]:
         length = int(self.headers.get("Content-Length", "0"))
@@ -210,6 +273,7 @@ class TerrariumRequestHandler(BaseHTTPRequestHandler):
         except (
             ConfigurationError,
             AutonomyError,
+            JournalStoryError,
             PetriDishError,
             ProviderError,
             BudgetExceeded,

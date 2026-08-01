@@ -59,16 +59,22 @@
     </header>
 
     <main id="workspace" class="workspace">
-      <section class="panel status-panel" aria-labelledby="status-title">
+      <details class="panel status-panel has-help" data-i18n-help="helpHostStatus" aria-labelledby="status-title">
+      <summary class="panel-summary">
         <div class="panel-head">
           <p class="section-kicker" data-i18n="lifeSupport">LIFE SUPPORT</p>
           <h2 id="status-title" data-i18n="hostStatus">Host status</h2>
           <p id="status-summary" data-i18n="loadingConfig">Loading configuration…</p>
         </div>
+        <span class="collapse-chevron" aria-hidden="true"></span>
+      </summary>
+      <div class="panel-body">
         <dl class="status-grid" id="status-grid"></dl>
-      </section>
+      </div>
+    </details>
 
-      <section class="panel" aria-labelledby="settings-title">
+      <details class="panel has-help" data-i18n-help="helpSettings" aria-labelledby="settings-title">
+      <summary class="panel-summary">
         <div class="panel-head">
           <p class="section-kicker" data-i18n="environmentControls">ENVIRONMENT CONTROLS</p>
           <h2 id="settings-title" data-i18n="settings">Settings</h2>
@@ -76,6 +82,9 @@
             Provider credentials remain on the host. Raw keys are never displayed.
           </p>
         </div>
+        <span class="collapse-chevron" aria-hidden="true"></span>
+      </summary>
+      <div class="panel-body">
         <form id="settings-form" class="form-grid">
           <label>
             <span data-i18n="provider">Provider</span>
@@ -86,6 +95,7 @@
           </label>
           <label>
             <span data-i18n="model">Model</span>
+            <select id="model-select" hidden aria-label="Provider model"></select>
             <input name="model" id="model" autocomplete="off" required />
           </label>
           <label class="wide">
@@ -114,6 +124,14 @@
           <label>
             <span data-i18n="maxCalls">Maximum calls per run</span>
             <input name="max_calls_per_run" id="max_calls_per_run" type="number" min="1" required />
+          </label>
+          <label id="nvidia-profile-field">
+            <span data-i18n="nvidiaGenerationProfile">NVIDIA generation profile</span>
+            <select name="nvidia_generation_profile" id="nvidia_generation_profile">
+              <option value="precise" data-i18n="nvidiaProfilePrecise">Precise (0.2)</option>
+              <option value="balanced" data-i18n="nvidiaProfileBalanced" selected>Balanced (0.7)</option>
+              <option value="exploratory" data-i18n="nvidiaProfileExploratory">Exploratory (1.0)</option>
+            </select>
           </label>
           <label>
             <span data-i18n="requestTimeout">Request timeout (seconds)</span>
@@ -151,9 +169,11 @@
             </button>
           </div>
         </form>
-      </section>
+      </div>
+    </details>
 
-      <section class="panel evolve-panel" aria-labelledby="evolve-title">
+      <details class="panel evolve-panel has-help" data-i18n-help="helpRunGeneration" aria-labelledby="evolve-title">
+      <summary class="panel-summary">
         <div class="panel-head">
           <p class="section-kicker" data-i18n="manualSelection">MANUAL SELECTION</p>
           <h2 id="evolve-title" data-i18n="runGeneration">Run one generation</h2>
@@ -161,6 +181,9 @@
             Produces an eligible or rejected candidate. Nothing is applied to the repository.
           </p>
         </div>
+        <span class="collapse-chevron" aria-hidden="true"></span>
+      </summary>
+      <div class="panel-body">
         <form id="evolve-form" class="form-grid">
           <label class="wide">
             <span data-i18n="objective">Objective</span>
@@ -210,59 +233,66 @@
           aria-busy="false"
           hidden
         ></pre>
-      </section>
+      </div>
+    </details>
 
-      <section class="panel autonomy-panel" aria-labelledby="autonomy-title">
-        <div class="panel-head autonomy-head">
-          <div>
-            <p class="section-kicker" data-i18n="openEndedLoop">OPEN-ENDED LOOP</p>
-            <h2 id="autonomy-title" data-i18n="autonomousEvolution">Autonomous evolution</h2>
-            <p data-i18n="autonomyDescription">
-              Continuously explores digital abiogenesis and open-ended artificial life while the app is running.
+      <details class="panel autonomy-panel has-help" data-i18n-help="helpAutonomousEvolution" aria-labelledby="autonomy-title">
+        <summary class="panel-summary">
+          <div class="panel-head autonomy-head">
+            <div>
+              <p class="section-kicker" data-i18n="openEndedLoop">OPEN-ENDED LOOP</p>
+              <h2 id="autonomy-title" data-i18n="autonomousEvolution">Autonomous evolution</h2>
+              <p data-i18n="autonomyDescription">
+                Continuously explores digital abiogenesis and open-ended artificial life while the app is running.
+              </p>
+            </div>
+            <span class="badge" id="autonomy-badge">Stopped</span>
+          </div>
+          <span class="collapse-chevron" aria-hidden="true"></span>
+        </summary>
+        <div class="panel-body">
+          <div class="autonomy-stats" id="autonomy-stats"></div>
+          <form id="autonomy-form" class="form-grid">
+            <label class="wide">
+              <span data-i18n="autonomousObjective">Autonomous objective</span>
+              <textarea
+                name="objective"
+                id="autonomy-objective"
+                rows="4"
+                required
+                data-i18n-placeholder="autonomyObjectivePlaceholder"
+                placeholder="Explore digital abiogenesis and open-ended artificial life..."
+              ></textarea>
+            </label>
+            <label>
+              <span data-i18n="intervalSeconds">Interval between generations (seconds)</span>
+              <input name="interval_seconds" id="interval_seconds" type="number" min="30" max="86400" value="300" required />
+            </label>
+            <label>
+              <span data-i18n="generationLimit">Generation attempt limit</span>
+              <input name="max_generations" id="max_generations" type="number" min="1" max="10000" value="100" required />
+            </label>
+            <label class="wide">
+              <span data-i18n="autonomyMutablePaths">Autonomous mutable paths</span>
+              <input name="mutable_paths" id="autonomy-mutable-paths" value="organisms/" required />
+            </label>
+            <p class="safety-note wide" data-i18n="autonomySafety">
+              Autonomous mode consumes provider API quota. It evaluates and selects proposals, but never merges, deploys, purchases, or changes the immutable kernel.
             </p>
-          </div>
-          <span class="badge" id="autonomy-badge">Stopped</span>
+            <div class="form-actions wide">
+              <button class="button primary" type="submit" id="start-autonomy" data-i18n="startAutonomy">
+                Start autonomous evolution
+              </button>
+              <button class="button ghost danger" type="button" id="stop-autonomy" data-i18n="stopAutonomy">
+                Stop
+              </button>
+            </div>
+          </form>
         </div>
-        <div class="autonomy-stats" id="autonomy-stats"></div>
-        <form id="autonomy-form" class="form-grid">
-          <label class="wide">
-            <span data-i18n="autonomousObjective">Autonomous objective</span>
-            <textarea
-              name="objective"
-              id="autonomy-objective"
-              rows="4"
-              required
-              data-i18n-placeholder="autonomyObjectivePlaceholder"
-              placeholder="Explore digital abiogenesis and open-ended artificial life..."
-            ></textarea>
-          </label>
-          <label>
-            <span data-i18n="intervalSeconds">Interval between generations (seconds)</span>
-            <input name="interval_seconds" id="interval_seconds" type="number" min="30" max="86400" value="300" required />
-          </label>
-          <label>
-            <span data-i18n="generationLimit">Generation attempt limit</span>
-            <input name="max_generations" id="max_generations" type="number" min="1" max="10000" value="100" required />
-          </label>
-          <label class="wide">
-            <span data-i18n="autonomyMutablePaths">Autonomous mutable paths</span>
-            <input name="mutable_paths" id="autonomy-mutable-paths" value="organisms/" required />
-          </label>
-          <p class="safety-note wide" data-i18n="autonomySafety">
-            Autonomous mode consumes provider API quota. It evaluates and selects proposals, but never merges, deploys, purchases, or changes the immutable kernel.
-          </p>
-          <div class="form-actions wide">
-            <button class="button primary" type="submit" id="start-autonomy" data-i18n="startAutonomy">
-              Start autonomous evolution
-            </button>
-            <button class="button ghost danger" type="button" id="stop-autonomy" data-i18n="stopAutonomy">
-              Stop
-            </button>
-          </div>
-        </form>
-      </section>
+      </details>
 
-      <section class="panel petri-panel" aria-labelledby="petri-title">
+      <details class="panel petri-panel has-help" data-i18n-help="helpDigitalPetriDish" aria-labelledby="petri-title">
+      <summary class="panel-summary">
         <div class="panel-head">
           <p class="section-kicker" data-i18n="populationEcology">POPULATION ECOLOGY</p>
           <h2 id="petri-title" data-i18n="digitalPetriDish">Digital Petri Dish</h2>
@@ -270,8 +300,11 @@
             A bounded population where energy, heredity, reproduction, and selection shape a visible digital lineage.
           </p>
         </div>
+        <span class="collapse-chevron" aria-hidden="true"></span>
+      </summary>
+      <div class="panel-body">
         <div class="petri-stats" id="petri-stats"></div>
-        <section class="evidence-observatory" aria-labelledby="evidence-title">
+        <section class="evidence-observatory has-help" data-i18n-help="helpEcologySignals" aria-labelledby="evidence-title">
           <div class="evidence-heading">
             <div>
               <p class="section-kicker" data-i18n="researchEvidence">RESEARCH EVIDENCE</p>
@@ -286,38 +319,92 @@
           <div class="team-observatory" id="team-observatory"></div>
         </section>
         <div class="ecology-grid">
-          <section class="ecology-card" aria-labelledby="resources-title">
-            <h3 id="resources-title" data-i18n="resourcePools">Environmental resources</h3>
-            <div class="resource-pools" id="resource-pools"></div>
-          </section>
-          <section class="ecology-card" aria-labelledby="niches-title">
-            <h3 id="niches-title" data-i18n="emergentNiches">Emergent niches</h3>
-            <div class="niche-distribution" id="niche-distribution"></div>
-          </section>
-          <section class="ecology-card" aria-labelledby="cooperation-title">
-            <h3 id="cooperation-title" data-i18n="cooperationNetwork">Cooperation network</h3>
-            <div class="cooperation-network" id="cooperation-network"></div>
-          </section>
+          <details class="collapsible-section ecology-card has-help" data-i18n-help="helpResourcePools" aria-labelledby="resources-title">
+            <summary class="collapsible-summary">
+              <h3 id="resources-title" data-i18n="resourcePools">Environmental resources</h3>
+              <span class="collapse-chevron" aria-hidden="true"></span>
+            </summary>
+            <div class="collapsible-body">
+              <div class="resource-pools" id="resource-pools"></div>
+            </div>
+          </details>
+          <details class="collapsible-section ecology-card has-help" data-i18n-help="helpEmergentNiches" aria-labelledby="niches-title">
+            <summary class="collapsible-summary">
+              <h3 id="niches-title" data-i18n="emergentNiches">Emergent niches</h3>
+              <span class="collapse-chevron" aria-hidden="true"></span>
+            </summary>
+            <div class="collapsible-body">
+              <div class="niche-distribution" id="niche-distribution"></div>
+            </div>
+          </details>
+          <details class="collapsible-section ecology-card has-help" data-i18n-help="helpCooperationNetwork" aria-labelledby="cooperation-title">
+            <summary class="collapsible-summary">
+              <h3 id="cooperation-title" data-i18n="cooperationNetwork">Cooperation network</h3>
+              <span class="collapse-chevron" aria-hidden="true"></span>
+            </summary>
+            <div class="collapsible-body">
+              <div class="cooperation-network" id="cooperation-network"></div>
+            </div>
+          </details>
         </div>
-        <div class="lineage-heading">
-          <h3 data-i18n="lineageMap">Lineage map</h3>
-          <div class="lineage-legend" aria-label="Lineage legend">
-            <span><i class="legend-dot alive"></i><span data-i18n="living">Living</span></span>
-            <span><i class="legend-dot extinct"></i><span data-i18n="extinct">Extinct</span></span>
+        <details class="collapsible-section lineage-section has-help" data-i18n-help="helpLineageMap">
+          <summary class="collapsible-summary lineage-heading">
+            <h3 data-i18n="lineageMap">Lineage map</h3>
+            <div class="lineage-legend" aria-label="Lineage legend">
+              <span><i class="legend-dot alive"></i><span data-i18n="living">Living</span></span>
+              <span><i class="legend-dot extinct"></i><span data-i18n="extinct">Extinct</span></span>
+            </div>
+            <span class="collapse-chevron" aria-hidden="true"></span>
+          </summary>
+          <div class="collapsible-body">
+            <div class="lineage-explorer">
+              <div class="lineage-toolbar" role="toolbar" aria-label="Lineage map controls">
+                <p class="lineage-hint" data-i18n="lineageHint">
+                  Drag to pan · scrollbars explore · wheel zooms
+                </p>
+                <div class="lineage-zoom-controls">
+                  <button
+                    class="button ghost lineage-zoom-button"
+                    id="lineage-zoom-out"
+                    type="button"
+                    data-i18n-title="lineageZoomOut"
+                    title="Zoom out"
+                    aria-label="Zoom out"
+                  >−</button>
+                  <span class="lineage-zoom-label" id="lineage-zoom-label">100%</span>
+                  <button
+                    class="button ghost lineage-zoom-button"
+                    id="lineage-zoom-in"
+                    type="button"
+                    data-i18n-title="lineageZoomIn"
+                    title="Zoom in"
+                    aria-label="Zoom in"
+                  >+</button>
+                  <button
+                    class="button ghost lineage-zoom-reset"
+                    id="lineage-zoom-reset"
+                    type="button"
+                    data-i18n="lineageZoomReset"
+                  >Reset</button>
+                </div>
+              </div>
+              <div class="lineage-viewport" id="lineage-viewport">
+                <svg
+                  class="lineage-map"
+                  id="lineage-map"
+                  role="img"
+                  aria-labelledby="petri-title"
+                ></svg>
+              </div>
+            </div>
           </div>
-        </div>
-        <div class="lineage-viewport" id="lineage-viewport">
-          <svg
-            class="lineage-map"
-            id="lineage-map"
-            role="img"
-            aria-labelledby="petri-title"
-          ></svg>
-        </div>
+        </details>
         <div class="population-roster" id="population-roster"></div>
-      </section>
+      </div>
+    </details>
 
-      <section class="panel evidence-gate-panel" aria-labelledby="promotion-gate-title">
+      <details class="panel evidence-gate-panel has-help" data-i18n-help="helpPromotionGate" aria-labelledby="promotion-gate-title">
+      <summary class="panel-summary">
         <div class="panel-head">
           <p class="section-kicker" data-i18n="evidenceIntegrity">EVIDENCE INTEGRITY</p>
           <h2 id="promotion-gate-title" data-i18n="promotionGate">Human-controlled promotion gate</h2>
@@ -325,88 +412,130 @@
             Replay every ecological epoch, authenticate the evidence bundle, and record an explicit human decision.
           </p>
         </div>
-        <div class="gate-status-grid" id="evidence-control-status"></div>
-        <div class="gate-workbench">
-          <div class="bundle-action">
-            <p data-i18n="bundleInstructions">Create a host-authenticated snapshot only after deterministic replay succeeds.</p>
-            <button class="button primary" type="button" id="create-evidence-bundle" data-i18n="createEvidenceBundle">
-              Create evidence bundle
-            </button>
-          </div>
-          <form class="approval-form" id="approval-form">
-            <label>
-              <span data-i18n="approver">Reviewer</span>
-              <input name="approver" maxlength="120" required data-i18n-placeholder="approverPlaceholder" placeholder="Your name or local reviewer label" />
-            </label>
-            <label>
-              <span data-i18n="decision">Decision</span>
-              <select name="decision" required>
-                <option value="approve" data-i18n="approve">Approve</option>
-                <option value="reject" data-i18n="rejectDecision">Reject</option>
-              </select>
-            </label>
-            <label class="wide">
-              <span data-i18n="reviewNote">Review note</span>
-              <textarea name="note" maxlength="2000" rows="3" data-i18n-placeholder="reviewNotePlaceholder" placeholder="What evidence did you inspect?"></textarea>
-            </label>
-            <button class="button ghost wide" type="submit" id="record-promotion-decision" data-i18n="recordDecision">
-              Record human decision
-            </button>
-          </form>
-        </div>
-        <p class="safety-note gate-safety" data-i18n="promotionGateSafety">
-          This is a signed local assertion—not verified identity, repository promotion, merge, or deployment authorization.
-        </p>
-        <div class="trust-authority" aria-labelledby="trust-authority-title">
-          <div class="panel-head compact">
-            <p class="section-kicker" data-i18n="publicTrust">PUBLIC TRUST · v0.8</p>
-            <h3 id="trust-authority-title" data-i18n="trustAuthority">Independent trust authority</h3>
-            <p data-i18n="trustAuthorityDescription">
-              Publish an Ed25519 evidence attestation, verify an independently signed reviewer decision, and evaluate the immutable promotion policy.
-            </p>
-          </div>
-          <div class="gate-status-grid" id="trust-authority-status"></div>
-          <div class="trust-actions">
-            <button class="button ghost" type="button" id="attest-evidence" data-i18n="attestEvidence">
-              Publish evidence attestation
-            </button>
-            <button class="button primary" type="button" id="authorize-promotion" data-i18n="authorizePromotion">
-              Authorize manual promotion
-            </button>
-          </div>
-          <p class="safety-note" data-i18n="trustAuthoritySafety">
-            Reviewer keys are managed only through the CLI. Authorization creates a signed artifact; EVO still cannot modify Git, push, merge, or deploy.
-          </p>
-        </div>
-        <div class="release-control" aria-labelledby="release-control-title">
-          <div class="panel-head compact">
-            <p class="section-kicker" data-i18n="controlledRelease">CONTROLLED RELEASE · v0.9</p>
-            <h3 id="release-control-title" data-i18n="releaseControl">Reproducible local promotion</h3>
-            <p data-i18n="releaseControlDescription">
-              Preserve the exact sandbox-verified patch, consume one signed authorization, and support exact-state rollback from the CLI.
-            </p>
-          </div>
-          <div class="gate-status-grid" id="promotion-control-status"></div>
-          <p class="safety-note" data-i18n="releaseControlSafety">
-            Apply and rollback are CLI-only and require exact confirmation phrases. EVO never commits, pushes, merges, or deploys the promoted worktree.
-          </p>
-        </div>
-        <div class="deployment-handoff" aria-labelledby="deployment-handoff-title">
-          <div class="panel-head compact">
-            <p class="section-kicker" data-i18n="productionHandoff">PRODUCTION HANDOFF · v1.0</p>
-            <h3 id="deployment-handoff-title" data-i18n="deploymentHandoff">Signed external deployment handoff</h3>
-            <p data-i18n="deploymentHandoffDescription">
-              Bind a committed release to signed stage, health, production, and rollback intents, then verify receipts from an independent operator.
-            </p>
-          </div>
-          <div class="gate-status-grid" id="deployment-control-status"></div>
-          <p class="safety-note" data-i18n="deploymentHandoffSafety">
-            This panel is read-only. EVO holds no cloud credentials and performs no network deployment; an independent operator executes every external change.
-          </p>
-        </div>
-      </section>
+        <span class="collapse-chevron" aria-hidden="true"></span>
+      </summary>
+      <div class="panel-body">
+        <ol class="promotion-pipeline" aria-label="Promotion control flow">
+          <li class="pipeline-stage" data-stage="evidence">
+            <div class="pipeline-rail" aria-hidden="true">
+              <span class="pipeline-node">1</span>
+              <span class="pipeline-connector"></span>
+            </div>
+            <div class="pipeline-card has-help" data-i18n-help="helpPipelineEvidence">
+              <div class="pipeline-card-head">
+                <p class="section-kicker" data-i18n="pipelineEvidenceStep">GATE · v0.7</p>
+                <h3 data-i18n="pipelineEvidenceTitle">Evidence & human review</h3>
+                <p data-i18n="pipelineEvidenceBlurb">
+                  Authenticate a replay bundle, then record an explicit local human decision.
+                </p>
+              </div>
+              <div class="gate-status-grid" id="evidence-control-status"></div>
+              <div class="gate-workbench">
+                <div class="bundle-action">
+                  <p data-i18n="bundleInstructions">Create a host-authenticated snapshot only after deterministic replay succeeds.</p>
+                  <button class="button primary" type="button" id="create-evidence-bundle" data-i18n="createEvidenceBundle">
+                    Create evidence bundle
+                  </button>
+                </div>
+                <form class="approval-form" id="approval-form">
+                  <label>
+                    <span data-i18n="approver">Reviewer</span>
+                    <input name="approver" maxlength="120" required data-i18n-placeholder="approverPlaceholder" placeholder="Your name or local reviewer label" />
+                  </label>
+                  <label>
+                    <span data-i18n="decision">Decision</span>
+                    <select name="decision" required>
+                      <option value="approve" data-i18n="approve">Approve</option>
+                      <option value="reject" data-i18n="rejectDecision">Reject</option>
+                    </select>
+                  </label>
+                  <label class="wide">
+                    <span data-i18n="reviewNote">Review note</span>
+                    <textarea name="note" maxlength="2000" rows="3" data-i18n-placeholder="reviewNotePlaceholder" placeholder="What evidence did you inspect?"></textarea>
+                  </label>
+                  <button class="button ghost wide" type="submit" id="record-promotion-decision" data-i18n="recordDecision">
+                    Record human decision
+                  </button>
+                </form>
+              </div>
+              <p class="safety-note gate-safety" data-i18n="promotionGateSafety">
+                This is a signed local assertion—not verified identity, repository promotion, merge, or deployment authorization.
+              </p>
+            </div>
+          </li>
 
-      <section class="panel journal-panel" aria-labelledby="journal-title">
+          <li class="pipeline-stage" data-stage="trust">
+            <div class="pipeline-rail" aria-hidden="true">
+              <span class="pipeline-node">2</span>
+              <span class="pipeline-connector"></span>
+            </div>
+            <div class="pipeline-card trust-authority has-help" data-i18n-help="helpPipelineTrust" aria-labelledby="trust-authority-title">
+              <div class="pipeline-card-head">
+                <p class="section-kicker" data-i18n="publicTrust">PUBLIC TRUST · v0.8</p>
+                <h3 id="trust-authority-title" data-i18n="trustAuthority">Independent trust authority</h3>
+                <p data-i18n="trustAuthorityDescription">
+                  Publish an Ed25519 evidence attestation, verify an independently signed reviewer decision, and evaluate the immutable promotion policy.
+                </p>
+              </div>
+              <div class="gate-status-grid" id="trust-authority-status"></div>
+              <div class="trust-actions">
+                <button class="button ghost" type="button" id="attest-evidence" data-i18n="attestEvidence">
+                  Publish evidence attestation
+                </button>
+                <button class="button primary" type="button" id="authorize-promotion" data-i18n="authorizePromotion">
+                  Authorize manual promotion
+                </button>
+              </div>
+              <p class="safety-note" data-i18n="trustAuthoritySafety">
+                Reviewer keys are managed only through the CLI. Authorization creates a signed artifact; EVO still cannot modify Git, push, merge, or deploy.
+              </p>
+            </div>
+          </li>
+
+          <li class="pipeline-stage" data-stage="release">
+            <div class="pipeline-rail" aria-hidden="true">
+              <span class="pipeline-node">3</span>
+              <span class="pipeline-connector"></span>
+            </div>
+            <div class="pipeline-card release-control has-help" data-i18n-help="helpPipelineRelease" aria-labelledby="release-control-title">
+              <div class="pipeline-card-head">
+                <p class="section-kicker" data-i18n="controlledRelease">CONTROLLED RELEASE · v0.9</p>
+                <h3 id="release-control-title" data-i18n="releaseControl">Reproducible local promotion</h3>
+                <p data-i18n="releaseControlDescription">
+                  Preserve the exact sandbox-verified patch, consume one signed authorization, and support exact-state rollback from the CLI.
+                </p>
+              </div>
+              <div class="gate-status-grid" id="promotion-control-status"></div>
+              <p class="safety-note" data-i18n="releaseControlSafety">
+                Apply and rollback are CLI-only and require exact confirmation phrases. EVO never commits, pushes, merges, or deploys the promoted worktree.
+              </p>
+            </div>
+          </li>
+
+          <li class="pipeline-stage" data-stage="deployment">
+            <div class="pipeline-rail" aria-hidden="true">
+              <span class="pipeline-node">4</span>
+            </div>
+            <div class="pipeline-card deployment-handoff has-help" data-i18n-help="helpPipelineDeployment" aria-labelledby="deployment-handoff-title">
+              <div class="pipeline-card-head">
+                <p class="section-kicker" data-i18n="productionHandoff">PRODUCTION HANDOFF · v1.0</p>
+                <h3 id="deployment-handoff-title" data-i18n="deploymentHandoff">Signed external deployment handoff</h3>
+                <p data-i18n="deploymentHandoffDescription">
+                  Bind a committed release to signed stage, health, production, and rollback intents, then verify receipts from an independent operator.
+                </p>
+              </div>
+              <div class="gate-status-grid" id="deployment-control-status"></div>
+              <p class="safety-note" data-i18n="deploymentHandoffSafety">
+                This panel is read-only. EVO holds no cloud credentials and performs no network deployment; an independent operator executes every external change.
+              </p>
+            </div>
+          </li>
+        </ol>
+      </div>
+    </details>
+
+      <details class="panel journal-panel has-help" data-i18n-help="helpEvolutionJournal" aria-labelledby="journal-title">
+      <summary class="panel-summary">
         <div class="panel-head">
           <p class="section-kicker" data-i18n="lineageRecord">LINEAGE RECORD</p>
           <h2 id="journal-title" data-i18n="evolutionJournal">Evolution journal</h2>
@@ -414,10 +543,13 @@
             A public-facing chronicle of this gnome’s selected generations, adaptations, and setbacks.
           </p>
         </div>
-        <div class="achievement-section">
+        <span class="collapse-chevron" aria-hidden="true"></span>
+      </summary>
+      <div class="panel-body">
+        <div class="achievement-section has-help" data-i18n-help="helpAchievements">
           <div class="achievement-heading">
             <h3 data-i18n="achievements">Evolutionary achievements</h3>
-            <span id="achievement-count">0 / 8</span>
+            <span id="achievement-count">0 / 0</span>
           </div>
           <div class="achievement-gallery" id="achievement-gallery">
             <p class="empty-state" data-i18n="noAchievements">No achievements unlocked yet.</p>
@@ -426,49 +558,82 @@
         <div class="timeline" id="evolution-journal">
           <p class="empty-state" data-i18n="noEvolutionYet">No autonomous evolution has been recorded yet.</p>
         </div>
-      </section>
+      </div>
+    </details>
 
-      <section class="panel" aria-labelledby="audit-title">
-        <div class="panel-head audit-head">
-          <div>
-            <p class="section-kicker" data-i18n="immutableMemory">IMMUTABLE MEMORY</p>
-            <h2 id="audit-title" data-i18n="auditTrail">Audit trail</h2>
-            <p data-i18n="auditDescription">Redacted local events from `.evo/audit.jsonl`.</p>
+      <details class="panel has-help" data-i18n-help="helpAuditTrail" aria-labelledby="audit-title">
+        <summary class="panel-summary">
+          <div class="panel-head audit-head">
+            <div>
+              <p class="section-kicker" data-i18n="immutableMemory">IMMUTABLE MEMORY</p>
+              <h2 id="audit-title" data-i18n="auditTrail">Audit trail</h2>
+              <p data-i18n="auditDescription">Redacted local events from `.evo/audit.jsonl`.</p>
+            </div>
+            <label class="search" data-stop-toggle>
+              <span class="sr-only" data-i18n="search">Search</span>
+              <input
+                id="global-search"
+                type="search"
+                data-i18n-placeholder="searchPlaceholder"
+                placeholder="Search audit, status, and settings…"
+                autocomplete="off"
+              />
+            </label>
           </div>
-          <label class="search">
-            <span class="sr-only" data-i18n="search">Search</span>
-            <input
-              id="global-search"
-              type="search"
-              data-i18n-placeholder="searchPlaceholder"
-              placeholder="Search audit, status, and settings…"
-              autocomplete="off"
-            />
-          </label>
+          <span class="collapse-chevron" aria-hidden="true"></span>
+        </summary>
+        <div class="panel-body">
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th scope="col" data-i18n="action">Action</th>
+                  <th scope="col" data-i18n="when">When</th>
+                  <th scope="col" data-i18n="event">Event</th>
+                  <th scope="col" data-i18n="status">Status</th>
+                  <th scope="col" data-i18n="score">Score</th>
+                  <th scope="col" data-i18n="model">Model</th>
+                </tr>
+              </thead>
+              <tbody id="audit-body">
+                <tr>
+                  <td colspan="6" data-i18n="noAuditEvents">No audit events yet.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th scope="col" data-i18n="action">Action</th>
-                <th scope="col" data-i18n="when">When</th>
-                <th scope="col" data-i18n="event">Event</th>
-                <th scope="col" data-i18n="status">Status</th>
-                <th scope="col" data-i18n="score">Score</th>
-                <th scope="col" data-i18n="model">Model</th>
-              </tr>
-            </thead>
-            <tbody id="audit-body">
-              <tr>
-                <td colspan="6" data-i18n="noAuditEvents">No audit events yet.</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </section>
+      </details>
     </main>
 
     <p class="toast" id="toast" hidden role="status"></p>
+    <dialog class="journey-modal" id="journey-modal" aria-labelledby="journey-modal-title">
+      <form method="dialog" class="journey-modal-shell">
+        <header class="journey-modal-header">
+          <div>
+            <p class="section-kicker" data-i18n="journeyKicker">LINEAGE STORY</p>
+            <h2 id="journey-modal-title" data-i18n="journeyTitle">Evolution journey</h2>
+            <p id="journey-modal-meta" class="journey-modal-meta"></p>
+            <section class="journey-synopsis has-help" id="journey-synopsis" data-i18n-help="helpJourneySynopsis" hidden>
+              <p class="journey-synopsis-kicker" data-i18n="journeySynopsisTitle">Story so far</p>
+              <p class="journey-synopsis-text" id="journey-synopsis-text"></p>
+            </section>
+            <div class="journey-summary" id="journey-summary" hidden></div>
+          </div>
+          <button
+            class="button ghost journey-close"
+            type="submit"
+            data-i18n="closeJourney"
+            value="close"
+          >
+            Close
+          </button>
+        </header>
+        <div class="journey-modal-body" id="journey-modal-body" tabindex="0">
+          <p class="empty-state" data-i18n="journeyLoading">Gathering the chronicle…</p>
+        </div>
+      </form>
+    </dialog>
     <script src="/static/app.js"></script>
   </body>
 </html>

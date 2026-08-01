@@ -69,8 +69,17 @@ class UIServerTests(unittest.TestCase):
         self.assertIn('data-language="fa"', html)
         self.assertIn('id="autonomy-form"', html)
         self.assertIn('id="evolution-journal"', html)
+        self.assertIn('data-i18n-help="helpHostStatus"', html)
+        self.assertIn('data-i18n-help="helpDigitalPetriDish"', html)
+        self.assertIn('id="journey-modal"', html)
+        self.assertIn('id="journey-synopsis"', html)
+        self.assertIn('id="journey-modal-body"', html)
         self.assertIn('id="achievement-gallery"', html)
         self.assertIn('id="lineage-map"', html)
+        self.assertIn('id="lineage-viewport"', html)
+        self.assertIn('id="lineage-zoom-in"', html)
+        self.assertIn('id="lineage-zoom-out"', html)
+        self.assertIn('id="lineage-zoom-reset"', html)
         self.assertIn('id="population-roster"', html)
         self.assertIn('id="resource-pools"', html)
         self.assertIn('id="niche-distribution"', html)
@@ -93,6 +102,22 @@ class UIServerTests(unittest.TestCase):
         self.assertIn('class="organism-visual"', html)
         self.assertIn('id="evolve-thinking"', html)
         self.assertIn('aria-busy="false"', html)
+        self.assertEqual(html.count('<details class="panel'), 8)
+        self.assertNotIn('<details class="panel" open', html)
+        self.assertNotIn('<details class="panel status-panel" open', html)
+        self.assertNotIn('<details class="panel evolve-panel" open', html)
+        self.assertNotIn('<details class="panel autonomy-panel" open', html)
+        self.assertNotIn('<details class="panel petri-panel" open', html)
+        self.assertNotIn('<details class="panel evidence-gate-panel" open', html)
+        self.assertNotIn('<details class="panel journal-panel" open', html)
+        self.assertIn('class="panel-summary"', html)
+        self.assertIn('class="panel-body"', html)
+        self.assertIn('data-stop-toggle', html)
+        self.assertIn('id="global-search"', html)
+        self.assertIn('id="settings-form"', html)
+        self.assertIn('id="autonomy-badge"', html)
+        self.assertIn('id="autonomy-stats"', html)
+        self.assertIn('id="audit-body"', html)
 
     def test_ui_assets_include_thinking_state_and_wrapped_results(self):
         with urlopen(f"{self.base}/static/app.js", timeout=5) as response:
@@ -105,7 +130,19 @@ class UIServerTests(unittest.TestCase):
         self.assertIn("Thinking…", javascript)
         self.assertIn("در حال فکر کردن", javascript)
         self.assertIn('localStorage.getItem("evo-language") || "en"', javascript)
+        self.assertIn("GROQ_MODEL_FALLBACK", javascript)
+        self.assertIn("loadProviderModels", javascript)
+        self.assertIn("PROVIDER_MODEL_FALLBACK", javascript)
         self.assertIn('api("/api/autonomy")', javascript)
+        self.assertIn("/api/evolution-journey", javascript)
+        self.assertIn('api("/api/evolution-journey"', javascript)
+        self.assertIn("localizeNumber", javascript)
+        self.assertIn('journeyModal.setAttribute("dir"', javascript)
+        self.assertIn("renderJourneySynopsis", javascript)
+        self.assertIn("renderJourneyChapters", javascript)
+        self.assertIn("journey-badge", javascript)
+        self.assertIn("openEvolutionJourney", javascript)
+        self.assertIn("readJourney", javascript)
         self.assertIn('api("/api/petri-dish")', javascript)
         self.assertIn('api("/api/evidence-control")', javascript)
         self.assertIn('api("/api/evidence/bundle"', javascript)
@@ -116,7 +153,17 @@ class UIServerTests(unittest.TestCase):
         self.assertIn('api("/api/promotion-control")', javascript)
         self.assertIn('api("/api/deployment-control")', javascript)
         self.assertIn("renderPetriDish", javascript)
-        self.assertIn("ACHIEVEMENT_CATALOG", javascript)
+        self.assertIn("initLineageInteractions", javascript)
+        self.assertIn("applyLineageZoom", javascript)
+        self.assertNotIn(".slice(-80)", javascript)
+        self.assertIn('/api/achievements', javascript)
+        self.assertIn("cachedAchievementCatalog", javascript)
+        self.assertNotIn("ACHIEVEMENT_CATALOG", javascript)
+        self.assertIn("initHelpTooltips", javascript)
+        self.assertIn("helpHostStatus", javascript)
+        self.assertIn("formatOrganismHelp", javascript)
+        self.assertIn("helpOrganismDetail", javascript)
+        self.assertIn("data-i18n-help", javascript)
         self.assertIn("achievementUnlocked", javascript)
         self.assertIn("response.text()", javascript)
         self.assertIn("invalidServerResponse", javascript)
@@ -126,8 +173,22 @@ class UIServerTests(unittest.TestCase):
         self.assertIn("font-size: 12px", stylesheet)
         self.assertIn('[dir="rtl"] textarea', stylesheet)
         self.assertIn(".achievement-card", stylesheet)
+        self.assertIn(".journey-modal", stylesheet)
+        self.assertIn("width: 80vw", stylesheet)
+        self.assertIn("height: 80vh", stylesheet)
+        self.assertIn(".journey-timeline", stylesheet)
+        self.assertIn(".journey-synopsis", stylesheet)
+        self.assertIn(".journey-chapter", stylesheet)
+        self.assertIn(".journey-badge", stylesheet)
+        self.assertIn(".journey-button", stylesheet)
+        self.assertIn(".help-tooltip", stylesheet)
+        self.assertIn(".has-help", stylesheet)
         self.assertIn(".cell-core", stylesheet)
         self.assertIn(".lineage-map", stylesheet)
+        self.assertIn(".lineage-explorer", stylesheet)
+        self.assertIn("cursor: grab", stylesheet)
+        self.assertIn(".lineage-viewport.is-panning", stylesheet)
+        self.assertIn("height: min(48rem, 82vh)", stylesheet)
         self.assertIn(".organism-card", stylesheet)
         self.assertIn(".resource-track", stylesheet)
         self.assertIn(".niche-chip", stylesheet)
@@ -146,6 +207,123 @@ class UIServerTests(unittest.TestCase):
         status, payload = self._request("GET", "/api/evolution-journal")
         self.assertEqual(status, 200)
         self.assertEqual(payload["entries"], [])
+
+    def test_evolution_journey_endpoint_requires_cutoff(self):
+        with self.assertRaises(HTTPError) as context:
+            self._request("GET", "/api/evolution-journey")
+        self.assertEqual(context.exception.code, 400)
+        payload = json.loads(context.exception.read().decode())
+        self.assertIn("timestamp", str(payload).lower())
+
+    def test_evolution_journey_endpoint_narrates_recorded_entries(self):
+        journal = self.runtime.workspace / ".evo/evolution-journal.jsonl"
+        journal.parent.mkdir(parents=True, exist_ok=True)
+        journal.write_text(
+            "\n".join(
+                [
+                    '{"timestamp":"2026-07-31T10:00:00+00:00","event_type":"autonomy.started","payload":{"objective":"Seed the dish","max_generations":3,"interval_seconds":5,"mutable_paths":["organisms/"]}}',
+                    '{"timestamp":"2026-07-31T10:01:00+00:00","event_type":"autonomy.generation","payload":{"generation":1,"attempt":1,"status":"eligible","score":0.9,"summary":"Grow a safer founder","rationale":"Protect the founders","expected_benefit":"Stronger lineage","risk":"Low","target_path":"organisms/prompt.md","evaluation_evidence":{"status":"proposal_only"},"ecology":{"organism_id":"gnome-0001","epoch":1,"emergent_role":"explorer","fitness":0.8,"energy":70.0,"environment_phase":"balanced","offspring_id":"gnome-0007"},"achievements":[{"id":"first_spark"}]}}',
+                    '{"timestamp":"2026-07-31T10:02:00+00:00","event_type":"autonomy.stopped","payload":{}}',
+                ]
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+        status, payload = self._request(
+            "POST",
+            "/api/evolution-journey",
+            {
+                "until": "2026-07-31T10:01:00+00:00",
+                "language": "en",
+            },
+        )
+        self.assertEqual(status, 200)
+        self.assertEqual(payload["entry_count"], 2)
+        self.assertIn("Seed the dish", payload["story"])
+        self.assertIn("Grow a safer founder", payload["story"])
+        self.assertIn("Protect the founders", payload["story"])
+        self.assertIn("First Spark", payload["story"])
+        self.assertIn("gnome-0007", payload["story"])
+        self.assertNotIn("paused", payload["story"].lower())
+        self.assertTrue(payload["chapters"])
+        self.assertIn("summary", payload)
+        self.assertIn("synopsis", payload)
+        self.assertIn("Seed the dish", payload["synopsis"])
+        self.assertIn("Grow a safer founder", payload["synopsis"])
+        generation = next(
+            chapter
+            for chapter in payload["chapters"]
+            if chapter["kind"] == "generation"
+        )
+        self.assertTrue(generation["badges"])
+        self.assertTrue(generation["tags"])
+        self.assertEqual(generation["tone"], "success")
+
+        status, get_payload = self._request(
+            "GET",
+            "/api/evolution-journey?until=2026-07-31T10:01:00%2B00:00&language=en",
+        )
+        self.assertEqual(status, 200)
+        self.assertEqual(get_payload["entry_count"], 2)
+        self.assertIn("complete chronicle", get_payload["story"])
+        self.assertTrue(get_payload["chapters"])
+
+    def test_achievements_catalog_endpoint(self):
+        status, payload = self._request("GET", "/api/achievements")
+        self.assertEqual(status, 200)
+        self.assertEqual(payload["total"], 8)
+        self.assertEqual(len(payload["milestones"]), 8)
+        self.assertEqual(payload["milestones"][0]["id"], "first_spark")
+        self.assertEqual(payload["milestones"][0]["threshold"], 1)
+        self.assertIn("symbol", payload["milestones"][0])
+        self.assertEqual(payload["unlocked_count"], 0)
+
+    def test_evolution_journey_translates_latin_payload_for_fa(self):
+        journal = self.runtime.workspace / ".evo/evolution-journal.jsonl"
+        journal.parent.mkdir(parents=True, exist_ok=True)
+        journal.write_text(
+            '{"timestamp":"2026-07-31T10:00:00+00:00","event_type":"autonomy.started","payload":{"objective":"Explore digital abiogenesis safely","max_generations":3,"interval_seconds":5,"mutable_paths":["organisms/"]}}\n'
+            '{"timestamp":"2026-07-31T10:01:00+00:00","event_type":"autonomy.generation","payload":{"generation":1,"attempt":1,"status":"eligible","score":0.9,"summary":"Grow a safer founder","rationale":"Protect the founders","expected_benefit":"Stronger lineage","risk":"Low reversible change","target_path":"organisms/prompt.md"}}\n',
+            encoding="utf-8",
+        )
+
+        def fake_translate(texts, *, cache, provider, chunk_size=12):
+            mapping = {
+                text: f"FA::{text}"
+                for text in texts
+            }
+            cache.put_many(mapping)
+            return mapping
+
+        with patch("evo.runtime.translate_missing", side_effect=fake_translate):
+            status, payload = self._request(
+                "POST",
+                "/api/evolution-journey",
+                {
+                    "until": "2026-07-31T10:01:00+00:00",
+                    "language": "fa",
+                },
+            )
+        self.assertEqual(status, 200)
+        self.assertIn("FA::Explore digital abiogenesis safely", payload["synopsis"])
+        self.assertIn("FA::Grow a safer founder", payload["story"])
+        self.assertIn("FA::Protect the founders", payload["story"])
+        self.assertIn("داستان تا اینجا", payload["synopsis_title"])
+        self.assertTrue(
+            payload["synopsis"].startswith("از هدف «FA::Explore digital abiogenesis safely»")
+        )
+
+        status, journal_payload = self._request(
+            "GET",
+            "/api/evolution-journal?limit=10&language=fa",
+        )
+        self.assertEqual(status, 200)
+        generation = next(
+            entry
+            for entry in journal_payload["entries"]
+            if entry["event_type"] == "autonomy.generation"
+        )
+        self.assertEqual(generation["payload"]["summary"], "FA::Grow a safer founder")
 
     def test_petri_dish_endpoint_has_founder_population(self):
         status, payload = self._request("GET", "/api/petri-dish")

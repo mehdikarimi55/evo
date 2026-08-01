@@ -9,6 +9,41 @@ const DEFAULTS = {
   },
 };
 
+const GROQ_MODEL_FALLBACK = [
+  "openai/gpt-oss-20b",
+  "openai/gpt-oss-120b",
+  "llama-3.3-70b-versatile",
+  "llama-3.1-8b-instant",
+  "meta-llama/llama-4-scout-17b-16e-instruct",
+  "qwen/qwen3-32b",
+  "gemma2-9b-it",
+  "llama-guard-3-8b",
+  "openai/gpt-oss-safeguard-20b",
+];
+
+const NVIDIA_MODEL_FALLBACK = [
+  "meta/llama-3.1-70b-instruct",
+  "meta/llama-3.1-8b-instruct",
+  "meta/llama-3.3-70b-instruct",
+  "meta/llama-3.1-405b-instruct",
+  "nvidia/llama-3.1-nemotron-70b-instruct",
+  "nvidia/llama-3.3-nemotron-super-49b-v1",
+  "mistralai/mistral-large-2-instruct",
+  "mistralai/mixtral-8x22b-instruct-v0.1",
+  "mistralai/mistral-7b-instruct-v0.3",
+  "google/gemma-2-27b-it",
+  "google/gemma-2-9b-it",
+  "qwen/qwen2.5-72b-instruct",
+  "qwen/qwen2.5-coder-32b-instruct",
+  "microsoft/phi-3-mini-128k-instruct",
+  "deepseek-ai/deepseek-r1",
+];
+
+const PROVIDER_MODEL_FALLBACK = {
+  groq: GROQ_MODEL_FALLBACK,
+  nvidia: NVIDIA_MODEL_FALLBACK,
+};
+
 const I18N = {
   en: {
     pageTitle: "EVO | Evolutionary Terrarium",
@@ -43,6 +78,10 @@ const I18N = {
     sandboxEngine: "Sandbox engine",
     evaluationCommand: "Evaluation command",
     sandboxTimeout: "Sandbox timeout (seconds)",
+    nvidiaGenerationProfile: "NVIDIA generation profile",
+    nvidiaProfilePrecise: "Precise (temperature 0.2)",
+    nvidiaProfileBalanced: "Balanced (temperature 0.7)",
+    nvidiaProfileExploratory: "Exploratory (temperature 1.0)",
     saveSettings: "Save settings",
     probeProvider: "Probe provider",
     runGeneration: "Run one generation",
@@ -129,6 +168,10 @@ const I18N = {
     digitalPetriDish: "Digital Petri Dish",
     petriDescription: "A bounded population where energy, heredity, reproduction, and selection shape a visible digital lineage.",
     lineageMap: "Lineage map",
+    lineageHint: "Drag to pan · scrollbars explore · wheel zooms",
+    lineageZoomIn: "Zoom in",
+    lineageZoomOut: "Zoom out",
+    lineageZoomReset: "Reset",
     living: "Living",
     extinct: "Extinct",
     births: "Births",
@@ -185,6 +228,9 @@ const I18N = {
     evidenceIntegrity: "EVIDENCE INTEGRITY",
     promotionGate: "Human-controlled promotion gate",
     promotionGateDescription: "Replay every ecological epoch, authenticate the evidence bundle, and record an explicit human decision.",
+    pipelineEvidenceStep: "GATE · v0.7",
+    pipelineEvidenceTitle: "Evidence & human review",
+    pipelineEvidenceBlurb: "Authenticate a replay bundle, then record an explicit local human decision.",
     bundleInstructions: "Create a host-authenticated snapshot only after deterministic replay succeeds.",
     createEvidenceBundle: "Create evidence bundle",
     approver: "Reviewer",
@@ -287,6 +333,22 @@ const I18N = {
     journalCompleted: "Generation limit reached",
     journalError: "Provider connection interrupted",
     journalGeneration: "Generation",
+    readJourney: "Read journey",
+    journeyKicker: "LINEAGE STORY",
+    journeyTitle: "Evolution journey",
+    journeyLoading: "Gathering the chronicle…",
+    journeyTranslating: "Translating journey text to Persian…",
+    journeyMeta: "{count} moments in the chronicle",
+    journeySynopsisTitle: "Story so far",
+    journeyFeaturesColumn: "Features achieved",
+    journeySkillsColumn: "Skills achieved",
+    journeyStatMoments: "Moments",
+    journeyStatEligible: "Eligible",
+    journeyStatRejected: "Setbacks",
+    journeyStatAchievements: "Milestones",
+    journeyStatGeneration: "Generation",
+    closeJourney: "Close",
+    journeyFailed: "The evolution journey could not be opened.",
     attempt: "Attempt",
     seconds: "seconds",
     retrying: "The gnome will retry automatically.",
@@ -306,6 +368,75 @@ const I18N = {
     achievement_deep_time_desc: "Five hundred generations entered evolutionary deep time.",
     achievement_millennium_lineage: "Millennium Lineage",
     achievement_millennium_lineage_desc: "One thousand generations formed an enduring digital lineage.",
+    helpHostStatus: "Shows whether the host has a provider, model, and API key configured for safe local runs.",
+    helpSettings: "Configure the model provider, budgets, timeout, and optional rootless sandbox used for evaluation.",
+    helpRunGeneration: "Run a single bounded generation. Produces an eligible or rejected candidate without changing the repository.",
+    helpAutonomousEvolution: "Start or stop the continuous open-ended loop that proposes adaptations on an interval.",
+    helpDigitalPetriDish: "Observatory for population ecology: living organisms, niches, cooperation, and lineage.",
+    helpEcologySignals: "Research-facing metrics for stability, diversity, open-endedness proxy, and latest evaluation evidence.",
+    helpResourcePools: "Shared environmental resources that shift with the current selection phase.",
+    helpEmergentNiches: "Counts of living organisms by behaviour-derived role such as explorer or guardian.",
+    helpCooperationNetwork: "Recent cooperative links between organisms in the bounded population.",
+    helpLineageMap: "Parent-child map of every recorded generation. Scroll, zoom, and drag to explore.",
+    helpPromotionGate: "Human-controlled evidence, trust, release, and deployment handoff stages. Browser actions never deploy.",
+    helpPipelineEvidence: "Create a replay-verified evidence bundle and record a local human approve/reject decision.",
+    helpPipelineTrust: "Independent trust authority status: attestation, reviewer policy, and manual authorization.",
+    helpPipelineRelease: "Read-only view of sealed candidate artifacts and local promotion readiness.",
+    helpPipelineDeployment: "Read-only external deployment handoff. EVO never holds cloud credentials or deploys itself.",
+    helpEvolutionJournal: "Public narrative of autonomous progress, unlocked achievements, and journey storytelling.",
+    helpAchievements: "Milestones unlocked when selected generations reach host-defined thresholds.",
+    helpAuditTrail: "Redacted immutable events from the local audit log for inspection and search.",
+    helpConfigured: "Whether required host settings are complete enough to call a provider.",
+    helpProvider: "Active model provider for this terrarium (Groq or NVIDIA NIM).",
+    helpModel: "Model identifier currently selected for generation requests.",
+    helpApiKey: "Whether an API key is stored on the host. The raw secret is never shown.",
+    helpEnvFile: "Presence of the local environment file used to persist settings.",
+    helpCallsPerRun: "Maximum provider calls allowed inside one evolve/autonomy generation budget.",
+    helpEcologicalStability: "Proxy for how steady the living population remains across recent ecology.",
+    helpPopulationDiversity: "Proxy for behavioural and lineage variety among living organisms.",
+    helpOpenEndednessProxy: "Qualified research proxy for continued novelty; not a claim of open-ended AGI.",
+    helpEpoch: "Current ecological epoch counter for the Petri dish simulation.",
+    helpLiving: "Living organisms versus the dish carrying capacity.",
+    helpBirths: "Total births recorded in the population history.",
+    helpExtinct: "Organisms that have died out in the Petri dish.",
+    helpMeanEnergy: "Average energy across currently living organisms.",
+    helpMeanFitness: "Average fitness across currently living organisms.",
+    helpPhase: "Current autonomous worker phase such as waiting, running, or backoff.",
+    helpGeneration: "Highest selected generation recorded for the lineage so far.",
+    helpAttempts: "Generation attempts consumed versus the configured attempt limit.",
+    helpNextInterval: "Seconds the autonomy worker waits between generation attempts.",
+    helpEvidenceBundle: "Latest host-authenticated evidence bundle identifier and verification state.",
+    helpDeterministicReplay: "Whether the latest bundle’s deterministic replay check passed.",
+    helpHumanDecision: "Local human approve/reject assertion attached to the latest verified bundle.",
+    helpDeploymentAuthority: "Browser deployment authority is always denied in EVO.",
+    helpAuthorityIdentity: "Fingerprint of the local Ed25519 trust authority identity.",
+    helpTrustedReviewers: "Number of registered independent reviewers trusted by this host.",
+    helpPublicAttestation: "Latest public attestation over a verified evidence bundle.",
+    helpIndependentReview: "Latest independently signed reviewer decision.",
+    helpPromotionPolicy: "Whether trust policy requirements for promotion are currently satisfied.",
+    helpManualAuthorization: "Manual promotion authorization record when policy allows it.",
+    helpSealedArtifact: "Latest sealed candidate artifact available for controlled local promotion.",
+    helpAuthorizationUse: "Whether the current authorization is ready, missing, or already consumed.",
+    helpLocalRepository: "Whether the local repository is clean enough for a controlled release step.",
+    helpPromotionState: "Currently active local promotion, if any.",
+    helpRollbackState: "Whether a rollback path is available for the active promotion.",
+    helpDeploymentDenied: "Reminder that deployment remains permanently outside browser control.",
+    helpReleaseCapsule: "Latest signed release capsule prepared for external operator handoff.",
+    helpTrustedOperators: "Count of trusted external operators registered for handoff.",
+    helpDeploymentPhase: "Current external deployment handoff phase.",
+    helpNextDeploymentAction: "Suggested next operator action for the handoff workflow.",
+    helpOperatorReceipt: "Latest operator receipt recorded for an external execution step.",
+    helpExternalExecution: "External execution is required; EVO does not perform cloud deploys.",
+    helpOrganismCard: "One living organism: role, fitness, energy, and lineage identifiers.",
+    helpOrganismNoParents: "none (founder line)",
+    helpOrganismDetail: "{id} is a living {lineage} from selected generation {generation}, currently acting as {role}. Energy {energy}; fitness {fitness}. Parents: {parents}. Selected adaptations: {adaptations}. Evaluations {evaluations}; collaborations {collaborations} ({successes} successful).",
+    helpJourneyStatMoments: "How many journal moments are included in this journey chapter set.",
+    helpJourneyStatEligible: "How many eligible adaptations appear in the selected journey window.",
+    helpJourneyStatRejected: "How many rejected proposals appear in the selected journey window.",
+    helpJourneyStatAchievements: "How many milestone unlock events appear in the selected journey window.",
+    helpJourneyStatGeneration: "Highest selected generation reached in the selected journey window.",
+    helpJourneyChapter: "One chronological chapter of the evolution story for the selected cutoff.",
+    helpJourneySynopsis: "Short synopsis of the story so far through the selected journal point.",
   },
   fa: {
     pageTitle: "EVO | زیست‌بوم تکاملی",
@@ -340,6 +471,10 @@ const I18N = {
     sandboxEngine: "موتور محیط ایزوله",
     evaluationCommand: "دستور ارزیابی",
     sandboxTimeout: "مهلت محیط ایزوله (ثانیه)",
+    nvidiaGenerationProfile: "نمایه تولید انویدیا",
+    nvidiaProfilePrecise: "دقیق (دما ۰٫۲)",
+    nvidiaProfileBalanced: "متعادل (دما ۰٫۷)",
+    nvidiaProfileExploratory: "اکتشافی (دما ۱٫۰)",
     saveSettings: "ذخیره تنظیمات",
     probeProvider: "آزمون اتصال ارائه‌دهنده",
     runGeneration: "اجرای یک نسل",
@@ -426,6 +561,10 @@ const I18N = {
     digitalPetriDish: "پتری‌دیش دیجیتال",
     petriDescription: "جمعیتی کنترل‌شده که در آن انرژی، وراثت، تولیدمثل و گزینش، تباری دیجیتال و قابل مشاهده می‌سازند.",
     lineageMap: "نقشه تبار",
+    lineageHint: "با کشیدن جابه‌جا شوید · نوارها کاوش می‌کنند · چرخ زوم می‌کند",
+    lineageZoomIn: "بزرگ‌نمایی",
+    lineageZoomOut: "کوچک‌نمایی",
+    lineageZoomReset: "بازنشانی",
     living: "زنده",
     extinct: "منقرض‌شده",
     births: "تولدها",
@@ -482,6 +621,9 @@ const I18N = {
     evidenceIntegrity: "یکپارچگی شواهد",
     promotionGate: "دروازه ارتقا با کنترل انسانی",
     promotionGateDescription: "تمام دوره‌های بوم‌شناختی را بازپخش کنید، اصالت بسته شواهد را بسنجید و تصمیم صریح انسان را ثبت کنید.",
+    pipelineEvidenceStep: "دروازه · v0.7",
+    pipelineEvidenceTitle: "شواهد و بازبینی انسانی",
+    pipelineEvidenceBlurb: "یک بسته بازپخش را احراز اصالت کنید و سپس تصمیم صریح محلی انسان را ثبت کنید.",
     bundleInstructions: "تنها پس از موفقیت بازپخش قطعی، یک نمای لحظه‌ای احرازاصالت‌شده توسط میزبان بسازید.",
     createEvidenceBundle: "ساخت بسته شواهد",
     approver: "بازبین",
@@ -584,6 +726,22 @@ const I18N = {
     journalCompleted: "سقف نسل‌ها تکمیل شد",
     journalError: "ارتباط با ارائه‌دهنده قطع شد",
     journalGeneration: "نسل",
+    readJourney: "خواندن سفر",
+    journeyKicker: "داستان تبار",
+    journeyTitle: "سفر تکامل",
+    journeyLoading: "در حال گردآوری روایت…",
+    journeyTranslating: "در حال ترجمهٔ متن سفر به فارسی…",
+    journeyMeta: "{count} لحظه در روایت",
+    journeySynopsisTitle: "داستان تا اینجا",
+    journeyFeaturesColumn: "ویژگی‌های به‌دست‌آمده",
+    journeySkillsColumn: "مهارت‌های به‌دست‌آمده",
+    journeyStatMoments: "لحظه‌ها",
+    journeyStatEligible: "واجد شرایط",
+    journeyStatRejected: "ناکامی‌ها",
+    journeyStatAchievements: "دستاوردها",
+    journeyStatGeneration: "نسل",
+    closeJourney: "بستن",
+    journeyFailed: "باز کردن سفر تکامل ممکن نشد.",
     attempt: "تلاش",
     seconds: "ثانیه",
     retrying: "گنوم به‌صورت خودکار دوباره تلاش می‌کند.",
@@ -603,18 +761,76 @@ const I18N = {
     achievement_deep_time_desc: "پانصد نسل وارد دوران ژرف تکاملی شدند.",
     achievement_millennium_lineage: "تبار هزاره",
     achievement_millennium_lineage_desc: "هزار نسل، تباری دیجیتال و ماندگار ساختند.",
+    helpHostStatus: "نشان می‌دهد آیا میزبان برای اجرای ایمن محلی، ارائه‌دهنده، مدل و کلید API را پیکربندی کرده است.",
+    helpSettings: "ارائه‌دهنده مدل، بودجه، مهلت زمانی و سندباکس اختیاری بدون ریشه را برای ارزیابی تنظیم کنید.",
+    helpRunGeneration: "یک نسل محدود اجرا می‌کند و نامزد واجد شرایط یا ردشده می‌سازد؛ مخزن را تغییر نمی‌دهد.",
+    helpAutonomousEvolution: "چرخه پیوسته و بی‌پایان را شروع یا متوقف می‌کند که در فواصل زمانی سازگاری پیشنهاد می‌دهد.",
+    helpDigitalPetriDish: "رصدخانه بوم‌شناسی جمعیت: جانداران زنده، Nicheها، همکاری و تبار.",
+    helpEcologySignals: "معیارهای پژوهشی برای پایداری، تنوع، شاخص بی‌پایانی و تازه‌ترین شواهد ارزیابی.",
+    helpResourcePools: "منابع محیطی مشترک که با فاز گزینش فعلی جابه‌جا می‌شوند.",
+    helpEmergentNiches: "شمار جانداران زنده بر اساس نقش رفتاری مانند کاوشگر یا نگهبان.",
+    helpCooperationNetwork: "پیوندهای همکاری اخیر میان جانداران در جمعیت محدود.",
+    helpLineageMap: "نقشه والد-فرزند همه نسل‌های ثبت‌شده. برای کاوش، پیمایش، بزرگ‌نمایی و کشیدن را به کار ببرید.",
+    helpPromotionGate: "مراحل شواهد، اعتماد، انتشار و تحویل استقرار تحت کنترل انسان. اقدامات مرورگر هرگز استقرار نمی‌کنند.",
+    helpPipelineEvidence: "بسته شواهد تأیید‌شده با بازپخش بسازید و تصمیم محلی تأیید/رد انسانی را ثبت کنید.",
+    helpPipelineTrust: "وضعیت مرجع اعتماد مستقل: تأیید عمومی، سیاست بازبین و مجوز دستی.",
+    helpPipelineRelease: "نمای فقط‌خواندنی از آثار نامزد مهروموم‌شده و آمادگی ارتقای محلی.",
+    helpPipelineDeployment: "تحویل استقرار خارجی فقط‌خواندنی. EVO هرگز اعتبار ابری نگه نمی‌دارد و خودش استقرار نمی‌کند.",
+    helpEvolutionJournal: "روایت عمومی پیشرفت خودکار، دستاوردها و داستان‌گویی سفر تکامل.",
+    helpAchievements: "دستاوردهایی که با رسیدن نسل‌های برگزیده به آستانه‌های تعریف‌شده میزبان باز می‌شوند.",
+    helpAuditTrail: "رویدادهای ویرایش‌شده و تغییرناپذیر از گزارش ممیزی محلی برای بررسی و جست‌وجو.",
+    helpConfigured: "آیا تنظیمات لازم میزبان برای تماس با ارائه‌دهنده کامل است.",
+    helpProvider: "ارائه‌دهنده فعال مدل برای این زیست‌بوم (Groq یا NVIDIA NIM).",
+    helpModel: "شناسه مدل انتخاب‌شده برای درخواست‌های تولید.",
+    helpApiKey: "آیا کلید API روی میزبان ذخیره شده است. راز خام هرگز نمایش داده نمی‌شود.",
+    helpEnvFile: "وجود فایل محیطی محلی که تنظیمات را نگه می‌دارد.",
+    helpCallsPerRun: "حداکثر تماس‌های ارائه‌دهنده مجاز در بودجه یک نسل.",
+    helpEcologicalStability: "شاخص تقریبی پایداری جمعیت زنده در بوم‌شناسی اخیر.",
+    helpPopulationDiversity: "شاخص تقریبی تنوع رفتاری و تباری میان جانداران زنده.",
+    helpOpenEndednessProxy: "شاخص پژوهشی مشروط برای تازگی مداوم؛ ادعای AGI بی‌پایان نیست.",
+    helpEpoch: "شمارنده عصر بوم‌شناسی فعلی ظرف پتری.",
+    helpLiving: "جانداران زنده در برابر ظرفیت ظرف.",
+    helpBirths: "کل زادآوری‌های ثبت‌شده در تاریخ جمعیت.",
+    helpExtinct: "جاندارانی که در ظرف پتری منقرض شده‌اند.",
+    helpMeanEnergy: "میانگین انرژی جانداران زنده فعلی.",
+    helpMeanFitness: "میانگین برازش جانداران زنده فعلی.",
+    helpPhase: "فاز فعلی کارگر خودمختار مانند انتظار، اجرا یا عقب‌نشینی.",
+    helpGeneration: "بالاترین نسل برگزیده ثبت‌شده برای تبار تا این لحظه.",
+    helpAttempts: "تلاش‌های نسل مصرف‌شده در برابر سقف پیکربندی‌شده.",
+    helpNextInterval: "ثانیه‌هایی که کارگر خودمختار میان تلاش‌های نسل صبر می‌کند.",
+    helpEvidenceBundle: "شناسه و وضعیت تأیید تازه‌ترین بسته شواهد میزبان.",
+    helpDeterministicReplay: "آیا بررسی بازپخش قطعی تازه‌ترین بسته موفق بوده است.",
+    helpHumanDecision: "تصمیم محلی تأیید/رد انسانی متصل به تازه‌ترین بسته تأییدشده.",
+    helpDeploymentAuthority: "اختیار استقرار از مرورگر در EVO همیشه رد می‌شود.",
+    helpAuthorityIdentity: "اثرانگشت هویت محلی مرجع اعتماد Ed25519.",
+    helpTrustedReviewers: "تعداد بازبینان مستقل ثبت‌شده و مورد اعتماد این میزبان.",
+    helpPublicAttestation: "تازه‌ترین تأیید عمومی روی بسته شواهد تأییدشده.",
+    helpIndependentReview: "تازه‌ترین تصمیم امضاشده بازبین مستقل.",
+    helpPromotionPolicy: "آیا الزامات سیاست اعتماد برای ارتقا فعلاً برقرار است.",
+    helpManualAuthorization: "سابقه مجوز ارتقای دستی وقتی سیاست اجازه می‌دهد.",
+    helpSealedArtifact: "تازه‌ترین اثر نامزد مهروموم‌شده برای ارتقای کنترل‌شده محلی.",
+    helpAuthorizationUse: "آیا مجوز فعلی آماده، غایب یا مصرف‌شده است.",
+    helpLocalRepository: "آیا مخزن محلی برای گام انتشار کنترل‌شده به اندازه کافی پاک است.",
+    helpPromotionState: "ارتقای محلی فعال فعلی، در صورت وجود.",
+    helpRollbackState: "آیا مسیر بازگشت برای ارتقای فعال در دسترس است.",
+    helpDeploymentDenied: "یادآوری که استقرار برای همیشه خارج از کنترل مرورگر است.",
+    helpReleaseCapsule: "تازه‌ترین کپسول انتشار امضاشده برای تحویل به اپراتور خارجی.",
+    helpTrustedOperators: "شمار اپراتورهای خارجی مورد اعتماد برای تحویل.",
+    helpDeploymentPhase: "فاز فعلی تحویل استقرار خارجی.",
+    helpNextDeploymentAction: "اقدام پیشنهادی بعدی اپراتور در گردش کار تحویل.",
+    helpOperatorReceipt: "تازه‌ترین رسید اپراتور برای یک گام اجرای خارجی.",
+    helpExternalExecution: "اجرای خارجی لازم است؛ EVO استقرار ابری انجام نمی‌دهد.",
+    helpOrganismCard: "یک جاندار زنده: نقش، برازش، انرژی و شناسه‌های تبار.",
+    helpOrganismNoParents: "ندارد (خط بنیان‌گذار)",
+    helpOrganismDetail: "{id} یک {lineage} زنده از نسل برگزیده {generation} است و فعلاً نقش {role} را دارد. انرژی {energy}؛ برازندگی {fitness}. والدین: {parents}. سازگاری‌های برگزیده: {adaptations}. ارزیابی‌ها {evaluations}؛ همکاری‌ها {collaborations} ({successes} موفق).",
+    helpJourneyStatMoments: "تعداد لحظه‌های ژورنال در این مجموعه فصل‌های سفر.",
+    helpJourneyStatEligible: "تعداد سازگاری‌های واجد شرایط در بازه سفر انتخاب‌شده.",
+    helpJourneyStatRejected: "تعداد پیشنهادهای ردشده در بازه سفر انتخاب‌شده.",
+    helpJourneyStatAchievements: "تعداد رویدادهای بازشدن دستاورد در بازه سفر انتخاب‌شده.",
+    helpJourneyStatGeneration: "بالاترین نسل برگزیده در بازه سفر انتخاب‌شده.",
+    helpJourneyChapter: "یک فصل زمانی از داستان تکامل تا نقطه برش انتخاب‌شده.",
+    helpJourneySynopsis: "خلاصه داستان تا اینجا تا نقطه ژورنال انتخاب‌شده.",
   },
-};
-
-const ACHIEVEMENT_CATALOG = {
-  first_spark: { symbol: "✦" },
-  stable_lineage: { symbol: "Ⅴ" },
-  adaptive_colony: { symbol: "Ⅹ" },
-  open_ended_explorer: { symbol: "∞" },
-  emergent_ecology: { symbol: "◌" },
-  century_organism: { symbol: "C" },
-  deep_time: { symbol: "◈" },
-  millennium_lineage: { symbol: "M" },
 };
 
 const AUTONOMY_OBJECTIVES = {
@@ -627,11 +843,14 @@ let cachedSettings = null;
 let cachedAudit = [];
 let cachedAutonomy = null;
 let cachedJournal = [];
+let openJourneyUntil = null;
 let cachedPetri = null;
 let cachedEvidenceControl = null;
 let cachedTrustAuthority = null;
 let cachedPromotionControl = null;
 let cachedDeploymentControl = null;
+let cachedAchievementCatalog = [];
+let cachedAchievementTotal = 0;
 
 const statusSummary = document.getElementById("status-summary");
 const statusGrid = document.getElementById("status-grid");
@@ -645,15 +864,25 @@ const auditBody = document.getElementById("audit-body");
 const toast = document.getElementById("toast");
 const globalSearch = document.getElementById("global-search");
 const providerSelect = document.getElementById("provider");
+const modelInput = document.getElementById("model");
+const modelSelect = document.getElementById("model-select");
 const autonomyForm = document.getElementById("autonomy-form");
 const autonomyBadge = document.getElementById("autonomy-badge");
 const autonomyStats = document.getElementById("autonomy-stats");
 const autonomyObjective = document.getElementById("autonomy-objective");
 const journalContainer = document.getElementById("evolution-journal");
+const journeyModal = document.getElementById("journey-modal");
+const journeyModalBody = document.getElementById("journey-modal-body");
+const journeyModalMeta = document.getElementById("journey-modal-meta");
+const journeySynopsis = document.getElementById("journey-synopsis");
+const journeySynopsisText = document.getElementById("journey-synopsis-text");
+const journeySummary = document.getElementById("journey-summary");
 const achievementGallery = document.getElementById("achievement-gallery");
 const achievementCount = document.getElementById("achievement-count");
 const petriStats = document.getElementById("petri-stats");
 const lineageMap = document.getElementById("lineage-map");
+const lineageViewport = document.getElementById("lineage-viewport");
+const lineageZoomLabel = document.getElementById("lineage-zoom-label");
 const populationRoster = document.getElementById("population-roster");
 const resourcePools = document.getElementById("resource-pools");
 const nicheDistribution = document.getElementById("niche-distribution");
@@ -674,6 +903,163 @@ function t(key) {
   return I18N[language][key] || I18N.en[key] || key;
 }
 
+function helpKeyFromLabel(labelKey) {
+  if (!labelKey) return "";
+  return `help${labelKey.charAt(0).toUpperCase()}${labelKey.slice(1)}`;
+}
+
+function helpAttrs(helpKey) {
+  if (!helpKey || !t(helpKey) || t(helpKey) === helpKey) {
+    return "";
+  }
+  const text = t(helpKey);
+  return dynamicHelpAttrs(text, helpKey);
+}
+
+function dynamicHelpAttrs(text, helpKey = "") {
+  const value = String(text || "").trim();
+  if (!value) return "";
+  const keyAttr = helpKey
+    ? ` data-i18n-help="${escapeAttr(helpKey)}"`
+    : "";
+  return `${keyAttr} data-help="${escapeAttr(value)}" aria-description="${escapeAttr(value)}"`;
+}
+
+function formatOrganismHelp(organism) {
+  const parents = Array.isArray(organism.parent_ids) ? organism.parent_ids : [];
+  const adaptations = Array.isArray(organism.selected_adaptations)
+    ? organism.selected_adaptations.length
+    : 0;
+  return t("helpOrganismDetail")
+    .replaceAll("{id}", String(organism.organism_id || "—"))
+    .replaceAll(
+      "{lineage}",
+      parents.length ? t("offspring") : t("founder")
+    )
+    .replaceAll("{generation}", localizeNumber(organism.generation ?? "—"))
+    .replaceAll(
+      "{role}",
+      t(organism.emergent_role || "undifferentiated")
+    )
+    .replaceAll("{energy}", localizeNumber(organism.energy ?? "—"))
+    .replaceAll(
+      "{fitness}",
+      localizeNumber(Number(organism.fitness || 0).toFixed(3))
+    )
+    .replaceAll(
+      "{parents}",
+      parents.length ? parents.join(", ") : t("helpOrganismNoParents")
+    )
+    .replaceAll("{adaptations}", localizeNumber(adaptations))
+    .replaceAll(
+      "{evaluations}",
+      localizeNumber(organism.evaluations ?? 0)
+    )
+    .replaceAll(
+      "{collaborations}",
+      localizeNumber(organism.collaborations ?? 0)
+    )
+    .replaceAll(
+      "{successes}",
+      localizeNumber(organism.successful_collaborations ?? 0)
+    );
+}
+
+function applyHelpTips(root = document) {
+  root.querySelectorAll("[data-i18n-help]").forEach((element) => {
+    const key = element.dataset.i18nHelp;
+    const text = t(key);
+    if (!text || text === key) {
+      element.removeAttribute("data-help");
+      element.removeAttribute("aria-description");
+      return;
+    }
+    element.dataset.help = text;
+    element.setAttribute("aria-description", text);
+    element.classList.add("has-help");
+  });
+}
+
+function ensureHelpTooltip() {
+  let tip = document.getElementById("help-tooltip");
+  if (tip) return tip;
+  tip = document.createElement("div");
+  tip.id = "help-tooltip";
+  tip.className = "help-tooltip";
+  tip.hidden = true;
+  tip.setAttribute("role", "tooltip");
+  document.body.appendChild(tip);
+  return tip;
+}
+
+function positionHelpTooltip(tip, anchor) {
+  const margin = 12;
+  const rect = anchor.getBoundingClientRect();
+  tip.hidden = false;
+  const tipRect = tip.getBoundingClientRect();
+  let left = rect.left + rect.width / 2 - tipRect.width / 2;
+  let top = rect.top - tipRect.height - 10;
+  if (top < margin) {
+    top = rect.bottom + 10;
+    tip.classList.add("help-tooltip-below");
+  } else {
+    tip.classList.remove("help-tooltip-below");
+  }
+  left = Math.max(margin, Math.min(left, window.innerWidth - tipRect.width - margin));
+  tip.style.left = `${Math.round(left)}px`;
+  tip.style.top = `${Math.round(top)}px`;
+}
+
+function showHelpTooltip(anchor) {
+  const text = anchor.getAttribute("data-help") || "";
+  if (!text.trim()) return;
+  const tip = ensureHelpTooltip();
+  tip.textContent = text;
+  tip.dataset.anchor = "1";
+  positionHelpTooltip(tip, anchor);
+}
+
+function hideHelpTooltip() {
+  const tip = document.getElementById("help-tooltip");
+  if (!tip) return;
+  tip.hidden = true;
+  tip.textContent = "";
+  delete tip.dataset.anchor;
+}
+
+function initHelpTooltips() {
+  document.addEventListener("pointerover", (event) => {
+    const target = event.target.closest("[data-help], [data-i18n-help]");
+    if (!target || target.closest("#help-tooltip")) return;
+    if (!target.getAttribute("data-help") && target.dataset.i18nHelp) {
+      applyHelpTips(target.parentElement || document);
+    }
+    if (target.getAttribute("data-help")) {
+      showHelpTooltip(target);
+    }
+  });
+  document.addEventListener("pointerout", (event) => {
+    const from = event.target.closest("[data-help], [data-i18n-help]");
+    const to = event.relatedTarget && event.relatedTarget.closest
+      ? event.relatedTarget.closest("[data-help], [data-i18n-help]")
+      : null;
+    if (from && from !== to) {
+      hideHelpTooltip();
+    }
+  });
+  document.addEventListener("focusin", (event) => {
+    const target = event.target.closest("[data-help], [data-i18n-help]");
+    if (target && target.getAttribute("data-help")) {
+      showHelpTooltip(target);
+    }
+  });
+  document.addEventListener("focusout", () => {
+    hideHelpTooltip();
+  });
+  window.addEventListener("scroll", hideHelpTooltip, true);
+  window.addEventListener("resize", hideHelpTooltip);
+}
+
 function setLanguage(nextLanguage) {
   const previousLanguage = language;
   language = nextLanguage === "fa" ? "fa" : "en";
@@ -687,9 +1073,16 @@ function setLanguage(nextLanguage) {
   document.querySelectorAll("[data-i18n-placeholder]").forEach((element) => {
     element.placeholder = t(element.dataset.i18nPlaceholder);
   });
+  document.querySelectorAll("[data-i18n-title]").forEach((element) => {
+    const label = t(element.dataset.i18nTitle);
+    element.title = label;
+    element.setAttribute("aria-label", label);
+  });
+  applyHelpTips();
   document.querySelectorAll("[data-language]").forEach((button) => {
     button.classList.toggle("active", button.dataset.language === language);
   });
+  updateLineageZoomLabel();
   if (
     !autonomyObjective.value ||
     autonomyObjective.value === AUTONOMY_OBJECTIVES[previousLanguage]
@@ -703,11 +1096,18 @@ function setLanguage(nextLanguage) {
   renderAudit(cachedAudit);
   renderAutonomy(cachedAutonomy);
   renderJournal(cachedJournal);
+  if (journeyModal.open && openJourneyUntil) {
+    journeyModal.querySelectorAll("[data-i18n]").forEach((element) => {
+      element.textContent = t(element.dataset.i18n);
+    });
+    openEvolutionJourney({ timestamp: openJourneyUntil }).catch(() => {});
+  }
   renderPetriDish(cachedPetri);
   renderEvidenceControl(cachedEvidenceControl);
   renderTrustAuthority(cachedTrustAuthority);
   renderPromotionControl(cachedPromotionControl);
   renderDeploymentControl(cachedDeploymentControl);
+  applyHelpTips();
 }
 
 function renderEvidenceControl(status) {
@@ -727,7 +1127,7 @@ function renderEvidenceControl(status) {
     ["deploymentAuthority", t("denied"), false],
   ];
   evidenceControlStatus.innerHTML = cards.map(([label, value, valid]) => `
-    <article class="gate-status-card ${valid ? "verified" : "restricted"}">
+    <article class="gate-status-card has-help ${valid ? "verified" : "restricted"}"${helpAttrs(helpKeyFromLabel(label))}>
       <span>${escapeHtml(t(label))}</span>
       <strong>${escapeHtml(value)}</strong>
     </article>
@@ -756,7 +1156,7 @@ function renderTrustAuthority(status) {
     ["manualAuthorization", authorizationValid ? authorization.authorization_id : t("noAuthorization"), authorizationValid],
   ];
   trustAuthorityStatus.innerHTML = cards.map(([label, value, valid]) => `
-    <article class="gate-status-card ${valid ? "verified" : "restricted"}">
+    <article class="gate-status-card has-help ${valid ? "verified" : "restricted"}"${helpAttrs(helpKeyFromLabel(label))}>
       <span>${escapeHtml(t(label))}</span>
       <strong>${escapeHtml(value)}</strong>
     </article>
@@ -784,7 +1184,7 @@ function renderPromotionControl(status) {
     ["deploymentAuthority", t("denied"), false],
   ];
   promotionControlStatus.innerHTML = cards.map(([label, value, valid]) => `
-    <article class="gate-status-card ${valid ? "verified" : "restricted"}">
+    <article class="gate-status-card has-help ${valid ? "verified" : "restricted"}"${helpAttrs(helpKeyFromLabel(label))}>
       <span>${escapeHtml(t(label))}</span>
       <strong>${escapeHtml(value)}</strong>
     </article>
@@ -807,7 +1207,7 @@ function renderDeploymentControl(status) {
     ["externalExecution", t("required"), Boolean(status.external_execution_required)],
   ];
   deploymentControlStatus.innerHTML = cards.map(([label, value, valid]) => `
-    <article class="gate-status-card ${valid ? "verified" : "restricted"}">
+    <article class="gate-status-card has-help ${valid ? "verified" : "restricted"}"${helpAttrs(helpKeyFromLabel(label))}>
       <span>${escapeHtml(t(label))}</span>
       <strong>${escapeHtml(value)}</strong>
     </article>
@@ -851,7 +1251,6 @@ function fillSettings(settings) {
   const provider = settings.provider || "groq";
   const defaults = DEFAULTS[provider] || DEFAULTS.groq;
   providerSelect.value = provider;
-  document.getElementById("model").value = settings.model || defaults.model;
   document.getElementById("base_url").value = settings.base_url || defaults.base_url;
   document.getElementById("max_input_tokens").value = settings.max_input_tokens || 6000;
   document.getElementById("max_output_tokens").value = settings.max_output_tokens || 1200;
@@ -864,25 +1263,85 @@ function fillSettings(settings) {
     settings.evaluation_command || "python -m unittest discover -s tests";
   document.getElementById("sandbox_timeout_seconds").value =
     settings.sandbox_timeout_seconds || 60;
+  document.getElementById("nvidia_generation_profile").value =
+    settings.nvidia_generation_profile || "balanced";
   document.getElementById("api_key").value = "";
   document.getElementById("api_key").placeholder = settings.configured
     ? t("keepSavedKey")
     : t("enterNewKey");
+  syncModelControls(provider, settings.model || defaults.model);
+  syncNvidiaProfileVisibility(provider);
+}
+
+function syncNvidiaProfileVisibility(provider) {
+  const field = document.getElementById("nvidia-profile-field");
+  const select = document.getElementById("nvidia_generation_profile");
+  const isNvidia = provider === "nvidia";
+  field.hidden = !isNvidia;
+  select.disabled = !isNvidia;
+  if (!isNvidia) {
+    select.removeAttribute("name");
+  } else {
+    select.name = "nvidia_generation_profile";
+  }
+}
+
+function populateModelSelect(models, selectedModel) {
+  const choices = [...models];
+  if (selectedModel && !choices.includes(selectedModel)) {
+    choices.unshift(selectedModel);
+  }
+  modelSelect.innerHTML = choices
+    .map(
+      (model) =>
+        `<option value="${escapeAttr(model)}"${
+          model === selectedModel ? " selected" : ""
+        }>${escapeHtml(model)}</option>`
+    )
+    .join("");
+}
+
+function syncModelControls(provider, selectedModel) {
+  const defaults = DEFAULTS[provider] || DEFAULTS.groq;
+  const model = selectedModel || defaults.model;
+  const fallback = PROVIDER_MODEL_FALLBACK[provider] || GROQ_MODEL_FALLBACK;
+  modelSelect.hidden = false;
+  modelSelect.required = true;
+  modelSelect.name = "model";
+  modelSelect.setAttribute("aria-label", provider === "nvidia" ? "NVIDIA NIM model" : "Groq model");
+  modelInput.hidden = true;
+  modelInput.required = false;
+  modelInput.removeAttribute("name");
+  populateModelSelect(fallback, model);
+  modelInput.value = modelSelect.value;
+  loadProviderModels(provider, model);
+}
+
+async function loadProviderModels(provider, selectedModel) {
+  try {
+    const payload = await api(`/api/models?provider=${encodeURIComponent(provider)}`);
+    if (!Array.isArray(payload.models) || !payload.models.length) return;
+    if (providerSelect.value !== provider) return;
+    populateModelSelect(payload.models, selectedModel || modelSelect.value);
+    modelInput.value = modelSelect.value;
+  } catch {
+    // Keep curated fallback options when the live catalog is unavailable.
+  }
 }
 
 function renderStatus(settings) {
   const rows = [
-    [t("configured"), settings.configured ? t("yes") : t("no")],
-    [t("provider"), settings.provider || "—"],
-    [t("model"), settings.model || "—"],
-    [t("apiKey"), settings.api_key ? t("configured") : t("missing")],
-    [t("envFile"), settings.env_file_exists ? t("present") : t("missing")],
-    [t("callsPerRun"), settings.max_calls_per_run || "—"],
+    ["configured", t("configured"), settings.configured ? t("yes") : t("no")],
+    ["provider", t("provider"), settings.provider || "—"],
+    ["model", t("model"), settings.model || "—"],
+    ["apiKey", t("apiKey"), settings.api_key ? t("configured") : t("missing")],
+    ["envFile", t("envFile"), settings.env_file_exists ? t("present") : t("missing")],
+    ["callsPerRun", t("callsPerRun"), settings.max_calls_per_run || "—"],
   ];
   statusGrid.innerHTML = rows
     .map(
-      ([label, value]) => `
-      <div>
+      ([key, label, value]) => `
+      <div class="has-help"${helpAttrs(helpKeyFromLabel(key))}>
         <dt>${escapeHtml(String(label))}</dt>
         <dd>${escapeHtml(String(value))}</dd>
       </div>`
@@ -897,6 +1356,17 @@ function renderStatus(settings) {
 
 function translateStatus(value) {
   return t(value) || value || "—";
+}
+
+function localizeNumber(value) {
+  if (value == null || value === "") return "—";
+  const raw = String(value);
+  const numeric = Number(raw);
+  if (Number.isFinite(numeric) && /^-?\d+(\.\d+)?$/.test(raw.trim())) {
+    return numeric.toLocaleString(language === "fa" ? "fa-IR" : "en-US");
+  }
+  if (language !== "fa") return raw;
+  return raw.replace(/\d/g, (digit) => "۰۱۲۳۴۵۶۷۸۹"[Number(digit)]);
 }
 
 function translateEvent(value) {
@@ -980,14 +1450,14 @@ function renderAutonomy(state) {
   autonomyBadge.textContent = t(phaseKey);
   autonomyBadge.className = state.phase === "backoff" ? "badge rejected" : "badge";
   autonomyStats.innerHTML = [
-    [t("phase"), t(phaseKey)],
-    [t("generation"), state.generation ?? 0],
-    [t("attempts"), `${state.attempts ?? 0} / ${state.max_generations ?? "—"}`],
-    [t("nextInterval"), `${state.interval_seconds ?? "—"} ${t("seconds")}`],
+    ["phase", t("phase"), t(phaseKey)],
+    ["generation", t("generation"), state.generation ?? 0],
+    ["attempts", t("attempts"), `${state.attempts ?? 0} / ${state.max_generations ?? "—"}`],
+    ["nextInterval", t("nextInterval"), `${state.interval_seconds ?? "—"} ${t("seconds")}`],
   ]
     .map(
-      ([label, value]) => `
-        <div class="autonomy-stat">
+      ([key, label, value]) => `
+        <div class="autonomy-stat has-help"${helpAttrs(helpKeyFromLabel(key))}>
           <span>${escapeHtml(String(label))}</span>
           <strong>${escapeHtml(String(value))}</strong>
         </div>`
@@ -1014,8 +1484,13 @@ function achievementDescription(id) {
   return t(`achievement_${id}_desc`);
 }
 
+function achievementSymbol(id) {
+  const milestone = cachedAchievementCatalog.find((item) => item.id === id);
+  return milestone?.symbol || "✦";
+}
+
 function renderAchievements(achievements) {
-  const total = Object.keys(ACHIEVEMENT_CATALOG).length;
+  const total = cachedAchievementTotal || cachedAchievementCatalog.length || 0;
   achievementCount.textContent = `${achievements.length} / ${total}`;
   if (!achievements.length) {
     achievementGallery.innerHTML =
@@ -1024,10 +1499,10 @@ function renderAchievements(achievements) {
   }
   achievementGallery.innerHTML = achievements
     .map((achievement) => {
-      const catalog = ACHIEVEMENT_CATALOG[achievement.id] || { symbol: "✦" };
+      const descKey = `achievement_${achievement.id}_desc`;
       return `
-        <article class="achievement-card">
-          <span class="achievement-symbol" aria-hidden="true">${escapeHtml(catalog.symbol)}</span>
+        <article class="achievement-card has-help"${helpAttrs(descKey)}>
+          <span class="achievement-symbol" aria-hidden="true">${escapeHtml(achievementSymbol(achievement.id))}</span>
           <div>
             <strong>${escapeHtml(achievementName(achievement.id))}</strong>
             <small>${escapeHtml(achievementDescription(achievement.id))}</small>
@@ -1050,11 +1525,11 @@ function renderJournal(entries) {
     "autonomy.error": "journalError",
   };
   journalContainer.innerHTML = cachedJournal
-    .map((entry) => {
+    .map((entry, index) => {
       const payload = entry.payload || {};
       const isGeneration = entry.event_type === "autonomy.generation";
       const title = isGeneration
-        ? `${t("journalGeneration")} ${payload.generation ?? "—"}`
+        ? `${t("journalGeneration")} ${localizeNumber(payload.generation ?? "—")}`
         : t(titles[entry.event_type] || "evolutionJournal");
       const detail = isGeneration
         ? payload.summary || payload.rejection_reason || "—"
@@ -1062,7 +1537,7 @@ function renderJournal(entries) {
           ? `${payload.message || "—"} ${t("retrying")}`
           : payload.objective || "";
       const meta = isGeneration
-        ? `${t("attempt")} ${payload.attempt ?? "—"} · ${translateStatus(payload.status)} · ${t("score")}: ${payload.score ?? "—"}`
+        ? `${t("attempt")} ${localizeNumber(payload.attempt ?? "—")} · ${translateStatus(payload.status)} · ${t("score")}: ${localizeNumber(payload.score ?? "—")}`
         : "";
       const achievementChips = (payload.achievements || [])
         .map(
@@ -1074,7 +1549,16 @@ function renderJournal(entries) {
         .join("");
       return `
         <article class="timeline-entry ${entry.event_type === "autonomy.error" ? "error" : ""}">
-          <h3>${escapeHtml(String(title))}</h3>
+          <div class="timeline-entry-head">
+            <h3>${escapeHtml(String(title))}</h3>
+            <button
+              class="button ghost journey-button"
+              type="button"
+              data-journey-index="${index}"
+              title="${escapeAttr(t("readJourney"))}"
+              aria-label="${escapeAttr(`${t("readJourney")}: ${title}`)}"
+            >${escapeHtml(t("readJourney"))}</button>
+          </div>
           <div class="timeline-meta">${escapeHtml(`${formatTime(entry.timestamp)}${meta ? ` · ${meta}` : ""}`)}</div>
           ${detail ? `<p>${escapeHtml(String(detail))}</p>` : ""}
           ${payload.expected_benefit ? `<p><strong>${escapeHtml(t("expectedBenefit"))}:</strong> ${escapeHtml(String(payload.expected_benefit))}</p>` : ""}
@@ -1083,6 +1567,197 @@ function renderJournal(entries) {
         </article>`;
     })
     .join("");
+  journalContainer.querySelectorAll("[data-journey-index]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const entry = cachedJournal[Number(button.dataset.journeyIndex)];
+      if (entry) {
+        openEvolutionJourney(entry).catch((error) => showToast(error.message));
+      }
+    });
+  });
+}
+
+async function openEvolutionJourney(entry) {
+  openJourneyUntil = entry.timestamp;
+  journeyModalMeta.textContent = "";
+  clearJourneyHeaderExtras();
+  journeyModal.setAttribute("lang", language);
+  journeyModal.setAttribute("dir", language === "fa" ? "rtl" : "ltr");
+  journeyModalBody.innerHTML = `<p class="empty-state">${escapeHtml(
+    language === "fa" ? t("journeyTranslating") : t("journeyLoading")
+  )}</p>`;
+  if (typeof journeyModal.showModal === "function") {
+    if (!journeyModal.open) {
+      journeyModal.showModal();
+    }
+  } else if (!journeyModal.hasAttribute("open")) {
+    journeyModal.setAttribute("open", "");
+  }
+  try {
+    const payload = await api("/api/evolution-journey", {
+      method: "POST",
+      body: JSON.stringify({
+        until: entry.timestamp,
+        language,
+      }),
+    });
+    journeyModalMeta.textContent = t("journeyMeta").replace(
+      "{count}",
+      String(payload.entry_count ?? 0)
+    );
+    renderJourneySynopsis(payload.synopsis || "", payload.synopsis_title || "");
+    renderJourneySummary(payload.summary || {});
+    renderJourneyChapters(payload.chapters || [], payload.story || "");
+    journeyModalBody.focus();
+    if (language === "fa") {
+      refreshEvolution().catch(() => {});
+    }
+  } catch (error) {
+    clearJourneyHeaderExtras();
+    journeyModalBody.innerHTML = `<p class="empty-state">${escapeHtml(error.message || t("journeyFailed"))}</p>`;
+    throw error;
+  }
+}
+
+function clearJourneyHeaderExtras() {
+  if (journeySynopsis) {
+    journeySynopsis.hidden = true;
+  }
+  if (journeySynopsisText) {
+    journeySynopsisText.textContent = "";
+  }
+  if (journeySummary) {
+    journeySummary.hidden = true;
+    journeySummary.innerHTML = "";
+  }
+}
+
+function renderJourneySynopsis(synopsis, title) {
+  if (!journeySynopsis || !journeySynopsisText) return;
+  const text = String(synopsis || "").trim();
+  if (!text) {
+    journeySynopsis.hidden = true;
+    journeySynopsisText.textContent = "";
+    return;
+  }
+  const kicker = journeySynopsis.querySelector(".journey-synopsis-kicker");
+  if (kicker) {
+    kicker.textContent = title || t("journeySynopsisTitle");
+  }
+  journeySynopsisText.textContent = text;
+  journeySynopsis.hidden = false;
+}
+
+function renderJourneySummary(summary) {
+  if (!journeySummary) return;
+  const cards = [
+    ["journeyStatMoments", summary.moments, "info"],
+    ["journeyStatEligible", summary.eligible, "success"],
+    ["journeyStatRejected", summary.rejected, "danger"],
+    ["journeyStatAchievements", summary.achievements, "amber"],
+    ["journeyStatGeneration", summary.generation, "canopy"],
+  ];
+  journeySummary.innerHTML = cards
+    .map(
+      ([label, value, tone]) => `
+        <div class="journey-stat journey-stat-${escapeAttr(tone)} has-help"${helpAttrs(helpKeyFromLabel(label))}>
+          <span>${escapeHtml(t(label))}</span>
+          <strong>${escapeHtml(localizeNumber(value ?? 0))}</strong>
+        </div>`
+    )
+    .join("");
+  journeySummary.hidden = false;
+}
+
+function renderJourneyChapters(chapters, fallbackStory) {
+  if (!chapters.length) {
+    const story = String(fallbackStory || "").trim();
+    journeyModalBody.innerHTML = story
+      ? story
+          .split(/\n\n+/)
+          .map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`)
+          .join("")
+      : `<p class="empty-state">${escapeHtml(t("noEvolutionYet"))}</p>`;
+    return;
+  }
+
+  journeyModalBody.innerHTML = `
+    <div class="journey-timeline" role="list">
+      ${chapters
+        .map((chapter) => {
+          const tone = escapeAttr(chapter.tone || "neutral");
+          const badges = (chapter.badges || [])
+            .map(
+              (badge) =>
+                `<span class="journey-badge tone-${escapeAttr(badge.tone || "muted")}">${escapeHtml(badge.label || "")}</span>`
+            )
+            .join("");
+          const tags = (chapter.tags || [])
+            .map(
+              (tag) =>
+                `<span class="journey-tag tone-${escapeAttr(tag.tone || "muted")}">${escapeHtml(tag.label || "")}</span>`
+            )
+            .join("");
+          const details = (chapter.details || [])
+            .map((detail) => `<p class="journey-detail">${escapeHtml(String(detail))}</p>`)
+            .join("");
+          const features = renderJourneyGainColumn(
+            chapter.columns?.features_title || t("journeyFeaturesColumn"),
+            chapter.features || []
+          );
+          const skills = renderJourneyGainColumn(
+            chapter.columns?.skills_title || t("journeySkillsColumn"),
+            chapter.skills || []
+          );
+          const gains =
+            chapter.kind === "generation"
+              ? `<div class="journey-gains">${features}${skills}</div>`
+              : "";
+          return `
+            <article class="journey-chapter tone-${tone} has-help" role="listitem"${helpAttrs("helpJourneyChapter")}>
+              <div class="journey-chapter-rail" aria-hidden="true">
+                <span class="journey-chapter-icon">${escapeHtml(chapter.icon || "●")}</span>
+              </div>
+              <div class="journey-chapter-card">
+                <div class="journey-chapter-head">
+                  <div>
+                    <h3>${escapeHtml(chapter.title || t("evolutionJournal"))}</h3>
+                    ${
+                      chapter.timestamp
+                        ? `<time class="journey-chapter-time">${escapeHtml(formatTime(chapter.timestamp))}</time>`
+                        : ""
+                    }
+                  </div>
+                </div>
+                ${badges ? `<div class="journey-badges">${badges}</div>` : ""}
+                ${tags ? `<div class="journey-tags">${tags}</div>` : ""}
+                <p class="journey-chapter-body">${escapeHtml(String(chapter.body || ""))}</p>
+                ${gains}
+                ${details}
+              </div>
+            </article>`;
+        })
+        .join("")}
+    </div>`;
+}
+
+function renderJourneyGainColumn(title, items) {
+  if (!Array.isArray(items) || !items.length) return "";
+  return `
+    <section class="journey-gain-column">
+      <h4>${escapeHtml(title)}</h4>
+      <ul>
+        ${items
+          .map(
+            (item) => `
+              <li>
+                <strong>${escapeHtml(item.title || "")}</strong>
+                <span>${escapeHtml(item.detail || "")}</span>
+              </li>`
+          )
+          .join("")}
+      </ul>
+    </section>`;
 }
 
 function renderPetriDish(state) {
@@ -1097,7 +1772,7 @@ function renderPetriDish(state) {
   ]
     .map(([label, rawValue]) => {
       const value = Math.max(0, Math.min(1, Number(rawValue || 0)));
-      return `<article class="metric-card">
+      return `<article class="metric-card has-help"${helpAttrs(helpKeyFromLabel(label))}>
         <span>${escapeHtml(t(label))}</span>
         <strong>${escapeHtml(`${Math.round(value * 100)}%`)}</strong>
         <div class="metric-track"><i style="width:${value * 100}%"></i></div>
@@ -1127,16 +1802,16 @@ function renderPetriDish(state) {
         .join("")}</div>`
     : `${comparisonDetails}<p class="empty-state">${escapeHtml(t("noTeamEvidence"))}</p>`;
   petriStats.innerHTML = [
-    [t("epoch"), summary.epoch ?? 0],
-    [t("living"), `${summary.living ?? 0} / ${summary.capacity ?? 0}`],
-    [t("births"), summary.births ?? 0],
-    [t("extinct"), summary.extinct ?? 0],
-    [t("meanEnergy"), summary.mean_energy ?? 0],
-    [t("meanFitness"), summary.mean_fitness ?? 0],
+    ["epoch", t("epoch"), summary.epoch ?? 0],
+    ["living", t("living"), `${summary.living ?? 0} / ${summary.capacity ?? 0}`],
+    ["births", t("births"), summary.births ?? 0],
+    ["extinct", t("extinct"), summary.extinct ?? 0],
+    ["meanEnergy", t("meanEnergy"), summary.mean_energy ?? 0],
+    ["meanFitness", t("meanFitness"), summary.mean_fitness ?? 0],
   ]
     .map(
-      ([label, value]) => `
-        <div class="petri-stat">
+      ([key, label, value]) => `
+        <div class="petri-stat has-help"${helpAttrs(helpKeyFromLabel(key))}>
           <span>${escapeHtml(String(label))}</span>
           <strong>${escapeHtml(String(value))}</strong>
         </div>`
@@ -1183,9 +1858,14 @@ function renderPetriDish(state) {
         .join("")
     : `<p class="empty-state">${escapeHtml(t("noCooperation"))}</p>`;
 
-  const organisms = (state.organisms || []).slice(-80);
+  const organisms = state.organisms || [];
   if (!organisms.length) {
     lineageMap.innerHTML = "";
+    lineageMap.removeAttribute("width");
+    lineageMap.removeAttribute("height");
+    lineageMap.removeAttribute("viewBox");
+    lineageBaseSize = { width: 960, height: 520 };
+    applyLineageZoom(1);
     populationRoster.innerHTML =
       `<p class="empty-state">${escapeHtml(t("noPopulation"))}</p>`;
     return;
@@ -1200,10 +1880,10 @@ function renderPetriDish(state) {
   });
   const generations = [...grouped.keys()].sort((a, b) => a - b);
   const positions = new Map();
-  const columnWidth = 190;
-  const rowHeight = 84;
-  const marginX = 74;
-  const marginY = 58;
+  const columnWidth = 210;
+  const rowHeight = 100;
+  const marginX = 88;
+  const marginY = 68;
   generations.forEach((generation, column) => {
     grouped
       .get(generation)
@@ -1216,11 +1896,18 @@ function renderPetriDish(state) {
       });
   });
   const maxRows = Math.max(...[...grouped.values()].map((items) => items.length));
-  const width = Math.max(540, marginX * 2 + generations.length * columnWidth);
-  const height = Math.max(260, marginY * 2 + maxRows * rowHeight);
+  const width = Math.max(
+    960,
+    marginX * 2 + Math.max(generations.length - 1, 0) * columnWidth + 52
+  );
+  const height = Math.max(
+    520,
+    marginY * 2 + Math.max(maxRows - 1, 0) * rowHeight + 36
+  );
+  lineageBaseSize = { width, height };
   lineageMap.setAttribute("viewBox", `0 0 ${width} ${height}`);
-  lineageMap.setAttribute("width", width);
-  lineageMap.setAttribute("height", height);
+  lineageMap.setAttribute("width", String(width));
+  lineageMap.setAttribute("height", String(height));
 
   const edges = (state.lineage || [])
     .filter(
@@ -1233,14 +1920,14 @@ function renderPetriDish(state) {
     .map((edge) => {
       const parent = positions.get(edge.parent_id);
       const child = positions.get(edge.child_id);
-      return `<path class="lineage-edge" d="M ${parent.x + 22} ${parent.y} C ${parent.x + 82} ${parent.y}, ${child.x - 82} ${child.y}, ${child.x - 22} ${child.y}" />`;
+      return `<path class="lineage-edge" d="M ${parent.x + 26} ${parent.y} C ${parent.x + 96} ${parent.y}, ${child.x - 96} ${child.y}, ${child.x - 26} ${child.y}" />`;
     })
     .join("");
 
   const generationLabels = generations
     .map((generation, column) => {
       const x = marginX + column * columnWidth;
-      return `<text class="generation-label" x="${x}" y="22" text-anchor="middle">${escapeHtml(`${t("generation")} ${generation}`)}</text>`;
+      return `<text class="generation-label" x="${x}" y="28" text-anchor="middle">${escapeHtml(`${t("generation")} ${generation}`)}</text>`;
     })
     .join("");
 
@@ -1249,26 +1936,29 @@ function renderPetriDish(state) {
       const position = positions.get(organism.organism_id);
       const alive = organism.status === "alive";
       const energy = Math.max(0, Math.min(100, Number(organism.energy || 0)));
+      const help = formatOrganismHelp(organism);
       return `
-        <g class="lineage-node ${alive ? "alive" : "extinct"}" transform="translate(${position.x} ${position.y})">
-          <circle class="node-halo" r="25"></circle>
-          <circle class="node-body" r="19"></circle>
-          <circle class="energy-ring" r="22" pathLength="100"
+        <g class="lineage-node ${alive ? "alive" : "extinct"} has-help" transform="translate(${position.x} ${position.y})"${dynamicHelpAttrs(help)} tabindex="0">
+          <circle class="node-halo" r="30"></circle>
+          <circle class="node-body" r="22"></circle>
+          <circle class="energy-ring" r="26" pathLength="100"
             stroke-dasharray="${energy} ${100 - energy}" transform="rotate(-90)"></circle>
           <text class="node-id" y="4" text-anchor="middle">${escapeHtml(organism.organism_id.replace("gnome-", ""))}</text>
-          <text class="node-metric" y="37" text-anchor="middle">${escapeHtml(`${t("fitness")} ${Number(organism.fitness || 0).toFixed(2)}`)}</text>
+          <text class="node-metric" y="42" text-anchor="middle">${escapeHtml(`${t("fitness")} ${Number(organism.fitness || 0).toFixed(2)}`)}</text>
         </g>`;
     })
     .join("");
   lineageMap.innerHTML = `${generationLabels}${edges}${nodes}`;
+  applyLineageZoom(lineageZoom);
 
   populationRoster.innerHTML = organisms
     .filter((organism) => organism.status === "alive")
     .sort((a, b) => Number(b.fitness) - Number(a.fitness))
     .slice(0, 12)
-    .map(
-      (organism) => `
-        <article class="organism-card">
+    .map((organism) => {
+      const help = formatOrganismHelp(organism);
+      return `
+        <article class="organism-card has-help"${dynamicHelpAttrs(help)}>
           <div>
             <strong>${escapeHtml(organism.organism_id)}</strong>
             <small>${escapeHtml(
@@ -1279,11 +1969,122 @@ function renderPetriDish(state) {
             <div><dt>${escapeHtml(t("energy"))}</dt><dd>${escapeHtml(String(organism.energy))}</dd></div>
             <div><dt>${escapeHtml(t("fitness"))}</dt><dd>${escapeHtml(Number(organism.fitness || 0).toFixed(3))}</dd></div>
           </dl>
-        </article>`
-    )
+        </article>`;
+    })
     .join("");
 }
 
+const LINEAGE_ZOOM_MIN = 0.4;
+const LINEAGE_ZOOM_MAX = 2.75;
+const LINEAGE_ZOOM_STEP = 1.18;
+let lineageZoom = 1;
+let lineageBaseSize = { width: 960, height: 520 };
+let lineagePanning = false;
+let lineagePanLast = { x: 0, y: 0 };
+
+function updateLineageZoomLabel() {
+  if (!lineageZoomLabel) return;
+  lineageZoomLabel.textContent = `${Math.round(lineageZoom * 100)}%`;
+}
+
+function applyLineageZoom(nextZoom, anchor) {
+  if (!lineageMap || !lineageViewport) return;
+  const previousZoom = lineageZoom;
+  lineageZoom = Math.max(
+    LINEAGE_ZOOM_MIN,
+    Math.min(LINEAGE_ZOOM_MAX, Number(nextZoom) || 1)
+  );
+  const width = lineageBaseSize.width * lineageZoom;
+  const height = lineageBaseSize.height * lineageZoom;
+  lineageMap.style.width = `${width}px`;
+  lineageMap.style.height = `${height}px`;
+  lineageMap.setAttribute("width", String(width));
+  lineageMap.setAttribute("height", String(height));
+  updateLineageZoomLabel();
+
+  if (!anchor || previousZoom <= 0) return;
+  const rect = lineageViewport.getBoundingClientRect();
+  const offsetX = anchor.x - rect.left;
+  const offsetY = anchor.y - rect.top;
+  const contentX = (lineageViewport.scrollLeft + offsetX) / previousZoom;
+  const contentY = (lineageViewport.scrollTop + offsetY) / previousZoom;
+  lineageViewport.scrollLeft = contentX * lineageZoom - offsetX;
+  lineageViewport.scrollTop = contentY * lineageZoom - offsetY;
+}
+
+function resetLineageView() {
+  applyLineageZoom(1);
+  if (lineageViewport) {
+    lineageViewport.scrollLeft = 0;
+    lineageViewport.scrollTop = 0;
+  }
+}
+
+function initLineageInteractions() {
+  if (!lineageViewport || lineageViewport.dataset.lineageReady === "true") {
+    return;
+  }
+  lineageViewport.dataset.lineageReady = "true";
+
+  document.getElementById("lineage-zoom-in").addEventListener("click", () => {
+    const rect = lineageViewport.getBoundingClientRect();
+    applyLineageZoom(lineageZoom * LINEAGE_ZOOM_STEP, {
+      x: rect.left + rect.width / 2,
+      y: rect.top + rect.height / 2,
+    });
+  });
+  document.getElementById("lineage-zoom-out").addEventListener("click", () => {
+    const rect = lineageViewport.getBoundingClientRect();
+    applyLineageZoom(lineageZoom / LINEAGE_ZOOM_STEP, {
+      x: rect.left + rect.width / 2,
+      y: rect.top + rect.height / 2,
+    });
+  });
+  document
+    .getElementById("lineage-zoom-reset")
+    .addEventListener("click", () => resetLineageView());
+
+  lineageViewport.addEventListener(
+    "wheel",
+    (event) => {
+      event.preventDefault();
+      const factor = event.deltaY < 0 ? LINEAGE_ZOOM_STEP : 1 / LINEAGE_ZOOM_STEP;
+      applyLineageZoom(lineageZoom * factor, {
+        x: event.clientX,
+        y: event.clientY,
+      });
+    },
+    { passive: false }
+  );
+
+  lineageViewport.addEventListener("pointerdown", (event) => {
+    if (event.button !== 0) return;
+    lineagePanning = true;
+    lineagePanLast = { x: event.clientX, y: event.clientY };
+    lineageViewport.classList.add("is-panning");
+    lineageViewport.setPointerCapture(event.pointerId);
+  });
+  lineageViewport.addEventListener("pointermove", (event) => {
+    if (!lineagePanning) return;
+    lineageViewport.scrollLeft -= event.clientX - lineagePanLast.x;
+    lineageViewport.scrollTop -= event.clientY - lineagePanLast.y;
+    lineagePanLast = { x: event.clientX, y: event.clientY };
+  });
+  const endPan = (event) => {
+    if (!lineagePanning) return;
+    lineagePanning = false;
+    lineageViewport.classList.remove("is-panning");
+    if (lineageViewport.hasPointerCapture(event.pointerId)) {
+      lineageViewport.releasePointerCapture(event.pointerId);
+    }
+  };
+  lineageViewport.addEventListener("pointerup", endPan);
+  lineageViewport.addEventListener("pointercancel", endPan);
+  lineageViewport.addEventListener("lostpointercapture", () => {
+    lineagePanning = false;
+    lineageViewport.classList.remove("is-panning");
+  });
+}
 function formatTime(value) {
   if (!value) return "—";
   const date = new Date(value);
@@ -1318,24 +2119,31 @@ function setEvolveThinking(active) {
 
 function applySearch(query) {
   const needle = query.trim().toLowerCase();
-  document.querySelectorAll(".panel").forEach((panel) => {
+  document.querySelectorAll("details.panel").forEach((panel) => {
     const haystack = panel.textContent.toLowerCase();
-    panel.classList.toggle("hidden-by-search", Boolean(needle) && !haystack.includes(needle));
+    const matches = !needle || haystack.includes(needle);
+    panel.classList.toggle("hidden-by-search", Boolean(needle) && !matches);
+    if (needle && matches) {
+      panel.open = true;
+    }
   });
 }
 
 async function refresh() {
-  const [settings, audit, autonomy, journal, petri, evidenceControl, trustAuthority, promotionControl, deploymentControl] = await Promise.all([
+  const [settings, audit, autonomy, achievements, journal, petri, evidenceControl, trustAuthority, promotionControl, deploymentControl] = await Promise.all([
     api("/api/settings"),
     api("/api/audit?limit=50"),
     api("/api/autonomy"),
-    api("/api/evolution-journal?limit=100"),
+    api("/api/achievements"),
+    api(`/api/evolution-journal?limit=100&language=${encodeURIComponent(language)}`),
     api("/api/petri-dish"),
     api("/api/evidence-control"),
     api("/api/trust-authority"),
     api("/api/promotion-control"),
     api("/api/deployment-control"),
   ]);
+  cachedAchievementCatalog = achievements.milestones || [];
+  cachedAchievementTotal = Number(achievements.total || cachedAchievementCatalog.length || 0);
   fillSettings(settings);
   renderStatus(settings);
   renderAudit(audit.events || []);
@@ -1350,9 +2158,10 @@ async function refresh() {
 }
 
 async function refreshEvolution() {
-  const [autonomy, journal, audit, petri, evidenceControl, trustAuthority, promotionControl, deploymentControl] = await Promise.all([
+  const [autonomy, achievements, journal, audit, petri, evidenceControl, trustAuthority, promotionControl, deploymentControl] = await Promise.all([
     api("/api/autonomy"),
-    api("/api/evolution-journal?limit=100"),
+    api("/api/achievements"),
+    api(`/api/evolution-journal?limit=100&language=${encodeURIComponent(language)}`),
     api("/api/audit?limit=50"),
     api("/api/petri-dish"),
     api("/api/evidence-control"),
@@ -1360,6 +2169,8 @@ async function refreshEvolution() {
     api("/api/promotion-control"),
     api("/api/deployment-control"),
   ]);
+  cachedAchievementCatalog = achievements.milestones || [];
+  cachedAchievementTotal = Number(achievements.total || cachedAchievementCatalog.length || 0);
   renderAutonomy(autonomy);
   renderJournal(journal.entries || []);
   renderAudit(audit.events || []);
@@ -1376,8 +2187,20 @@ document.querySelectorAll("[data-language]").forEach((button) => {
 
 providerSelect.addEventListener("change", () => {
   const defaults = DEFAULTS[providerSelect.value];
-  document.getElementById("model").value = defaults.model;
   document.getElementById("base_url").value = defaults.base_url;
+  syncModelControls(providerSelect.value, defaults.model);
+  syncNvidiaProfileVisibility(providerSelect.value);
+  if (providerSelect.value === "nvidia") {
+    document.getElementById("max_output_tokens").value = 4096;
+    document.getElementById("request_timeout_seconds").value = 90;
+  } else {
+    document.getElementById("max_output_tokens").value = 1200;
+    document.getElementById("request_timeout_seconds").value = 45;
+  }
+});
+
+modelSelect.addEventListener("change", () => {
+  modelInput.value = modelSelect.value;
 });
 
 settingsForm.addEventListener("submit", async (event) => {
@@ -1543,8 +2366,17 @@ authorizePromotion.addEventListener("click", async () => {
 });
 
 globalSearch.addEventListener("input", () => applySearch(globalSearch.value));
+document.querySelectorAll("[data-stop-toggle]").forEach((element) => {
+  element.addEventListener("click", (event) => event.stopPropagation());
+  element.addEventListener("keydown", (event) => event.stopPropagation());
+});
+journeyModal.addEventListener("close", () => {
+  openJourneyUntil = null;
+});
+initLineageInteractions();
 
 setLanguage(language);
+initHelpTooltips();
 refresh().catch((error) => {
   statusSummary.textContent = error.message;
   showToast(error.message);

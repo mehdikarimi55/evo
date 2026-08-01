@@ -8,10 +8,37 @@ from urllib.request import Request, urlopen
 import json
 
 from evo.providers.base import ModelReply
+from evo.providers.groq_models import GROQ_MODEL_CATALOG
 
 
 class ProviderError(RuntimeError):
     """A sanitized provider failure safe to show in local diagnostics."""
+
+
+def network_failure_detail(exc: BaseException) -> str:
+    """Return a short, non-secret reason for transport-level provider failures."""
+    if isinstance(exc, TimeoutError):
+        return "TimeoutError"
+    if isinstance(exc, URLError):
+        reason = getattr(exc, "reason", None)
+        if reason is None:
+            return "URLError"
+        if isinstance(reason, BaseException):
+            detail = str(reason).strip() or type(reason).__name__
+            return f"URLError ({type(reason).__name__}: {detail[:160]})"
+        detail = str(reason).strip()
+        return f"URLError ({detail[:160]})" if detail else "URLError"
+    if isinstance(exc, json.JSONDecodeError):
+        return "JSONDecodeError"
+    return type(exc).__name__
+
+
+def _is_chat_oriented_model(model_id: str) -> bool:
+    lowered = model_id.lower()
+    return not any(
+        token in lowered
+        for token in ("whisper", "distil-whisper", "tts", "playai", "canopy")
+    )
 
 
 class GroqProvider:
@@ -61,14 +88,24 @@ class GroqProvider:
             ) from exc
         except (URLError, TimeoutError, json.JSONDecodeError) as exc:
             raise ProviderError(
-                f"درخواست از گروک ناموفق بود: {type(exc).__name__}"
+                f"درخواست از گروک ناموفق بود: {network_failure_detail(exc)}"
             ) from exc
 
-    def healthcheck(self) -> str:
+    def list_models(self) -> list[str]:
         payload = self._request("/models")
-        model_ids = {
-            str(item.get("id")) for item in payload.get("data", []) if item.get("id")
-        }
+        model_ids = sorted(
+            {
+                str(item.get("id"))
+                for item in payload.get("data", [])
+                if item.get("id") and _is_chat_oriented_model(str(item.get("id")))
+            }
+        )
+        if model_ids:
+            return model_ids
+        return list(GROQ_MODEL_CATALOG)
+
+    def healthcheck(self) -> str:
+        model_ids = set(self.list_models())
         if self.model not in model_ids:
             raise ProviderError(
                 f"مدل انتخاب‌شده در این پروژه گروک در دسترس نیست: {self.model}"

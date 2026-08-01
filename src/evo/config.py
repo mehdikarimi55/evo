@@ -4,7 +4,11 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
+from typing import TYPE_CHECKING
 import os
+
+if TYPE_CHECKING:
+    from evo.providers.nvidia_generation import NvidiaGenerationProfile
 
 
 class ConfigurationError(ValueError):
@@ -57,9 +61,17 @@ class Settings:
     max_output_tokens: int = 1200
     max_calls_per_run: int = 4
     request_timeout_seconds: int = 45
+    nvidia_generation: NvidiaGenerationProfile | None = None
 
     @classmethod
     def from_environment(cls) -> "Settings":
+        # Imported lazily to avoid a config ↔ nvidia_generation circular import.
+        from evo.providers.nvidia_generation import (
+            NvidiaGenerationProfile,
+            default_max_output_tokens_for_provider,
+            default_timeout_seconds_for_provider,
+        )
+
         provider = os.getenv("EVO_PROVIDER", "groq").strip().lower()
         providers = {
             "groq": {
@@ -100,15 +112,25 @@ class Settings:
         ).strip()
         if not model:
             raise ConfigurationError("مدل پیکربندی‌شده نمی‌تواند خالی باشد")
+        nvidia_generation = (
+            NvidiaGenerationProfile.from_environment()
+            if provider == "nvidia"
+            else None
+        )
         return cls(
             provider=provider,
             api_key=key,
             model=model,
             base_url=base_url,
             max_input_tokens=_positive_int("EVO_MAX_INPUT_TOKENS", 6000),
-            max_output_tokens=_positive_int("EVO_MAX_OUTPUT_TOKENS", 1200),
+            max_output_tokens=_positive_int(
+                "EVO_MAX_OUTPUT_TOKENS",
+                default_max_output_tokens_for_provider(provider),
+            ),
             max_calls_per_run=_positive_int("EVO_MAX_CALLS_PER_RUN", 4),
             request_timeout_seconds=_positive_int(
-                "EVO_REQUEST_TIMEOUT_SECONDS", 45
+                "EVO_REQUEST_TIMEOUT_SECONDS",
+                default_timeout_seconds_for_provider(provider),
             ),
+            nvidia_generation=nvidia_generation,
         )

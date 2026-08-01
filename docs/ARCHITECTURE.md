@@ -47,7 +47,17 @@ implementation slice.
 The UI is a stdlib HTTP server bound to localhost. It reuses `TerrariumRuntime`
 so browser clients never receive raw credentials. Settings writes update
 `.env.local` on the host. Evolve results and audit events remain evaluation
-data only; they do not mutate the repository in v0.1.
+data only; they do not mutate the repository in v0.1. The Evolution Journal
+exposes `/api/evolution-journey`, which composes a bilingual storytelling
+chronicle from public journal entries through a selected timestamp without
+returning secrets or raw patches. When `language=fa`, `TerrariumRuntime`
+localizes Latin free-text fields through `evo.content_i18n` (provider batch
+translate + `.evo/i18n-cache-fa.json`) before `journal_story` composition.
+`/api/evolution-journal?language=fa` applies the same cache without live
+provider calls so list refresh stays fast after a journey has warmed the cache.
+Lineage achievements are defined once in `evo.achievements` and exposed by
+`GET /api/achievements` (milestones, total, unlocked) so the UI does not
+hardcode milestone thresholds.
 
 ## One-generation state machine
 
@@ -90,9 +100,11 @@ grant capabilities. The Petri Dish state is host-owned
 
 The host-owned environment has four simulated resource pools—compute,
 knowledge, novelty, and stability—and four deterministic phases: balanced,
-scarcity, novelty surge, and stability. These values influence simulated
-fitness and energy rewards only. They cannot alter provider budgets or host
-resource limits.
+scarcity, novelty surge, and stability. Each evaluation spends a fixed amount of
+compute; balanced and stability phases regenerate slightly more than that spend
+so a drained compute pool can recover over time, while scarcity remains a net
+drain. These values influence simulated fitness and energy rewards only. They
+cannot alter provider budgets or host resource limits.
 
 Before a bounded generation, the population layer may select one complementary
 living organism. The request receives a cooperation context containing only
@@ -279,7 +291,26 @@ and provider packages.
 The selected provider credential (`GROQ_API_KEY` or `NVIDIA_API_KEY`) is loaded
 by the host process. The engine and organism receive a `ModelProvider`
 capability object. They cannot inspect the key through that interface. Provider
-selection and model choice are host-owned configuration.
+selection and model choice are host-owned configuration. Both Groq and NVIDIA
+expose a curated offline model catalog in the localhost UI; `/api/models`
+merges that catalog with the provider's live listing when credentials work.
+
+## NVIDIA generation profiles
+
+NVIDIA NIM decoding is provider-specific and host-owned:
+
+| Profile | Temperature | top_p | JSON handling | Reasoning |
+|---|---:|---:|---|---|
+| `precise` | 0.2 | 0.9 | strict `json_object` | off |
+| `balanced` (default) | 0.7 | 0.95 | extract final object | medium on reasoning models |
+| `exploratory` | 1.0 | 0.95 | extract final object | high on reasoning models |
+
+Configure with `EVO_NVIDIA_GENERATION_PROFILE` and optional overrides
+`EVO_NVIDIA_TEMPERATURE`, `EVO_NVIDIA_TOP_P`, `EVO_NVIDIA_JSON_MODE`, and
+`EVO_NVIDIA_REASONING_EFFORT`. NVIDIA defaults also raise the unset output
+budget to 4096 tokens and request timeout to 90 seconds. Groq remains on the
+conservative shared profile. Model output is still untrusted and must pass
+schema/path validation before any further use.
 
 ## Initial fitness vector
 

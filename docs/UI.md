@@ -2,7 +2,8 @@
 
 The UI includes a Digital Petri Dish observatory. It displays ecological
 epoch, living population, births, extinctions, carrying capacity, mean energy,
-mean fitness, a scrollable SVG parent-child lineage map, and a ranked living
+mean fitness, a fully navigable SVG parent-child lineage map (all generations,
+with scrollbars, wheel zoom, and hand-drag panning), and a ranked living
 organism roster. English remains the default language and every new label has a
 fluent Persian translation.
 
@@ -36,7 +37,32 @@ availability, and the permanent denial of deployment authority. Patch apply and
 rollback are intentionally absent from the browser and require exact CLI
 confirmation phrases.
 
-The local UI is a stdlib HTTP console for host-side operations.
+The Digital Petri Dish ecology cards (resources, niches, cooperation) and the
+lineage map are independently collapsible and start collapsed. Ecology cards,
+resource meters, niche chips, cooperation links, and the lineage graph use a
+higher-contrast light blue/gray observatory treatment so population state stays
+readable at a glance.
+
+The Evolution Journal includes a **Read journey** action on each timeline
+entry. It opens a modal with a bilingual storytelling chronicle of the
+evolution path from the first recorded moment through that entry. The story is
+composed from the public journal only and never exposes credentials or raw
+patches. In Persian mode, UI chrome uses built-in FA templates, and Latin
+proposal fields (objective, summary, rationale, benefit, risk) are translated
+via the configured model provider into a local cache at `.evo/i18n-cache-fa.json`
+so later journal/journey views reuse the same Persian text.
+
+Main workspace panels (Life Support, Environment Controls, Manual Selection,
+Open-Ended Loop, Digital Petri Dish, Evidence Integrity, Evolution Journal, and
+Audit trail) are also `<details>` sections: collapsed by default, expandable via
+the panel header. Global search stays available in the Audit summary without
+toggling the panel, and matching panels open automatically while filtering.
+
+Hover help appears on panels, ecology cards, pipeline cards, status/metric chips,
+achievements, organism cards, and journey summary elements. Descriptions are
+bilingual (EN/FA) and follow the selected UI language. Organism roster cards and
+lineage nodes show a per-gnome summary (lineage, generation, role, energy,
+fitness, parents, adaptations, and collaboration counts).
 
 ## Start
 
@@ -63,11 +89,18 @@ The server refuses non-localhost binds.
 | Area | Behavior |
 |---|---|
 | Settings | Writes `.env.local`; never returns raw API keys |
+| NVIDIA models | Dropdown catalog (merged with live `/models` when available) |
+| Groq models | Dropdown catalog (merged with live `/models` when available) |
+| NVIDIA generation profile | Precise / balanced / exploratory decoding controls |
 | Doctor | Validates host configuration |
 | Probe | One provider health request |
 | Evolve | One bounded generation through the immutable kernel |
 | Audit search | Filters redacted `.evo/audit.jsonl` events |
 | Global search | Filters visible panels and audit rows in the page |
+| Evolution journey | Large colorful modal with synopsis, stats, and timeline chapters; full Persian RTL when FA is selected, including cached translation of proposal free-text |
+| Achievements | Host catalog from `GET /api/achievements`; UI count is unlocked / catalog total |
+| Hover help | Mouse-over / focus tooltips on panels and cards describe each section in EN or FA |
+| Lineage map | Large viewport (`min(48rem, 82vh)`); all generations with scroll, wheel-zoom, and hand-drag pan |
 
 ## Security notes
 

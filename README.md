@@ -78,9 +78,17 @@ For NVIDIA NIM, configure:
 EVO_PROVIDER=nvidia
 NVIDIA_API_KEY=your-new-key
 EVO_NVIDIA_MODEL=meta/llama-3.1-70b-instruct
+EVO_NVIDIA_GENERATION_PROFILE=balanced
+EVO_MAX_OUTPUT_TOKENS=4096
 ```
 
+`balanced` uses temperature `0.7`, `top_p=0.95`, larger output budgets, and
+JSON extraction after optional reasoning. Use `precise` for conservative
+decoding or `exploratory` for temperature `1.0`.
+
 For Groq, use `EVO_PROVIDER=groq`, `GROQ_API_KEY`, and `EVO_GROQ_MODEL`.
+The localhost Settings panel lists curated Groq chat models in a dropdown and
+merges live `/models` results when the key is configured.
 
 To run a single, bounded generation:
 
@@ -146,6 +154,7 @@ Open [http://127.0.0.1:8787/](http://127.0.0.1:8787/). From the UI you can:
 - switch between English (default) and Persian;
 - start or stop bounded autonomous evolution;
 - follow the gnome's progress in a dedicated evolution journal;
+- open a storytelling journey modal from any journal entry (from the beginning through that point);
 - search the redacted audit trail.
 
 Use `--no-browser` if you prefer to open the page yourself, and `--port` to choose
@@ -173,12 +182,18 @@ To use it:
 The enabled state is persisted in `.evo/autonomy-state.json`, so autonomous mode
 resumes when the UI process is started again. The public progress narrative is
 stored in `.evo/evolution-journal.jsonl`; the lower-level security audit remains
-in `.evo/audit.jsonl`.
+in `.evo/audit.jsonl`. Each journal entry offers **Read journey**, which opens a
+modal storytelling chronicle from the first recorded moment through that point
+via `/api/evolution-journey`. In Persian mode, Latin proposal fields are
+translated through the configured provider into `.evo/i18n-cache-fa.json` so the
+synopsis and generation bodies appear in Farsi alongside the FA UI chrome.
 
 Selected generations also unlock persistent lineage achievements. Milestones
-currently mark the first viable adaptation and generations 5, 10, 25, 50, 100,
-500, and 1,000. Every unlock is attached to the exact journal entry that earned
-it and appears in the Evolutionary Achievements gallery.
+are defined once in the host catalog (`src/evo/achievements.py`) and exposed by
+`GET /api/achievements`. Defaults currently mark the first viable adaptation and
+generations 5, 10, 25, 50, 100, 500, and 1,000. Every unlock is attached to the
+exact journal entry that earned it and appears in the Evolutionary Achievements
+gallery.
 
 Autonomous mode is deliberately opt-in because each generation consumes API
 quota. It has a configurable attempt limit (maximum 10,000), a minimum
@@ -196,9 +211,11 @@ proposals reduce viability. When capacity is exceeded, the least viable
 organisms become extinct.
 
 Population state is stored atomically in `.evo/petri-dish.json`. The UI exposes
-energy, fitness, births, extinctions, founder/offspring status, and a scrollable
-parent-child lineage graph. This simulated substrate grants no additional host
-permissions and cannot promote its own mutations.
+energy, fitness, births, extinctions, founder/offspring status, and a parent-
+child lineage graph of every generation. The lineage viewport supports
+scrollbars, wheel zoom, and hand-drag panning so deep lineages remain
+inspectable. This simulated substrate grants no additional host permissions and
+cannot promote its own mutations.
 
 ## Niches and primitive self-organization
 
@@ -442,3 +459,7 @@ before it signs; distribute that public key through an authenticated channel.
 
 See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) and
 [docs/ROADMAP.md](docs/ROADMAP.md) for the system boundary and next milestones.
+
+For a separate greenfield vision (idea → living product factory, domain-agnostic),
+see [docs/PRODUCT_BRAIN_BLUEPRINT.md](docs/PRODUCT_BRAIN_BLUEPRINT.md). That
+blueprint is design-only and is not part of the EVO Terrarium runtime.

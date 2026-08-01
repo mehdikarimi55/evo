@@ -11,6 +11,13 @@ import shlex
 
 from evo.candidate_lifecycle import CandidateLifecycle
 from evo.config import ConfigurationError, Settings, load_env_file
+from evo.content_i18n import (
+    TranslationCache,
+    TranslationError,
+    apply_translations,
+    collect_translatable_texts,
+    translate_missing,
+)
 from evo.domain import EvolutionTask, Genome
 from evo.evidence_control import EvidenceControl, EvidenceSigner, ReplayService
 from evo.trust_authority import Ed25519Identity, TrustAuthority
@@ -24,8 +31,20 @@ from evo.mutation import MutationApplicator
 from evo.petri import PetriDish
 from evo.providers.base import ModelProvider
 from evo.providers.groq import GroqProvider, ProviderError
+from evo.providers.groq_models import GROQ_MODEL_CATALOG
 from evo.providers.nvidia import NvidiaProvider
+from evo.providers.nvidia_generation import (
+    PROFILE_BALANCED,
+    SUPPORTED_PROFILES,
+    NvidiaGenerationProfile,
+)
+from evo.providers.nvidia_models import NVIDIA_MODEL_CATALOG
 from evo.sandbox import RootlessSandbox, SandboxLimits
+
+PROVIDER_MODEL_CATALOGS: dict[str, tuple[str, ...]] = {
+    "groq": GROQ_MODEL_CATALOG,
+    "nvidia": NVIDIA_MODEL_CATALOG,
+}
 
 SUPPORTED_PROVIDERS = ("groq", "nvidia")
 DEFAULT_AUDIT_PATH = Path(".evo/audit.jsonl")
@@ -93,14 +112,56 @@ class TerrariumRuntime:
 
     def build_provider(self, settings: Settings | None = None) -> ModelProvider:
         resolved = settings or self.load_settings()
-        provider_type = GroqProvider if resolved.provider == "groq" else NvidiaProvider
-        return provider_type(
+        if resolved.provider == "groq":
+            return GroqProvider(
+                api_key=resolved.api_key,
+                model=resolved.model,
+                base_url=resolved.base_url,
+                timeout_seconds=resolved.request_timeout_seconds,
+                max_output_tokens=resolved.max_output_tokens,
+            )
+        return NvidiaProvider(
             api_key=resolved.api_key,
             model=resolved.model,
             base_url=resolved.base_url,
             timeout_seconds=resolved.request_timeout_seconds,
             max_output_tokens=resolved.max_output_tokens,
+            generation_profile=resolved.nvidia_generation
+            or NvidiaGenerationProfile.from_environment(),
         )
+
+    def localize_journal_entries(
+        self,
+        entries: list[dict[str, object]],
+        *,
+        allow_provider: bool = True,
+    ) -> list[dict[str, object]]:
+        """Return journal entries with Latin free-text localized to Persian."""
+        texts = collect_translatable_texts(entries)
+        if not texts:
+            return [dict(entry) for entry in entries]
+        cache = TranslationCache(self.workspace / ".evo/i18n-cache-fa.json")
+        mapping: dict[str, str] = {}
+        if allow_provider:
+            try:
+                provider = self.build_provider()
+                mapping = translate_missing(
+                    texts,
+                    cache=cache,
+                    provider=provider,
+                )
+            except (
+                ConfigurationError,
+                TranslationError,
+                ProviderError,
+                ValueError,
+                OSError,
+            ):
+                mapping = {}
+        if not mapping:
+            for text in texts:
+                mapping[text] = cache.get(text) or text
+        return [apply_translations(dict(entry), mapping) for entry in entries]
 
     def public_settings(self) -> dict[str, object]:
         try:
@@ -141,6 +202,17 @@ class TerrariumRuntime:
                 "python -m unittest discover -s tests",
             ),
             "sandbox_timeout_seconds": sandbox_timeout,
+            "nvidia_generation_profile": (
+                settings.nvidia_generation.mode
+                if settings.nvidia_generation is not None
+                else None
+            ),
+            "nvidia_generation": (
+                settings.nvidia_generation.public_dict()
+                if settings.nvidia_generation is not None
+                else None
+            ),
+            "supported_nvidia_generation_profiles": list(SUPPORTED_PROFILES),
         }
 
     def doctor(self) -> dict[str, object]:
@@ -154,6 +226,32 @@ class TerrariumRuntime:
 
     def probe(self) -> str:
         return self.build_provider().healthcheck()
+
+    def list_models(self, provider: str | None = None) -> dict[str, object]:
+        selected = (provider or os.getenv("EVO_PROVIDER", "groq")).strip().lower()
+        if selected not in SUPPORTED_PROVIDERS:
+            try:
+                selected = self.load_settings().provider
+            except ConfigurationError:
+                selected = "groq"
+        catalog = PROVIDER_MODEL_CATALOGS.get(selected, GROQ_MODEL_CATALOG)
+        models = list(catalog)
+        source = "catalog"
+        try:
+            settings = self.load_settings()
+            if settings.provider == selected:
+                live = self.build_provider(settings).list_models()
+                if live:
+                    models = sorted(set(models) | set(live))
+                    source = "provider"
+        except (ConfigurationError, ProviderError, ValueError, AttributeError):
+            pass
+        return {
+            "provider": selected,
+            "models": models,
+            "source": source,
+            "selectable": True,
+        }
 
     def evidence_control(
         self,
@@ -421,7 +519,11 @@ class TerrariumRuntime:
                 values, "max_input_tokens", existing, "EVO_MAX_INPUT_TOKENS", 6000
             ),
             "EVO_MAX_OUTPUT_TOKENS": _positive_setting(
-                values, "max_output_tokens", existing, "EVO_MAX_OUTPUT_TOKENS", 1200
+                values,
+                "max_output_tokens",
+                existing,
+                "EVO_MAX_OUTPUT_TOKENS",
+                4096 if provider == "nvidia" else 1200,
             ),
             "EVO_MAX_CALLS_PER_RUN": _positive_setting(
                 values, "max_calls_per_run", existing, "EVO_MAX_CALLS_PER_RUN", 4
@@ -431,7 +533,7 @@ class TerrariumRuntime:
                 "request_timeout_seconds",
                 existing,
                 "EVO_REQUEST_TIMEOUT_SECONDS",
-                45,
+                90 if provider == "nvidia" else 45,
             ),
             "EVO_SANDBOX_IMAGE": str(
                 values.get(
@@ -465,6 +567,12 @@ class TerrariumRuntime:
                     maximum=600,
                 )
             ),
+            "EVO_NVIDIA_GENERATION_PROFILE": _nvidia_profile_setting(
+                values.get(
+                    "nvidia_generation_profile",
+                    existing.get("EVO_NVIDIA_GENERATION_PROFILE", PROFILE_BALANCED),
+                )
+            ),
         }
         if payload["EVO_SANDBOX_IMAGE"] and not payload["EVO_EVALUATION_COMMAND"]:
             raise ConfigurationError(
@@ -482,6 +590,14 @@ class TerrariumRuntime:
             other_base = PROVIDER_BASE_URL_NAMES[other]
             if other_base in existing:
                 payload[other_base] = existing[other_base]
+        for optional in (
+            "EVO_NVIDIA_TEMPERATURE",
+            "EVO_NVIDIA_TOP_P",
+            "EVO_NVIDIA_JSON_MODE",
+            "EVO_NVIDIA_REASONING_EFFORT",
+        ):
+            if optional in existing and existing[optional].strip():
+                payload[optional] = existing[optional]
 
         _write_env_file(self.env_file, payload)
         for name, value in payload.items():
@@ -549,6 +665,16 @@ def _sandbox_engine_setting(raw: object) -> str:
     return value
 
 
+def _nvidia_profile_setting(raw: object) -> str:
+    value = str(raw).strip().lower()
+    if value not in SUPPORTED_PROFILES:
+        raise ConfigurationError(
+            "EVO_NVIDIA_GENERATION_PROFILE must be one of: "
+            + ", ".join(SUPPORTED_PROFILES)
+        )
+    return value
+
+
 def _team_ids(traits: dict[str, Any] | None) -> tuple[str, ...]:
     plan = (traits or {}).get("team_plan")
     members = plan.get("members", []) if isinstance(plan, dict) else []
@@ -599,6 +725,20 @@ def _write_env_file(path: Path, values: dict[str, str]) -> None:
             "EVO_NVIDIA_BASE_URL="
             f"{values.get('EVO_NVIDIA_BASE_URL', PROVIDER_DEFAULTS['nvidia']['base_url'])}"
         ),
+        (
+            "EVO_NVIDIA_GENERATION_PROFILE="
+            f"{values.get('EVO_NVIDIA_GENERATION_PROFILE', PROFILE_BALANCED)}"
+        ),
+        *[
+            f"{name}={values[name]}"
+            for name in (
+                "EVO_NVIDIA_TEMPERATURE",
+                "EVO_NVIDIA_TOP_P",
+                "EVO_NVIDIA_JSON_MODE",
+                "EVO_NVIDIA_REASONING_EFFORT",
+            )
+            if name in values and str(values[name]).strip()
+        ],
         "",
         f"EVO_MAX_INPUT_TOKENS={values['EVO_MAX_INPUT_TOKENS']}",
         f"EVO_MAX_OUTPUT_TOKENS={values['EVO_MAX_OUTPUT_TOKENS']}",
